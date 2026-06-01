@@ -23,46 +23,39 @@ export default function FuturePage() {
   if (!assessment) {
     return (
       <AssessmentShell>
-        <div className="text-center py-20 text-muted">
-          Assessment not found
-        </div>
+        <div className="text-center py-20 text-muted">Assessment not found</div>
       </AssessmentShell>
     );
   }
 
   return (
     <AssessmentShell>
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">Future Operating Model</h1>
-          <p className="text-foreground-secondary mt-2 text-lg">
-            AI-augmented department vision and transformation path
-          </p>
+          <h1 className="text-2xl font-bold text-foreground">Future Operating Model</h1>
+          <p className="text-foreground-secondary mt-1">AI-augmented department vision and transformation path</p>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-5">
           {assessment.futureModel.map((model) => (
             <div key={model.departmentId} className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
-              {/* Department Header */}
-              <div className="px-6 py-4 border-b border-border bg-gradient-to-r from-accent/5 to-transparent flex items-center gap-3">
+              <div className="px-5 py-4 border-b border-border bg-gradient-to-r from-accent/5 to-transparent flex items-center gap-3">
                 <div className="h-9 w-9 rounded-xl bg-accent-muted flex items-center justify-center">
-                  <Rocket className="h-4.5 w-4.5 text-accent" />
+                  <Rocket className="h-4 w-4 text-accent" />
                 </div>
-                <h3 className="font-bold text-foreground text-lg">{model.departmentName}</h3>
+                <h3 className="font-bold text-foreground">{model.departmentName}</h3>
               </div>
-
-              <div className="p-6 space-y-6">
-                {/* Before / After */}
+              <div className="p-5 space-y-5">
                 <div className="grid lg:grid-cols-2 gap-4">
-                  <div className="p-5 rounded-xl border border-error/20 bg-error-muted">
-                    <div className="text-sm font-bold text-error mb-3 flex items-center gap-1.5">
+                  <div className="p-4 rounded-xl border border-error/20 bg-error-muted">
+                    <div className="text-sm font-bold text-error mb-2 flex items-center gap-1.5">
                       <ArrowLeft className="h-3.5 w-3.5" />
                       Current State (Friction)
                     </div>
                     <p className="text-sm text-foreground-secondary leading-relaxed">{model.beforeState}</p>
                   </div>
-                  <div className="p-5 rounded-xl border border-success/20 bg-success-muted">
-                    <div className="text-sm font-bold text-success mb-3 flex items-center gap-1.5">
+                  <div className="p-4 rounded-xl border border-success/20 bg-success-muted">
+                    <div className="text-sm font-bold text-success mb-2 flex items-center gap-1.5">
                       <ArrowRight className="h-3.5 w-3.5" />
                       Future State (AI-Native)
                     </div>
@@ -70,7 +63,6 @@ export default function FuturePage() {
                   </div>
                 </div>
 
-                {/* AI Agents, Automations, Governance */}
                 <div className="grid md:grid-cols-3 gap-4">
                   <div className="p-4 rounded-xl border border-border bg-background">
                     <div className="flex items-center gap-2 mb-3">
@@ -81,13 +73,10 @@ export default function FuturePage() {
                     </div>
                     <div className="space-y-1.5">
                       {model.recommendedAIAgents.map((agent) => (
-                        <Badge key={agent} variant="default" className="block text-center font-medium">
-                          {agent}
-                        </Badge>
+                        <Badge key={agent} variant="default" className="block text-center font-medium">{agent}</Badge>
                       ))}
                     </div>
                   </div>
-
                   <div className="p-4 rounded-xl border border-border bg-background">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="h-7 w-7 rounded-lg bg-info-muted flex items-center justify-center">
@@ -97,16 +86,10 @@ export default function FuturePage() {
                     </div>
                     <div className="space-y-1.5">
                       {model.workflowAutomations.map((auto) => (
-                        <div
-                          key={auto}
-                          className="text-xs bg-info-muted text-info px-2.5 py-1.5 rounded-lg text-center font-medium"
-                        >
-                          {auto}
-                        </div>
+                        <div key={auto} className="text-xs bg-info-muted text-info px-2.5 py-1.5 rounded-lg text-center font-medium">{auto}</div>
                       ))}
                     </div>
                   </div>
-
                   <div className="p-4 rounded-xl border border-border bg-background">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="h-7 w-7 rounded-lg bg-warning-muted flex items-center justify-center">
@@ -116,28 +99,20 @@ export default function FuturePage() {
                     </div>
                     <div className="space-y-1.5">
                       {model.governanceRecommendations.map((rec) => (
-                        <div
-                          key={rec}
-                          className="text-xs bg-warning-muted text-warning px-2.5 py-1.5 rounded-lg text-center font-medium"
-                        >
-                          {rec}
-                        </div>
+                        <div key={rec} className="text-xs bg-warning-muted text-warning px-2.5 py-1.5 rounded-lg text-center font-medium">{rec}</div>
                       ))}
                     </div>
                   </div>
                 </div>
 
-                {/* Integration Suggestions */}
                 <div>
-                  <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center gap-2 mb-2">
                     <Link2 className="h-4 w-4 text-muted" />
                     <span className="text-sm font-bold text-foreground">Integration Suggestions</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {model.integrationSuggestions.map((suggestion) => (
-                      <Badge key={suggestion} variant="outline" className="font-medium">
-                        {suggestion}
-                      </Badge>
+                      <Badge key={suggestion} variant="outline" className="font-medium">{suggestion}</Badge>
                     ))}
                   </div>
                 </div>
@@ -147,20 +122,11 @@ export default function FuturePage() {
         </div>
 
         <div className="flex justify-between">
-          <Button
-            variant="outline"
-            onClick={() => router.push(`/assessment/${params.id}/cockpit`)}
-            className="border-border-hover"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Cockpit
+          <Button variant="outline" onClick={() => router.push(`/assessment/${params.id}/cockpit`)} className="border-border-hover">
+            <ArrowLeft className="h-4 w-4" /> Back to Cockpit
           </Button>
-          <Button
-            onClick={() => router.push(`/assessment/${params.id}/roadmap`)}
-            className="bg-accent hover:bg-accent-hover text-white shadow-sm"
-          >
-            Continue to Roadmap
-            <ArrowRight className="h-4 w-4" />
+          <Button onClick={() => router.push(`/assessment/${params.id}/roadmap`)} className="bg-accent hover:bg-accent-hover text-white shadow-sm">
+            Continue to Roadmap <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </div>

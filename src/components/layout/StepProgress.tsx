@@ -34,8 +34,8 @@ export function StepProgress({ assessmentId }: StepProgressProps) {
   const currentStep = steps.findIndex((s) => pathname.includes(s.href));
 
   return (
-    <nav className="no-print border-b border-border bg-white/80 backdrop-blur-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-6">
+    <nav className="no-print border-b border-border bg-white/90 backdrop-blur-md sticky top-0 z-50">
+      <div className="max-w-[1200px] mx-auto px-6">
         <div className="flex items-center h-12 overflow-x-auto">
           <Link
             href="/dashboard"

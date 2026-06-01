@@ -30,9 +30,7 @@ export default function CockpitPage() {
   if (!assessment) {
     return (
       <AssessmentShell>
-        <div className="text-center py-20 text-muted">
-          Assessment not found
-        </div>
+        <div className="text-center py-20 text-muted">Assessment not found</div>
       </AssessmentShell>
     );
   }
@@ -41,35 +39,26 @@ export default function CockpitPage() {
 
   return (
     <AssessmentShell>
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">Executive Cockpit</h1>
-          <p className="text-foreground-secondary mt-2 text-lg">
-            Transformation readiness and business outcomes
-          </p>
+          <h1 className="text-2xl font-bold text-foreground">Executive Cockpit</h1>
+          <p className="text-foreground-secondary mt-1">Transformation readiness and business outcomes</p>
         </div>
 
-        {/* Main Score + KPIs */}
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Transformation Score */}
           <div className="bg-white rounded-2xl border border-border shadow-sm p-8 flex flex-col items-center justify-center">
-            <div className={`h-36 w-36 rounded-full bg-gradient-to-br ${scoreBg(cockpit.transformationScore)} flex items-center justify-center mb-4 shadow-lg`}>
+            <div className={`h-32 w-32 rounded-full bg-gradient-to-br ${scoreBg(cockpit.transformationScore)} flex items-center justify-center mb-4 shadow-lg`}>
               <div className="text-center">
-                <div className={`text-5xl font-bold text-white`}>
-                  {cockpit.transformationScore}
-                </div>
-                <div className="text-xs text-white/70 uppercase tracking-wider mt-1">/ 100</div>
+                <div className="text-4xl font-bold text-white">{cockpit.transformationScore}</div>
+                <div className="text-xs text-white/70 uppercase mt-1">/ 100</div>
               </div>
             </div>
-            <h3 className="text-xl font-bold text-foreground mt-2">Transformation Score</h3>
-            <p className="text-sm text-muted text-center mt-1 max-w-xs">
-              {cockpit.aiAdoptionReadiness}
-            </p>
+            <h3 className="text-lg font-bold text-foreground mt-2">Transformation Score</h3>
+            <p className="text-sm text-muted text-center mt-1 max-w-xs">{cockpit.aiAdoptionReadiness}</p>
           </div>
 
-          {/* KPI Cards */}
           <div className="lg:col-span-2 grid md:grid-cols-2 gap-4">
-            <div className="bg-white rounded-xl border border-border p-5 shadow-xs success-top">
+            <div className="bg-white rounded-2xl border border-border p-5 shadow-sm border-t-3 border-t-success">
               <div className="flex items-center gap-3 mb-3">
                 <div className="h-10 w-10 rounded-xl bg-success-muted flex items-center justify-center">
                   <IndianRupee className="h-5 w-5 text-success" />
@@ -80,8 +69,7 @@ export default function CockpitPage() {
                 </div>
               </div>
             </div>
-
-            <div className="bg-white rounded-xl border border-border p-5 shadow-xs accent-top">
+            <div className="bg-white rounded-2xl border border-border p-5 shadow-sm border-t-3 border-t-accent">
               <div className="flex items-center gap-3 mb-3">
                 <div className="h-10 w-10 rounded-xl bg-accent-muted flex items-center justify-center">
                   <Zap className="h-5 w-5 text-accent" />
@@ -92,8 +80,7 @@ export default function CockpitPage() {
                 </div>
               </div>
             </div>
-
-            <div className="bg-white rounded-xl border border-border p-5 shadow-xs warning-top">
+            <div className="bg-white rounded-2xl border border-border p-5 shadow-sm border-t-3 border-t-warning">
               <div className="flex items-center gap-3 mb-3">
                 <div className="h-10 w-10 rounded-xl bg-warning-muted flex items-center justify-center">
                   <AlertTriangle className="h-5 w-5 text-warning" />
@@ -104,8 +91,7 @@ export default function CockpitPage() {
                 </div>
               </div>
             </div>
-
-            <div className="bg-white rounded-xl border border-border p-5 shadow-xs cyan-top">
+            <div className="bg-white rounded-2xl border border-border p-5 shadow-sm border-t-3 border-t-info">
               <div className="flex items-center gap-3 mb-3">
                 <div className="h-10 w-10 rounded-xl bg-info-muted flex items-center justify-center">
                   <Target className="h-5 w-5 text-info" />
@@ -119,26 +105,20 @@ export default function CockpitPage() {
           </div>
         </div>
 
-        {/* Bottlenecks + Actions */}
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid lg:grid-cols-2 gap-5">
           <div className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-border bg-gradient-to-r from-error/5 to-transparent">
+            <div className="px-5 py-4 border-b border-border bg-gradient-to-r from-error/5 to-transparent">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-error" />
-                <h3 className="font-bold text-foreground text-lg">Top 5 Bottlenecks</h3>
+                <h3 className="font-bold text-foreground">Top 5 Bottlenecks</h3>
               </div>
             </div>
-            <div className="p-6">
-              <div className="space-y-3">
+            <div className="p-5">
+              <div className="space-y-2.5">
                 {cockpit.topBottlenecks.map((bottleneck, i) => (
-                  <div
-                    key={i}
-                    className="flex items-start gap-3 p-4 rounded-xl bg-error-muted border border-error/10"
-                  >
-                    <div className="h-7 w-7 rounded-full bg-error/10 flex items-center justify-center shrink-0">
-                      <span className="text-xs font-bold text-error">
-                        {i + 1}
-                      </span>
+                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-error-muted border border-error/10">
+                    <div className="h-6 w-6 rounded-full bg-error/10 flex items-center justify-center shrink-0">
+                      <span className="text-xs font-bold text-error">{i + 1}</span>
                     </div>
                     <span className="text-sm font-medium text-foreground">{bottleneck}</span>
                   </div>
@@ -148,23 +128,18 @@ export default function CockpitPage() {
           </div>
 
           <div className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-border bg-gradient-to-r from-success/5 to-transparent">
+            <div className="px-5 py-4 border-b border-border bg-gradient-to-r from-success/5 to-transparent">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-success" />
-                <h3 className="font-bold text-foreground text-lg">Top 5 Executive Actions</h3>
+                <h3 className="font-bold text-foreground">Top 5 Executive Actions</h3>
               </div>
             </div>
-            <div className="p-6">
-              <div className="space-y-3">
+            <div className="p-5">
+              <div className="space-y-2.5">
                 {cockpit.executiveActions.map((action, i) => (
-                  <div
-                    key={i}
-                    className="flex items-start gap-3 p-4 rounded-xl bg-success-muted border border-success/10"
-                  >
-                    <div className="h-7 w-7 rounded-full bg-success/10 flex items-center justify-center shrink-0">
-                      <span className="text-xs font-bold text-success">
-                        {i + 1}
-                      </span>
+                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-success-muted border border-success/10">
+                    <div className="h-6 w-6 rounded-full bg-success/10 flex items-center justify-center shrink-0">
+                      <span className="text-xs font-bold text-success">{i + 1}</span>
                     </div>
                     <span className="text-sm font-medium text-foreground">{action}</span>
                   </div>
@@ -174,36 +149,24 @@ export default function CockpitPage() {
           </div>
         </div>
 
-        {/* AI Adoption Readiness */}
-        <div className="bg-white rounded-2xl border border-border shadow-sm p-6">
+        <div className="bg-white rounded-2xl border border-border shadow-sm p-5">
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-accent to-cyan flex items-center justify-center">
-              <Brain className="h-6 w-6 text-white" />
+            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-accent to-cyan flex items-center justify-center">
+              <Brain className="h-5 w-5 text-white" />
             </div>
             <div>
-              <div className="font-bold text-foreground text-lg">AI Adoption Readiness</div>
-              <div className="text-sm text-foreground-secondary">
-                {cockpit.aiAdoptionReadiness}
-              </div>
+              <div className="font-bold text-foreground">AI Adoption Readiness</div>
+              <div className="text-sm text-foreground-secondary">{cockpit.aiAdoptionReadiness}</div>
             </div>
           </div>
         </div>
 
         <div className="flex justify-between">
-          <Button
-            variant="outline"
-            onClick={() => router.push(`/assessment/${params.id}/opportunities`)}
-            className="border-border-hover"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Opportunities
+          <Button variant="outline" onClick={() => router.push(`/assessment/${params.id}/opportunities`)} className="border-border-hover">
+            <ArrowLeft className="h-4 w-4" /> Back to Opportunities
           </Button>
-          <Button
-            onClick={() => router.push(`/assessment/${params.id}/future`)}
-            className="bg-accent hover:bg-accent-hover text-white shadow-sm"
-          >
-            Continue to Future Model
-            <ArrowRight className="h-4 w-4" />
+          <Button onClick={() => router.push(`/assessment/${params.id}/future`)} className="bg-accent hover:bg-accent-hover text-white shadow-sm">
+            Continue to Future Model <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </div>

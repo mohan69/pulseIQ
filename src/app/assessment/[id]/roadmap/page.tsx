@@ -44,28 +44,23 @@ export default function RoadmapPage() {
   if (!assessment) {
     return (
       <AssessmentShell>
-        <div className="text-center py-20 text-muted">
-          Assessment not found
-        </div>
+        <div className="text-center py-20 text-muted">Assessment not found</div>
       </AssessmentShell>
     );
   }
 
   return (
     <AssessmentShell>
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">30/60/90 Day Roadmap</h1>
-          <p className="text-foreground-secondary mt-2 text-lg">
-            Phased execution plan with milestones and measurable outcomes
-          </p>
+          <h1 className="text-2xl font-bold text-foreground">30/60/90 Day Roadmap</h1>
+          <p className="text-foreground-secondary mt-1">Phased execution plan with milestones and measurable outcomes</p>
         </div>
 
-        {/* Pilot Scope */}
-        <div className="rounded-xl bg-gradient-to-r from-navy/5 to-accent/5 border border-border p-5">
+        <div className="rounded-xl bg-gradient-to-r from-navy/5 to-accent/5 border border-border p-4">
           <div className="flex items-start gap-3">
-            <div className="h-10 w-10 rounded-xl bg-accent-muted flex items-center justify-center shrink-0">
-              <Lightbulb className="h-5 w-5 text-accent" />
+            <div className="h-9 w-9 rounded-xl bg-accent-muted flex items-center justify-center shrink-0">
+              <Lightbulb className="h-4 w-4 text-accent" />
             </div>
             <div>
               <div className="font-bold text-foreground">Pilot Scope Recommendation</div>
@@ -76,36 +71,27 @@ export default function RoadmapPage() {
           </div>
         </div>
 
-        {/* Phase Cards */}
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-3 gap-5">
           {assessment.roadmap.map((phase) => {
             const config = phaseConfig[phase.phase];
             return (
               <div key={phase.phase} className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
-                {/* Phase Header */}
-                <div className={`bg-gradient-to-br ${config.gradient} p-6`}>
+                <div className={`bg-gradient-to-br ${config.gradient} p-5`}>
                   <div className="text-white">
-                    <div className="text-xl font-bold">{config.title}</div>
-                    <div className="text-white/70 text-sm mt-1">{config.subtitle}</div>
+                    <div className="text-lg font-bold">{config.title}</div>
+                    <div className="text-white/70 text-sm mt-0.5">{config.subtitle}</div>
                   </div>
                 </div>
-
-                {/* Milestones */}
-                <div className="p-6 space-y-4">
+                <div className="p-5 space-y-3">
                   {phase.milestones.map((milestone) => (
-                    <div
-                      key={milestone.id}
-                      className="border border-border rounded-xl p-4 hover:border-border-hover transition-colors"
-                    >
+                    <div key={milestone.id} className="border border-border rounded-xl p-4 hover:border-border-hover transition-colors">
                       <div className="flex items-start gap-3">
-                        <div className="h-7 w-7 rounded-full bg-accent-muted flex items-center justify-center shrink-0">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
+                        <div className="h-6 w-6 rounded-full bg-accent-muted flex items-center justify-center shrink-0">
+                          <CheckCircle2 className="h-3 w-3 text-accent" />
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-semibold text-foreground text-sm">
-                            {milestone.title}
-                          </h4>
-                          <div className="mt-3 space-y-2">
+                          <h4 className="font-semibold text-foreground text-sm">{milestone.title}</h4>
+                          <div className="mt-2 space-y-1.5">
                             <div className="flex items-center gap-1.5 text-xs text-muted">
                               <Users className="h-3 w-3" />
                               <span className="font-medium">{milestone.ownerFunction}</span>
@@ -130,20 +116,11 @@ export default function RoadmapPage() {
         </div>
 
         <div className="flex justify-between">
-          <Button
-            variant="outline"
-            onClick={() => router.push(`/assessment/${params.id}/future`)}
-            className="border-border-hover"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Future Model
+          <Button variant="outline" onClick={() => router.push(`/assessment/${params.id}/future`)} className="border-border-hover">
+            <ArrowLeft className="h-4 w-4" /> Back to Future Model
           </Button>
-          <Button
-            onClick={() => router.push(`/assessment/${params.id}/report`)}
-            className="bg-accent hover:bg-accent-hover text-white shadow-sm"
-          >
-            View Print Report
-            <ArrowRight className="h-4 w-4" />
+          <Button onClick={() => router.push(`/assessment/${params.id}/report`)} className="bg-accent hover:bg-accent-hover text-white shadow-sm">
+            View Print Report <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </div>

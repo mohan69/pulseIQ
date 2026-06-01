@@ -44,9 +44,7 @@ export default function OpportunitiesPage() {
   if (!assessment) {
     return (
       <AssessmentShell>
-        <div className="text-center py-20 text-muted">
-          Assessment not found
-        </div>
+        <div className="text-center py-20 text-muted">Assessment not found</div>
       </AssessmentShell>
     );
   }
@@ -55,66 +53,61 @@ export default function OpportunitiesPage() {
 
   return (
     <AssessmentShell>
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">AI Transformation Opportunities</h1>
-          <p className="text-foreground-secondary mt-2 text-lg">
-            Ranked by business impact and implementation complexity
-          </p>
+          <h1 className="text-2xl font-bold text-foreground">AI Transformation Opportunities</h1>
+          <p className="text-foreground-secondary mt-1">Ranked by business impact and implementation complexity</p>
         </div>
 
-        {/* Summary Strip */}
         <div className="grid lg:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl border border-border p-5 shadow-xs accent-top">
+          <div className="bg-white rounded-2xl border border-border p-4 shadow-sm border-t-3 border-t-accent">
             <div className="flex items-center gap-3 mb-2">
               <div className="h-9 w-9 rounded-lg bg-accent-muted flex items-center justify-center">
-                <IndianRupee className="h-4.5 w-4.5 text-accent" />
+                <IndianRupee className="h-4 w-4 text-accent" />
               </div>
             </div>
-            <div className="text-2xl font-bold text-accent">{cockpit.opportunityValue}</div>
-            <div className="text-sm text-muted">Total Opportunity Value</div>
+            <div className="text-xl font-bold text-accent">{cockpit.opportunityValue}</div>
+            <div className="text-xs text-muted">Total Opportunity Value</div>
           </div>
-          <div className="bg-white rounded-xl border border-border p-5 shadow-xs success-top">
+          <div className="bg-white rounded-2xl border border-border p-4 shadow-sm border-t-3 border-t-success">
             <div className="flex items-center gap-3 mb-2">
               <div className="h-9 w-9 rounded-lg bg-success-muted flex items-center justify-center">
-                <Zap className="h-4.5 w-4.5 text-success" />
+                <Zap className="h-4 w-4 text-success" />
               </div>
             </div>
-            <div className="text-2xl font-bold text-success">{cockpit.quickWinsCount}</div>
-            <div className="text-sm text-muted">Quick Wins</div>
+            <div className="text-xl font-bold text-success">{cockpit.quickWinsCount}</div>
+            <div className="text-xs text-muted">Quick Wins</div>
           </div>
-          <div className="bg-white rounded-xl border border-border p-5 shadow-xs warning-top">
+          <div className="bg-white rounded-2xl border border-border p-4 shadow-sm border-t-3 border-t-warning">
             <div className="flex items-center gap-3 mb-2">
               <div className="h-9 w-9 rounded-lg bg-warning-muted flex items-center justify-center">
-                <Shield className="h-4.5 w-4.5 text-warning" />
+                <Shield className="h-4 w-4 text-warning" />
               </div>
             </div>
-            <div className="text-2xl font-bold text-warning">{cockpit.highComplexityCount}</div>
-            <div className="text-sm text-muted">High Complexity</div>
+            <div className="text-xl font-bold text-warning">{cockpit.highComplexityCount}</div>
+            <div className="text-xs text-muted">High Complexity</div>
           </div>
-          <div className="bg-white rounded-xl border border-border p-5 shadow-xs cyan-top">
+          <div className="bg-white rounded-2xl border border-border p-4 shadow-sm border-t-3 border-t-info">
             <div className="flex items-center gap-3 mb-2">
               <div className="h-9 w-9 rounded-lg bg-info-muted flex items-center justify-center">
-                <BarChart3 className="h-4.5 w-4.5 text-info" />
+                <BarChart3 className="h-4 w-4 text-info" />
               </div>
             </div>
-            <div className="text-2xl font-bold text-info">{opportunities.length}</div>
-            <div className="text-sm text-muted">Total Opportunities</div>
+            <div className="text-xl font-bold text-info">{opportunities.length}</div>
+            <div className="text-xs text-muted">Total Opportunities</div>
           </div>
         </div>
 
-        {/* Opportunity Cards */}
         <div className="space-y-4">
           {opportunities.map((opp) => {
             const config = priorityConfig[opp.priorityTier];
             const ImpactIcon = impactIcons[opp.impactType] || TrendingUp;
-
             return (
               <div key={opp.id} className="bg-white rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                <div className="p-6">
+                <div className="p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-3">
+                      <div className="flex items-center gap-2 mb-2">
                         <Badge variant={config.variant} className="font-medium">
                           <config.icon className="h-3 w-3 mr-1" />
                           {config.label}
@@ -123,15 +116,11 @@ export default function OpportunitiesPage() {
                           <ImpactIcon className="h-3 w-3 mr-1" />
                           {opp.impactType.replace("_", " ")}
                         </Badge>
-                        <Badge variant="outline" className="font-medium">
-                          {opp.complexity} complexity
-                        </Badge>
+                        <Badge variant="outline" className="font-medium">{opp.complexity} complexity</Badge>
                       </div>
                       <h3 className="text-lg font-bold text-foreground mb-1">{opp.title}</h3>
-                      <p className="text-sm text-foreground-secondary mb-3">
-                        {opp.description}
-                      </p>
-                      <div className="grid md:grid-cols-2 gap-4 text-sm">
+                      <p className="text-sm text-foreground-secondary mb-3">{opp.description}</p>
+                      <div className="grid md:grid-cols-2 gap-3 text-sm">
                         <div>
                           <span className="text-muted font-medium">Impact: </span>
                           <span className="font-semibold text-foreground">{opp.estimatedImpact}</span>
@@ -141,7 +130,7 @@ export default function OpportunitiesPage() {
                           <span className="font-semibold text-foreground">{opp.recommendedOwner}</span>
                         </div>
                       </div>
-                      <div className="mt-4 p-4 rounded-xl bg-accent-muted border border-accent/10">
+                      <div className="mt-3 p-3 rounded-xl bg-accent-muted border border-accent/10">
                         <span className="text-accent font-semibold text-sm">Why it matters: </span>
                         <span className="text-sm text-foreground-secondary">{opp.whyItMatters}</span>
                       </div>
@@ -154,20 +143,11 @@ export default function OpportunitiesPage() {
         </div>
 
         <div className="flex justify-between">
-          <Button
-            variant="outline"
-            onClick={() => router.push(`/assessment/${params.id}/model`)}
-            className="border-border-hover"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Model
+          <Button variant="outline" onClick={() => router.push(`/assessment/${params.id}/model`)} className="border-border-hover">
+            <ArrowLeft className="h-4 w-4" /> Back to Model
           </Button>
-          <Button
-            onClick={() => router.push(`/assessment/${params.id}/cockpit`)}
-            className="bg-accent hover:bg-accent-hover text-white shadow-sm"
-          >
-            Continue to Executive Cockpit
-            <ArrowRight className="h-4 w-4" />
+          <Button onClick={() => router.push(`/assessment/${params.id}/cockpit`)} className="bg-accent hover:bg-accent-hover text-white shadow-sm">
+            Continue to Executive Cockpit <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </div>

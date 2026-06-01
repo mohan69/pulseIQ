@@ -46,7 +46,6 @@ export default function IntakePage() {
           </p>
         </div>
 
-        {/* Summary Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
             { icon: IndianRupee, value: profile.revenueRange, label: "Revenue", color: "success" },
@@ -54,8 +53,8 @@ export default function IntakePage() {
             { icon: Layers, value: systemCount, label: "Systems", color: "info" },
             { icon: AlertTriangle, value: profile.painPoints.length, label: "Pain Points", color: "error" },
           ].map((kpi) => (
-            <div key={kpi.label} className="bg-white rounded-xl border border-border p-3 flex items-center gap-3 shadow-xs">
-              <div className={`h-9 w-9 rounded-lg bg-${kpi.color}-muted flex items-center justify-center shrink-0`}>
+            <div key={kpi.label} className="bg-white rounded-2xl border border-border p-3 flex items-center gap-3 shadow-sm">
+              <div className={`h-9 w-9 rounded-xl bg-${kpi.color}-muted flex items-center justify-center shrink-0`}>
                 <kpi.icon className={`h-4 w-4 text-${kpi.color}`} />
               </div>
               <div>
@@ -67,7 +66,6 @@ export default function IntakePage() {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-5">
-          {/* Company Profile - Compact */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
@@ -108,7 +106,6 @@ export default function IntakePage() {
             </CardContent>
           </Card>
 
-          {/* Current Systems */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
@@ -123,14 +120,10 @@ export default function IntakePage() {
                     value && (
                       <div
                         key={key}
-                        className="flex items-center justify-between py-2 px-3 rounded-lg bg-background border border-border-subtle"
+                        className="flex items-center justify-between py-2 px-3 rounded-xl bg-background border border-border-subtle"
                       >
                         <span className="text-sm text-muted capitalize font-medium">
-                          {key === "plm"
-                            ? "PLM / MES"
-                            : key === "hrms"
-                              ? "HRMS"
-                              : key}
+                          {key === "plm" ? "PLM / MES" : key === "hrms" ? "HRMS" : key}
                         </span>
                         <span className="text-sm font-semibold text-foreground">{value}</span>
                       </div>
@@ -153,7 +146,7 @@ export default function IntakePage() {
               {profile.painPoints.map((point, i) => (
                 <div
                   key={i}
-                  className="flex items-start gap-2.5 p-3 rounded-lg bg-error-muted border border-error/10"
+                  className="flex items-start gap-2.5 p-3 rounded-xl bg-error-muted border border-error/10"
                 >
                   <div className="h-6 w-6 rounded-full bg-error/10 flex items-center justify-center shrink-0 mt-0.5">
                     <span className="text-[11px] font-bold text-error">{i + 1}</span>
@@ -177,7 +170,7 @@ export default function IntakePage() {
               {profile.strategicPriorities.map((priority, i) => (
                 <div
                   key={i}
-                  className="flex items-start gap-2.5 p-3 rounded-lg bg-success-muted border border-success/10"
+                  className="flex items-start gap-2.5 p-3 rounded-xl bg-success-muted border border-success/10"
                 >
                   <div className="h-6 w-6 rounded-full bg-success/10 flex items-center justify-center shrink-0 mt-0.5">
                     <span className="text-[11px] font-bold text-success">{i + 1}</span>
