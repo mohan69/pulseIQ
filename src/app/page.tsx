@@ -55,8 +55,8 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-accent/[0.03] via-transparent to-cyan/[0.03]" />
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#eef5ff] via-[#f3f8ff] to-[#f8fbff]">
+        <div className="absolute inset-0 bg-gradient-to-br from-accent/[0.04] via-transparent to-cyan/[0.04]" />
         <div className="max-w-7xl mx-auto px-6 py-12 lg:py-16 relative">
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-12 items-center">
             {/* Left Column */}
