@@ -3,7 +3,6 @@
 import { useParams, useRouter } from "next/navigation";
 import { useAssessmentStore } from "@/stores/assessment";
 import { AssessmentShell } from "@/components/layout/AssessmentShell";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +15,7 @@ import {
   Shield,
   Target,
   Zap,
+  BarChart3,
 } from "lucide-react";
 
 const priorityConfig = {
@@ -57,84 +57,98 @@ export default function OpportunitiesPage() {
     <AssessmentShell>
       <div className="space-y-8">
         <div>
-          <h1 className="text-2xl font-bold">AI Transformation Opportunities</h1>
-          <p className="text-muted mt-1">
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">AI Transformation Opportunities</h1>
+          <p className="text-foreground-secondary mt-2 text-lg">
             Ranked by business impact and implementation complexity
           </p>
         </div>
 
+        {/* Summary Strip */}
         <div className="grid lg:grid-cols-4 gap-4">
-          <Card className="p-4">
-            <div className="text-2xl font-bold text-accent">
-              {cockpit.opportunityValue}
+          <div className="bg-white rounded-xl border border-border p-5 shadow-xs accent-top">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="h-9 w-9 rounded-lg bg-accent-muted flex items-center justify-center">
+                <IndianRupee className="h-4.5 w-4.5 text-accent" />
+              </div>
             </div>
+            <div className="text-2xl font-bold text-accent">{cockpit.opportunityValue}</div>
             <div className="text-sm text-muted">Total Opportunity Value</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-2xl font-bold text-success">
-              {cockpit.quickWinsCount}
+          </div>
+          <div className="bg-white rounded-xl border border-border p-5 shadow-xs success-top">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="h-9 w-9 rounded-lg bg-success-muted flex items-center justify-center">
+                <Zap className="h-4.5 w-4.5 text-success" />
+              </div>
             </div>
+            <div className="text-2xl font-bold text-success">{cockpit.quickWinsCount}</div>
             <div className="text-sm text-muted">Quick Wins</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-2xl font-bold text-warning">
-              {cockpit.highComplexityCount}
+          </div>
+          <div className="bg-white rounded-xl border border-border p-5 shadow-xs warning-top">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="h-9 w-9 rounded-lg bg-warning-muted flex items-center justify-center">
+                <Shield className="h-4.5 w-4.5 text-warning" />
+              </div>
             </div>
+            <div className="text-2xl font-bold text-warning">{cockpit.highComplexityCount}</div>
             <div className="text-sm text-muted">High Complexity</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-2xl font-bold">
-              {opportunities.length}
+          </div>
+          <div className="bg-white rounded-xl border border-border p-5 shadow-xs cyan-top">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="h-9 w-9 rounded-lg bg-info-muted flex items-center justify-center">
+                <BarChart3 className="h-4.5 w-4.5 text-info" />
+              </div>
             </div>
+            <div className="text-2xl font-bold text-info">{opportunities.length}</div>
             <div className="text-sm text-muted">Total Opportunities</div>
-          </Card>
+          </div>
         </div>
 
+        {/* Opportunity Cards */}
         <div className="space-y-4">
           {opportunities.map((opp) => {
             const config = priorityConfig[opp.priorityTier];
             const ImpactIcon = impactIcons[opp.impactType] || TrendingUp;
 
             return (
-              <Card key={opp.id}>
-                <CardContent className="p-6">
+              <div key={opp.id} className="bg-white rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                <div className="p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge variant={config.variant}>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Badge variant={config.variant} className="font-medium">
                           <config.icon className="h-3 w-3 mr-1" />
                           {config.label}
                         </Badge>
-                        <Badge variant="outline">
+                        <Badge variant="outline" className="font-medium">
                           <ImpactIcon className="h-3 w-3 mr-1" />
                           {opp.impactType.replace("_", " ")}
                         </Badge>
-                        <Badge variant="outline">
+                        <Badge variant="outline" className="font-medium">
                           {opp.complexity} complexity
                         </Badge>
                       </div>
-                      <h3 className="text-lg font-semibold mb-1">{opp.title}</h3>
-                      <p className="text-sm text-muted mb-3">
+                      <h3 className="text-lg font-bold text-foreground mb-1">{opp.title}</h3>
+                      <p className="text-sm text-foreground-secondary mb-3">
                         {opp.description}
                       </p>
                       <div className="grid md:grid-cols-2 gap-4 text-sm">
                         <div>
-                          <span className="text-muted">Impact: </span>
-                          <span className="font-medium">{opp.estimatedImpact}</span>
+                          <span className="text-muted font-medium">Impact: </span>
+                          <span className="font-semibold text-foreground">{opp.estimatedImpact}</span>
                         </div>
                         <div>
-                          <span className="text-muted">Owner: </span>
-                          <span className="font-medium">{opp.recommendedOwner}</span>
+                          <span className="text-muted font-medium">Owner: </span>
+                          <span className="font-semibold text-foreground">{opp.recommendedOwner}</span>
                         </div>
                       </div>
-                      <div className="mt-3 p-3 rounded-lg bg-accent-muted text-sm">
-                        <span className="text-muted font-medium">Why it matters: </span>
-                        {opp.whyItMatters}
+                      <div className="mt-4 p-4 rounded-xl bg-accent-muted border border-accent/10">
+                        <span className="text-accent font-semibold text-sm">Why it matters: </span>
+                        <span className="text-sm text-foreground-secondary">{opp.whyItMatters}</span>
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
           })}
         </div>
@@ -143,12 +157,14 @@ export default function OpportunitiesPage() {
           <Button
             variant="outline"
             onClick={() => router.push(`/assessment/${params.id}/model`)}
+            className="border-border-hover"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Model
           </Button>
           <Button
             onClick={() => router.push(`/assessment/${params.id}/cockpit`)}
+            className="bg-accent hover:bg-accent-hover text-white shadow-sm"
           >
             Continue to Executive Cockpit
             <ArrowRight className="h-4 w-4" />

@@ -3,7 +3,6 @@
 import { useParams, useRouter } from "next/navigation";
 import { useAssessmentStore } from "@/stores/assessment";
 import { AssessmentShell } from "@/components/layout/AssessmentShell";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   ArrowRight,
@@ -16,16 +15,10 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-const scoreColor = (score: number) => {
-  if (score >= 70) return "text-success";
-  if (score >= 40) return "text-warning";
-  return "text-error";
-};
-
 const scoreBg = (score: number) => {
-  if (score >= 70) return "bg-success";
-  if (score >= 40) return "bg-warning";
-  return "bg-error";
+  if (score >= 70) return "from-success to-success/80";
+  if (score >= 40) return "from-warning to-warning/80";
+  return "from-error to-error/80";
 };
 
 export default function CockpitPage() {
@@ -50,179 +43,164 @@ export default function CockpitPage() {
     <AssessmentShell>
       <div className="space-y-8">
         <div>
-          <h1 className="text-2xl font-bold">Executive Cockpit</h1>
-          <p className="text-muted mt-1">
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Executive Cockpit</h1>
+          <p className="text-foreground-secondary mt-2 text-lg">
             Transformation readiness and business outcomes
           </p>
         </div>
 
+        {/* Main Score + KPIs */}
         <div className="grid lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-1">
-            <CardContent className="p-8">
-              <div className="flex flex-col items-center">
-                <div
-                  className={`h-32 w-32 rounded-full ${scoreBg(
-                    cockpit.transformationScore
-                  )}/10 flex items-center justify-center mb-4`}
-                >
-                  <div className="text-center">
-                    <div
-                      className={`text-4xl font-bold ${scoreColor(
-                        cockpit.transformationScore
-                      )}`}
-                    >
-                      {cockpit.transformationScore}
-                    </div>
-                    <div className="text-xs text-muted">/ 100</div>
-                  </div>
+          {/* Transformation Score */}
+          <div className="bg-white rounded-2xl border border-border shadow-sm p-8 flex flex-col items-center justify-center">
+            <div className={`h-36 w-36 rounded-full bg-gradient-to-br ${scoreBg(cockpit.transformationScore)} flex items-center justify-center mb-4 shadow-lg`}>
+              <div className="text-center">
+                <div className={`text-5xl font-bold text-white`}>
+                  {cockpit.transformationScore}
                 </div>
-                <h3 className="text-lg font-semibold">Transformation Score</h3>
-                <p className="text-sm text-muted text-center mt-1">
-                  {cockpit.aiAdoptionReadiness}
-                </p>
+                <div className="text-xs text-white/70 uppercase tracking-wider mt-1">/ 100</div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+            <h3 className="text-xl font-bold text-foreground mt-2">Transformation Score</h3>
+            <p className="text-sm text-muted text-center mt-1 max-w-xs">
+              {cockpit.aiAdoptionReadiness}
+            </p>
+          </div>
 
+          {/* KPI Cards */}
           <div className="lg:col-span-2 grid md:grid-cols-2 gap-4">
-            <Card className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-success/10 flex items-center justify-center">
+            <div className="bg-white rounded-xl border border-border p-5 shadow-xs success-top">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="h-10 w-10 rounded-xl bg-success-muted flex items-center justify-center">
                   <IndianRupee className="h-5 w-5 text-success" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">
-                    {cockpit.opportunityValue}
-                  </div>
+                  <div className="text-2xl font-bold text-foreground">{cockpit.opportunityValue}</div>
                   <div className="text-sm text-muted">Opportunity Value</div>
                 </div>
               </div>
-            </Card>
+            </div>
 
-            <Card className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-accent-muted flex items-center justify-center">
+            <div className="bg-white rounded-xl border border-border p-5 shadow-xs accent-top">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="h-10 w-10 rounded-xl bg-accent-muted flex items-center justify-center">
                   <Zap className="h-5 w-5 text-accent" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">
-                    {cockpit.quickWinsCount}
-                  </div>
+                  <div className="text-2xl font-bold text-foreground">{cockpit.quickWinsCount}</div>
                   <div className="text-sm text-muted">Quick Wins</div>
                 </div>
               </div>
-            </Card>
+            </div>
 
-            <Card className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-warning/10 flex items-center justify-center">
+            <div className="bg-white rounded-xl border border-border p-5 shadow-xs warning-top">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="h-10 w-10 rounded-xl bg-warning-muted flex items-center justify-center">
                   <AlertTriangle className="h-5 w-5 text-warning" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">
-                    {cockpit.highComplexityCount}
-                  </div>
+                  <div className="text-2xl font-bold text-foreground">{cockpit.highComplexityCount}</div>
                   <div className="text-sm text-muted">High Complexity</div>
                 </div>
               </div>
-            </Card>
+            </div>
 
-            <Card className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-info/10 flex items-center justify-center">
+            <div className="bg-white rounded-xl border border-border p-5 shadow-xs cyan-top">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="h-10 w-10 rounded-xl bg-info-muted flex items-center justify-center">
                   <Target className="h-5 w-5 text-info" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">
-                    {cockpit.processesMapped}
-                  </div>
+                  <div className="text-2xl font-bold text-foreground">{cockpit.processesMapped}</div>
                   <div className="text-sm text-muted">Processes Mapped</div>
                 </div>
               </div>
-            </Card>
+            </div>
           </div>
         </div>
 
+        {/* Bottlenecks + Actions */}
         <div className="grid lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
+          <div className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-border bg-gradient-to-r from-error/5 to-transparent">
+              <div className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-error" />
-                Top 5 Bottlenecks
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+                <h3 className="font-bold text-foreground text-lg">Top 5 Bottlenecks</h3>
+              </div>
+            </div>
+            <div className="p-6">
               <div className="space-y-3">
                 {cockpit.topBottlenecks.map((bottleneck, i) => (
                   <div
                     key={i}
-                    className="flex items-start gap-3 p-3 rounded-lg bg-error-muted border border-error/20"
+                    className="flex items-start gap-3 p-4 rounded-xl bg-error-muted border border-error/10"
                   >
-                    <div className="h-6 w-6 rounded-full bg-error/10 flex items-center justify-center shrink-0">
-                      <span className="text-xs font-medium text-error">
+                    <div className="h-7 w-7 rounded-full bg-error/10 flex items-center justify-center shrink-0">
+                      <span className="text-xs font-bold text-error">
                         {i + 1}
                       </span>
                     </div>
-                    <span className="text-sm">{bottleneck}</span>
+                    <span className="text-sm font-medium text-foreground">{bottleneck}</span>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
+          <div className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-border bg-gradient-to-r from-success/5 to-transparent">
+              <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-success" />
-                Top 5 Executive Actions
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+                <h3 className="font-bold text-foreground text-lg">Top 5 Executive Actions</h3>
+              </div>
+            </div>
+            <div className="p-6">
               <div className="space-y-3">
                 {cockpit.executiveActions.map((action, i) => (
                   <div
                     key={i}
-                    className="flex items-start gap-3 p-3 rounded-lg bg-success-muted border border-success/20"
+                    className="flex items-start gap-3 p-4 rounded-xl bg-success-muted border border-success/10"
                   >
-                    <div className="h-6 w-6 rounded-full bg-success/10 flex items-center justify-center shrink-0">
-                      <span className="text-xs font-medium text-success">
+                    <div className="h-7 w-7 rounded-full bg-success/10 flex items-center justify-center shrink-0">
+                      <span className="text-xs font-bold text-success">
                         {i + 1}
                       </span>
                     </div>
-                    <span className="text-sm">{action}</span>
+                    <span className="text-sm font-medium text-foreground">{action}</span>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <Brain className="h-5 w-5 text-accent" />
-              <div>
-                <div className="font-medium">AI Adoption Readiness</div>
-                <div className="text-sm text-muted">
-                  {cockpit.aiAdoptionReadiness}
-                </div>
+        {/* AI Adoption Readiness */}
+        <div className="bg-white rounded-2xl border border-border shadow-sm p-6">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-accent to-cyan flex items-center justify-center">
+              <Brain className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <div className="font-bold text-foreground text-lg">AI Adoption Readiness</div>
+              <div className="text-sm text-foreground-secondary">
+                {cockpit.aiAdoptionReadiness}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         <div className="flex justify-between">
           <Button
             variant="outline"
-            onClick={() =>
-              router.push(`/assessment/${params.id}/opportunities`)
-            }
+            onClick={() => router.push(`/assessment/${params.id}/opportunities`)}
+            className="border-border-hover"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Opportunities
           </Button>
           <Button
             onClick={() => router.push(`/assessment/${params.id}/future`)}
+            className="bg-accent hover:bg-accent-hover text-white shadow-sm"
           >
             Continue to Future Model
             <ArrowRight className="h-4 w-4" />
