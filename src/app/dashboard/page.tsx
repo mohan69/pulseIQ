@@ -16,26 +16,21 @@ import {
   BarChart3,
 } from "lucide-react";
 
-const scoreBg = (score: number) => {
-  if (score >= 70) return "from-success to-success/80";
-  if (score >= 40) return "from-warning to-warning/80";
-  return "from-error to-error/80";
-};
-
 export default function DashboardPage() {
   const assessments = useAssessmentStore((s) => s.assessments);
 
   return (
     <div className="min-h-screen">
+      {/* Header */}
       <nav className="border-b border-border bg-white/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-accent to-cyan flex items-center justify-center shadow-sm">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-accent to-cyan flex items-center justify-center shadow-sm">
               <Brain className="h-5 w-5 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-bold text-foreground leading-tight tracking-tight">PulseIQ</span>
-              <span className="text-[10px] text-muted leading-none tracking-wide uppercase">Enterprise Intelligence</span>
+              <span className="text-xl font-bold text-foreground leading-tight">PulseIQ</span>
+              <span className="text-[11px] text-muted leading-none">Enterprise Intelligence</span>
             </div>
           </Link>
           <div className="flex items-center gap-2">
@@ -49,17 +44,17 @@ export default function DashboardPage() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-6 py-10">
-        {/* Hero Section */}
-        <div className="mb-10">
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">Enterprise Assessments</h1>
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        {/* Hero */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground">Enterprise Assessments</h1>
           <p className="text-foreground-secondary mt-2 text-lg max-w-2xl">
             Select a seeded demo assessment to explore how PulseIQ converts operating complexity into AI transformation priorities.
           </p>
         </div>
 
         {/* KPI Strip */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[
             { icon: Building2, value: "4", label: "Demo Enterprises", color: "accent" },
             { icon: IndianRupee, value: "₹100Cr+", label: "Opportunity Range", color: "success" },
@@ -86,90 +81,92 @@ export default function DashboardPage() {
               href={`/assessment/${assessment.id}/intake`}
             >
               <div className="bg-white rounded-2xl border border-border shadow-sm hover:shadow-lg hover:border-accent/20 transition-all duration-200 cursor-pointer h-full overflow-hidden group">
-                {/* Card Header with Score */}
-                <div className="p-6 pb-4">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-foreground group-hover:text-accent transition-colors">
+                {/* Card Header */}
+                <div className="p-5 pb-4">
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-bold text-foreground group-hover:text-accent transition-colors leading-snug">
                         {assessment.enterpriseProfile.companyName}
                       </h3>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Badge variant="outline" className="bg-background font-medium">
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <Badge variant="outline" className="bg-background font-medium text-xs">
                           {assessment.enterpriseProfile.industry}
                         </Badge>
                         <Badge
                           variant={assessment.status === "complete" ? "success" : "default"}
+                          className="text-xs"
                         >
                           {assessment.status}
                         </Badge>
                       </div>
                     </div>
-                    <div className={`h-16 w-16 rounded-2xl bg-gradient-to-br ${scoreBg(assessment.cockpit.transformationScore)} flex items-center justify-center shadow-sm`}>
+                    {/* Score Badge - Blue gradient */}
+                    <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-accent to-info flex items-center justify-center shadow-sm shrink-0">
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-white">{assessment.cockpit.transformationScore}</div>
-                        <div className="text-[9px] text-white/70 uppercase tracking-wider">Score</div>
+                        <div className="text-xl font-bold text-white leading-tight">{assessment.cockpit.transformationScore}</div>
+                        <div className="text-[8px] text-white/70 uppercase">Score</div>
                       </div>
                     </div>
                   </div>
 
                   {/* Company Stats */}
-                  <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="grid grid-cols-3 gap-3 mb-3">
                     <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-lg bg-background flex items-center justify-center">
-                        <Building2 className="h-4 w-4 text-muted" />
+                      <div className="h-7 w-7 rounded-lg bg-background flex items-center justify-center">
+                        <Building2 className="h-3.5 w-3.5 text-muted" />
                       </div>
                       <div>
-                        <div className="text-sm font-semibold text-foreground">{assessment.enterpriseProfile.revenueRange}</div>
-                        <div className="text-xs text-muted">Revenue</div>
+                        <div className="text-sm font-semibold text-foreground leading-tight">{assessment.enterpriseProfile.revenueRange}</div>
+                        <div className="text-[11px] text-muted">Revenue</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-lg bg-background flex items-center justify-center">
-                        <Users className="h-4 w-4 text-muted" />
+                      <div className="h-7 w-7 rounded-lg bg-background flex items-center justify-center">
+                        <Users className="h-3.5 w-3.5 text-muted" />
                       </div>
                       <div>
-                        <div className="text-sm font-semibold text-foreground">{assessment.enterpriseProfile.employeeCount.toLocaleString()}</div>
-                        <div className="text-xs text-muted">Employees</div>
+                        <div className="text-sm font-semibold text-foreground leading-tight">{assessment.enterpriseProfile.employeeCount.toLocaleString()}</div>
+                        <div className="text-[11px] text-muted">Employees</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-lg bg-background flex items-center justify-center">
-                        <IndianRupee className="h-4 w-4 text-muted" />
+                      <div className="h-7 w-7 rounded-lg bg-background flex items-center justify-center">
+                        <IndianRupee className="h-3.5 w-3.5 text-muted" />
                       </div>
                       <div>
-                        <div className="text-sm font-semibold text-foreground">{assessment.cockpit.opportunityValue}</div>
-                        <div className="text-xs text-muted">Opportunity</div>
+                        <div className="text-sm font-semibold text-foreground leading-tight">{assessment.cockpit.opportunityValue}</div>
+                        <div className="text-[11px] text-muted">Opportunity</div>
                       </div>
                     </div>
                   </div>
 
                   {/* Pain Points */}
-                  <div className="space-y-2 mb-4">
+                  <div className="space-y-1.5">
                     {assessment.cockpit.topBottlenecks.slice(0, 2).map((bottleneck) => (
                       <div
                         key={bottleneck}
-                        className="flex items-center gap-2 text-xs bg-error-muted text-error px-3 py-1.5 rounded-lg"
+                        className="flex items-center gap-2 text-xs bg-error-muted text-error px-2.5 py-1.5 rounded-lg"
                       >
                         <AlertTriangle className="h-3 w-3 shrink-0" />
-                        {bottleneck}
+                        <span className="truncate">{bottleneck}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Card Footer */}
-                <div className="px-6 py-4 border-t border-border bg-background/50 flex items-center justify-between">
-                  <div className="flex items-center gap-4 text-sm text-muted">
-                    <span className="flex items-center gap-1.5">
-                      <TrendingUp className="h-3.5 w-3.5 text-success" />
+                <div className="px-5 py-3 border-t border-border bg-background/50 flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-xs text-muted">
+                    <span className="flex items-center gap-1">
+                      <TrendingUp className="h-3 w-3 text-success" />
                       {assessment.cockpit.quickWinsCount} quick wins
                     </span>
-                    <span className="flex items-center gap-1.5">
-                      <BarChart3 className="h-3.5 w-3.5 text-accent" />
+                    <span className="flex items-center gap-1">
+                      <BarChart3 className="h-3 w-3 text-accent" />
                       {assessment.opportunities.length} opportunities
                     </span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-sm text-accent font-semibold group-hover:gap-2.5 transition-all">
+                  <div className="flex items-center gap-1 text-sm text-accent font-semibold group-hover:gap-2 transition-all">
                     View Assessment
                     <ArrowRight className="h-4 w-4" />
                   </div>

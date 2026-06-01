@@ -21,22 +21,21 @@ const demoStats = {
   opportunityValue: "₹2.2–3.8 Cr",
   quickWins: 5,
   bottlenecks: 4,
-  departments: 6,
-  roadmap: ["Quick wins in 30 days", "Full rollout in 90 days"],
 };
 
 export default function Home() {
   return (
     <div className="min-h-screen">
+      {/* Header */}
       <nav className="no-print border-b border-border bg-white/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-accent to-cyan flex items-center justify-center shadow-sm">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-accent to-cyan flex items-center justify-center shadow-sm">
               <Brain className="h-5 w-5 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-bold text-foreground leading-tight tracking-tight">PulseIQ</span>
-              <span className="text-[10px] text-muted leading-none tracking-wide uppercase">Enterprise Intelligence</span>
+              <span className="text-xl font-bold text-foreground leading-tight">PulseIQ</span>
+              <span className="text-[11px] text-muted leading-none">Enterprise Intelligence</span>
             </div>
           </Link>
           <div className="flex items-center gap-2">
@@ -55,38 +54,38 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero Section - Two Column */}
+      {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-accent/[0.03] via-transparent to-cyan/[0.03]" />
-        <div className="max-w-7xl mx-auto px-6 py-16 lg:py-24 relative">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left Column - Content */}
+        <div className="max-w-7xl mx-auto px-6 py-12 lg:py-16 relative">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-12 items-center">
+            {/* Left Column */}
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-accent-muted border border-accent/10 px-4 py-1.5 text-sm text-accent font-medium mb-6">
+              <div className="inline-flex items-center gap-2 rounded-full bg-accent-muted border border-accent/10 px-4 py-1.5 text-sm text-accent font-medium mb-5">
                 <Zap className="h-3.5 w-3.5" />
                 AI-Native Enterprise Intelligence
               </div>
-              <h1 className="text-4xl lg:text-[2.75rem] font-bold tracking-tight leading-[1.1] text-foreground">
+              <h1 className="text-4xl lg:text-[2.5rem] font-bold leading-[1.15] text-foreground">
                 Convert Enterprise Complexity Into{" "}
                 <span className="bg-gradient-to-r from-accent to-cyan bg-clip-text text-transparent">AI-Native Operating Intelligence</span>
               </h1>
-              <p className="mt-5 text-lg text-foreground-secondary leading-relaxed max-w-xl">
+              <p className="mt-4 text-lg text-foreground-secondary leading-relaxed max-w-xl">
                 PulseIQ maps systems, departments, processes and bottlenecks, then generates AI transformation opportunities, business impact estimates and a 90-day CXO execution roadmap.
               </p>
-              <div className="mt-8 flex flex-col sm:flex-row gap-3">
+              <div className="mt-7 flex flex-col sm:flex-row gap-3">
                 <Link href="/dashboard">
-                  <Button size="lg" className="text-base px-8 bg-accent hover:bg-accent-hover text-white shadow-md hover:shadow-lg transition-shadow">
+                  <Button size="lg" className="text-base px-7 bg-accent hover:bg-accent-hover text-white shadow-md hover:shadow-lg transition-shadow">
                     Explore Demo Assessment
                     <ArrowRight className="h-5 w-5" />
                   </Button>
                 </Link>
                 <Link href="/dashboard">
-                  <Button variant="outline" size="lg" className="text-base px-8 border-border-hover">
+                  <Button variant="outline" size="lg" className="text-base px-7 border-border-hover">
                     Open Dashboard
                   </Button>
                 </Link>
               </div>
-              <div className="mt-8 flex items-center gap-6 text-sm text-muted">
+              <div className="mt-7 flex items-center gap-5 text-sm text-muted">
                 <div className="flex items-center gap-1.5">
                   <CheckCircle2 className="h-4 w-4 text-success" />
                   No setup required
@@ -107,44 +106,46 @@ export default function Home() {
               <div className="absolute -inset-4 bg-gradient-to-br from-accent/5 to-cyan/5 rounded-3xl blur-xl" />
               <div className="relative bg-white rounded-2xl border border-border shadow-xl overflow-hidden">
                 {/* Preview Header */}
-                <div className="px-6 py-4 border-b border-border bg-gradient-to-r from-navy to-accent flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center">
-                      <Building2 className="h-4 w-4 text-white" />
+                <div className="px-5 py-4 border-b border-border bg-gradient-to-r from-navy to-accent">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+                        <Building2 className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-white truncate">Bharat Heavy Fabrications</div>
+                        <div className="text-xs text-white/60">Manufacturing · ₹420Cr Revenue</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-sm font-semibold text-white">Bharat Heavy Fabrications</div>
-                      <div className="text-xs text-white/60">Manufacturing · ₹420Cr Revenue</div>
+                    <div className="text-right shrink-0 ml-3">
+                      <div className="text-2xl font-bold text-white">{demoStats.score}</div>
+                      <div className="text-[10px] text-white/60 uppercase">Score</div>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-white">{demoStats.score}</div>
-                    <div className="text-[10px] text-white/60 uppercase tracking-wider">Score</div>
                   </div>
                 </div>
 
                 {/* KPI Strip */}
                 <div className="grid grid-cols-3 divide-x divide-border">
                   <div className="px-4 py-3 text-center">
-                    <div className="text-lg font-bold text-accent">{demoStats.opportunityValue}</div>
-                    <div className="text-[10px] text-muted uppercase tracking-wider">Opportunity</div>
+                    <div className="text-base font-bold text-accent">{demoStats.opportunityValue}</div>
+                    <div className="text-[10px] text-muted uppercase">Opportunity</div>
                   </div>
                   <div className="px-4 py-3 text-center">
-                    <div className="text-lg font-bold text-success">{demoStats.quickWins}</div>
-                    <div className="text-[10px] text-muted uppercase tracking-wider">Quick Wins</div>
+                    <div className="text-base font-bold text-success">{demoStats.quickWins}</div>
+                    <div className="text-[10px] text-muted uppercase">Quick Wins</div>
                   </div>
                   <div className="px-4 py-3 text-center">
-                    <div className="text-lg font-bold text-warning">{demoStats.bottlenecks}</div>
-                    <div className="text-[10px] text-muted uppercase tracking-wider">Bottlenecks</div>
+                    <div className="text-base font-bold text-warning">{demoStats.bottlenecks}</div>
+                    <div className="text-[10px] text-muted uppercase">Bottlenecks</div>
                   </div>
                 </div>
 
                 {/* Mini Cards */}
-                <div className="p-4 space-y-3">
+                <div className="p-4 space-y-2.5">
                   <div className="p-3 rounded-xl bg-accent-muted border border-accent/10">
                     <div className="flex items-center gap-2 mb-1">
                       <Zap className="h-3.5 w-3.5 text-accent" />
-                      <span className="text-xs font-semibold text-accent uppercase tracking-wider">Top Opportunity</span>
+                      <span className="text-xs font-semibold text-accent uppercase">Top Opportunity</span>
                     </div>
                     <div className="text-sm font-medium text-foreground">AI-Powered Quality Inspection</div>
                     <div className="text-xs text-muted mt-0.5">Saves 1,200+ hours annually</div>
@@ -152,7 +153,7 @@ export default function Home() {
                   <div className="p-3 rounded-xl bg-success-muted border border-success/10">
                     <div className="flex items-center gap-2 mb-1">
                       <TrendingUp className="h-3.5 w-3.5 text-success" />
-                      <span className="text-xs font-semibold text-success uppercase tracking-wider">Quick Win</span>
+                      <span className="text-xs font-semibold text-success uppercase">Quick Win</span>
                     </div>
                     <div className="text-sm font-medium text-foreground">Automated Production Reports</div>
                     <div className="text-xs text-muted mt-0.5">Saves 40 hours per week</div>
@@ -160,7 +161,7 @@ export default function Home() {
                   <div className="p-3 rounded-xl bg-warning-muted border border-warning/10">
                     <div className="flex items-center gap-2 mb-1">
                       <AlertTriangle className="h-3.5 w-3.5 text-warning" />
-                      <span className="text-xs font-semibold text-warning uppercase tracking-wider">Key Bottleneck</span>
+                      <span className="text-xs font-semibold text-warning uppercase">Key Bottleneck</span>
                     </div>
                     <div className="text-sm font-medium text-foreground">Manual Excel reconciliation</div>
                     <div className="text-xs text-muted mt-0.5">3 departments affected</div>
@@ -170,18 +171,18 @@ export default function Home() {
                 {/* Roadmap Preview */}
                 <div className="px-4 pb-4">
                   <div className="p-3 rounded-xl bg-gradient-to-r from-navy/5 to-accent/5 border border-border">
-                    <div className="text-xs font-semibold text-foreground uppercase tracking-wider mb-2">30/60/90 Day Roadmap</div>
-                    <div className="flex items-center gap-3">
+                    <div className="text-xs font-semibold text-foreground uppercase mb-2">30/60/90 Day Roadmap</div>
+                    <div className="flex items-center gap-2">
                       <div className="flex-1 text-center p-2 rounded-lg bg-white border border-border">
                         <div className="text-xs font-bold text-accent">30 Days</div>
                         <div className="text-[10px] text-muted mt-0.5">Assess + Quick Wins</div>
                       </div>
-                      <ArrowRight className="h-3.5 w-3.5 text-muted" />
+                      <ArrowRight className="h-3 w-3 text-muted shrink-0" />
                       <div className="flex-1 text-center p-2 rounded-lg bg-white border border-border">
                         <div className="text-xs font-bold text-warning">60 Days</div>
                         <div className="text-[10px] text-muted mt-0.5">Implement + Track</div>
                       </div>
-                      <ArrowRight className="h-3.5 w-3.5 text-muted" />
+                      <ArrowRight className="h-3 w-3 text-muted shrink-0" />
                       <div className="flex-1 text-center p-2 rounded-lg bg-white border border-border">
                         <div className="text-xs font-bold text-success">90 Days</div>
                         <div className="text-[10px] text-muted mt-0.5">Scale + Govern</div>
@@ -197,7 +198,7 @@ export default function Home() {
 
       {/* Stats Strip */}
       <section className="border-y border-border bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { icon: Clock, value: "2 Weeks", label: "Assessment Sprint", color: "text-accent" },
@@ -205,12 +206,12 @@ export default function Home() {
               { icon: Target, value: "CXO-Ready", label: "Operating Model", color: "text-success" },
               { icon: TrendingUp, value: "AI-Ranked", label: "Opportunity Pipeline", color: "text-info" },
             ].map((stat) => (
-              <div key={stat.label} className="flex items-center gap-4">
-                <div className="h-11 w-11 rounded-xl bg-background flex items-center justify-center shrink-0">
+              <div key={stat.label} className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-background flex items-center justify-center shrink-0">
                   <stat.icon className={`h-5 w-5 ${stat.color}`} />
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-foreground">{stat.value}</div>
+                  <div className="text-base font-bold text-foreground">{stat.value}</div>
                   <div className="text-sm text-muted">{stat.label}</div>
                 </div>
               </div>
@@ -221,8 +222,8 @@ export default function Home() {
 
       {/* What PulseIQ Delivers */}
       <section>
-        <div className="max-w-7xl mx-auto px-6 py-20">
-          <div className="text-center mb-14">
+        <div className="max-w-7xl mx-auto px-6 py-16">
+          <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground">What PulseIQ Delivers</h2>
             <p className="mt-3 text-foreground-secondary max-w-2xl mx-auto">
               A complete enterprise intelligence platform that moves from assessment to execution roadmap in weeks, not months.
@@ -254,8 +255,8 @@ export default function Home() {
 
       {/* Built For */}
       <section className="bg-white border-y border-border">
-        <div className="max-w-7xl mx-auto px-6 py-20">
-          <div className="text-center mb-14">
+        <div className="max-w-7xl mx-auto px-6 py-16">
+          <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground">Built For</h2>
             <p className="mt-3 text-foreground-secondary max-w-2xl mx-auto">
               Enterprise operations with complex processes, multiple systems, and significant manual work.
@@ -289,8 +290,8 @@ export default function Home() {
 
       {/* CTA Section */}
       <section>
-        <div className="max-w-7xl mx-auto px-6 py-20">
-          <div className="rounded-2xl bg-gradient-to-br from-navy to-accent p-10 lg:p-14">
+        <div className="max-w-7xl mx-auto px-6 py-16">
+          <div className="rounded-2xl bg-gradient-to-br from-navy to-accent p-10 lg:p-12">
             <div className="max-w-2xl">
               <h2 className="text-3xl font-bold text-white mb-4">
                 See How PulseIQ Works
@@ -318,9 +319,9 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t border-border bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted">
+        <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted">
           <div className="flex items-center gap-3">
-            <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-accent to-cyan flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-accent to-cyan flex items-center justify-center">
               <Brain className="h-4 w-4 text-white" />
             </div>
             <div className="flex items-baseline gap-1.5">

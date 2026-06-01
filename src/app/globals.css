@@ -77,6 +77,8 @@
 
 * {
   scrollbar-width: thin;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 body {
@@ -85,6 +87,12 @@ body {
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
 }
 
 ::-webkit-scrollbar {
