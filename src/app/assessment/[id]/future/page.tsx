@@ -52,14 +52,14 @@ export default function FuturePage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid lg:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-lg border border-error/20 bg-error/5">
+                  <div className="p-4 rounded-lg border border-error/20 bg-error-muted">
                     <div className="text-sm font-medium text-error mb-2 flex items-center gap-1">
                       <ArrowLeft className="h-3.5 w-3.5" />
                       Current State
                     </div>
                     <p className="text-sm">{model.beforeState}</p>
                   </div>
-                  <div className="p-4 rounded-lg border border-success/20 bg-success/5">
+                  <div className="p-4 rounded-lg border border-success/20 bg-success-muted">
                     <div className="text-sm font-medium text-success mb-2 flex items-center gap-1">
                       <ArrowRight className="h-3.5 w-3.5" />
                       Future State

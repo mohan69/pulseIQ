@@ -25,15 +25,15 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <nav className="border-b border-border bg-surface/80 backdrop-blur-sm sticky top-0 z-50">
+      <nav className="border-b border-border bg-white sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-accent to-accent/80 flex items-center justify-center">
-              <Brain className="h-5 w-5 text-white" />
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-accent to-info flex items-center justify-center">
+              <Brain className="h-4.5 w-4.5 text-white" />
             </div>
-            <div>
-              <span className="text-lg font-semibold">PulseIQ</span>
-              <span className="text-xs text-muted ml-1.5 hidden sm:inline">Enterprise Intelligence</span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-lg font-bold text-foreground">PulseIQ</span>
+              <span className="text-sm text-muted hidden sm:inline">Enterprise Intelligence</span>
             </div>
           </Link>
           <div className="flex items-center gap-3">
@@ -45,34 +45,34 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-6 py-10">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold">Assessments</h1>
+            <h1 className="text-2xl font-bold text-foreground">Assessments</h1>
             <p className="text-muted mt-1">
               Enterprise intelligence assessments and demo data
             </p>
           </div>
           <Link href="/assessment/bharat-heavy-fabrications/intake">
-            <Button>
+            <Button className="bg-accent hover:bg-accent-hover text-white">
               Explore Demo Assessment
               <ArrowRight className="h-4 w-4" />
             </Button>
           </Link>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-5">
           {assessments.map((assessment) => (
             <Link
               key={assessment.id}
               href={`/assessment/${assessment.id}/intake`}
             >
-              <Card className="hover:border-accent/50 transition-colors cursor-pointer h-full">
+              <Card className="hover:shadow-md hover:border-accent/30 transition-all cursor-pointer h-full bg-white">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-lg">
+                      <CardTitle className="text-lg text-foreground">
                         {assessment.enterpriseProfile.companyName}
                       </CardTitle>
                       <div className="flex items-center gap-2 mt-2">
-                        <Badge variant="outline">
+                        <Badge variant="outline" className="bg-background">
                           {assessment.enterpriseProfile.industry}
                         </Badge>
                         <Badge
@@ -105,7 +105,7 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2">
                       <Building2 className="h-4 w-4 text-muted" />
                       <div>
-                        <div className="text-sm font-medium">
+                        <div className="text-sm font-medium text-foreground">
                           {assessment.enterpriseProfile.revenueRange}
                         </div>
                         <div className="text-xs text-muted">Revenue</div>
@@ -114,7 +114,7 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-muted" />
                       <div>
-                        <div className="text-sm font-medium">
+                        <div className="text-sm font-medium text-foreground">
                           {assessment.enterpriseProfile.employeeCount.toLocaleString()}
                         </div>
                         <div className="text-xs text-muted">Employees</div>
@@ -123,7 +123,7 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2">
                       <IndianRupee className="h-4 w-4 text-muted" />
                       <div>
-                        <div className="text-sm font-medium">
+                        <div className="text-sm font-medium text-foreground">
                           {assessment.cockpit.opportunityValue}
                         </div>
                         <div className="text-xs text-muted">Opportunity</div>
@@ -137,7 +137,7 @@ export default function DashboardPage() {
                       .map((bottleneck) => (
                         <div
                           key={bottleneck}
-                          className="text-xs bg-error/10 text-error px-2 py-1 rounded"
+                          className="text-xs bg-error-muted text-error px-2 py-1 rounded"
                         >
                           {bottleneck}
                         </div>

@@ -156,7 +156,7 @@ export default function CockpitPage() {
                 {cockpit.topBottlenecks.map((bottleneck, i) => (
                   <div
                     key={i}
-                    className="flex items-start gap-3 p-3 rounded-lg bg-error/5 border border-error/10"
+                    className="flex items-start gap-3 p-3 rounded-lg bg-error-muted border border-error/20"
                   >
                     <div className="h-6 w-6 rounded-full bg-error/10 flex items-center justify-center shrink-0">
                       <span className="text-xs font-medium text-error">
@@ -182,7 +182,7 @@ export default function CockpitPage() {
                 {cockpit.executiveActions.map((action, i) => (
                   <div
                     key={i}
-                    className="flex items-start gap-3 p-3 rounded-lg bg-success/5 border border-success/10"
+                    className="flex items-start gap-3 p-3 rounded-lg bg-success-muted border border-success/20"
                   >
                     <div className="h-6 w-6 rounded-full bg-success/10 flex items-center justify-center shrink-0">
                       <span className="text-xs font-medium text-success">

@@ -108,7 +108,7 @@ export default function ReportPage() {
             {cockpit.topBottlenecks.map((b, i) => (
               <div
                 key={i}
-                className="flex items-start gap-3 p-3 rounded bg-error/5 border border-error/10 text-sm"
+                className="flex items-start gap-3 p-3 rounded bg-error-muted border border-error/20 text-sm"
               >
                 <span className="font-medium text-error">{i + 1}.</span>
                 <span>{b}</span>
@@ -127,7 +127,7 @@ export default function ReportPage() {
               <div className="text-2xl font-bold text-accent">{cockpit.opportunityValue}</div>
               <div className="text-sm text-muted">Total Opportunity Value</div>
             </div>
-            <div className="p-4 rounded-lg bg-success/10">
+            <div className="p-4 rounded-lg bg-success-muted">
               <div className="text-2xl font-bold text-success">{cockpit.quickWinsCount}</div>
               <div className="text-sm text-muted">Quick Wins</div>
             </div>
@@ -175,11 +175,11 @@ export default function ReportPage() {
               >
                 <h4 className="font-medium mb-2">{model.departmentName}</h4>
                 <div className="grid md:grid-cols-2 gap-4 text-sm">
-                  <div className="p-3 rounded bg-error/5 border border-error/10">
+                  <div className="p-3 rounded bg-error-muted border border-error/20">
                     <div className="font-medium text-error mb-1">Current</div>
                     {model.beforeState}
                   </div>
-                  <div className="p-3 rounded bg-success/5 border border-success/10">
+                  <div className="p-3 rounded bg-success-muted border border-success/20">
                     <div className="font-medium text-success mb-1">Future</div>
                     {model.afterState}
                   </div>

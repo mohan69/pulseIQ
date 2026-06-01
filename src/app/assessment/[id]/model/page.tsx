@@ -150,7 +150,7 @@ export default function ModelPage() {
                             {process.risks.map((risk) => (
                               <div
                                 key={risk}
-                                className="text-xs text-error bg-error/5 px-2 py-1 rounded"
+                                className="text-xs text-error bg-error-muted px-2 py-1 rounded"
                               >
                                 {risk}
                               </div>
@@ -163,7 +163,7 @@ export default function ModelPage() {
                             {process.reportingPainPoints.map((pain) => (
                               <div
                                 key={pain}
-                                className="text-xs text-warning bg-warning/5 px-2 py-1 rounded"
+                                className="text-xs text-warning bg-warning-muted px-2 py-1 rounded"
                               >
                                 {pain}
                               </div>
