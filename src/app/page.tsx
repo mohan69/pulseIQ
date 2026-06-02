@@ -91,7 +91,7 @@ export default function Home() {
             </Link>
             <Link href="/dashboard">
               <Button variant="outline" size="lg" className="text-base px-8 h-[52px] border-white/20 text-white hover:bg-white/10 backdrop-blur-sm font-semibold">
-                View PulseIQ Demo
+                Open Dashboard
               </Button>
             </Link>
           </div>
