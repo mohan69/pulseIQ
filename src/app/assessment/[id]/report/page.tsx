@@ -63,6 +63,14 @@ const formatImpactType = (type: string): string => {
   return map[type] || type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 };
 
+const formatDate = (date: Date): string => {
+  return date.toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+};
+
 export default function ReportPage() {
   const params = useParams();
   const getAssessment = useAssessmentStore((s) => s.getAssessment);
@@ -112,7 +120,7 @@ export default function ReportPage() {
                 <Brain className="h-4 w-4" />
                 PulseIQ Enterprise Intelligence Assessment Report
               </div>
-              <h1 className="text-5xl font-bold text-foreground mb-4">{profile.companyName}</h1>
+              <h1 className="text-4xl font-bold text-foreground mb-4 max-w-[22ch] text-center">{profile.companyName}</h1>
               <div className="space-y-2">
                 <div className="flex items-center justify-center gap-6 mt-2 text-sm text-muted">
                   <span className="flex items-center gap-2"><Building2 className="h-4 w-4" /> {profile.industry}</span>
@@ -124,7 +132,7 @@ export default function ReportPage() {
                 <div className="mt-4">
                   <span className="text-xs text-muted">Prepared by RightSense Technologies</span>
                   <span className="mx-2">|</span>
-                  <span className="text-xs text-muted">Generated: {new Date().toLocaleDateString()}</span>
+                  <span className="text-xs text-muted">Generated: {formatDate(new Date())}</span>
                 </div>
                 <div className="mt-6 text-center max-w-2xl mx-auto">
                   <p className="text-sm text-muted leading-relaxed">
@@ -148,10 +156,11 @@ export default function ReportPage() {
                    <div className="h-8 w-8 rounded-full bg-success-muted flex items-center justify-center">
                      <CheckCircle2 className="h-4 w-4 text-success" />
                    </div>
-                   <div>
-                     <div className="text-base font-bold text-foreground">Transformation Score</div>
-                     <div className="text-sm text-muted">{cockpit.transformationScore}/100</div>
-                   </div>
+                    <div>
+                      <div className="text-base font-bold text-foreground">Transformation Readiness</div>
+                      <div className="text-sm text-muted">{cockpit.transformationScore}/100</div>
+                      <div className="text-xs text-muted">Lower score indicates higher improvement opportunity.</div>
+                    </div>
                  </div>
                  <div className="space-y-2">
                    <div className="flex items-center gap-2">
@@ -347,20 +356,20 @@ export default function ReportPage() {
           </div>
         </section>
 
-        <section>
-          <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-foreground">
-            <Target className="h-5 w-5 text-accent" />
-            Executive Actions
-          </h3>
-          <div className="space-y-2">
-            {cockpit.executiveActions.map((action, i) => (
-              <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-accent-muted text-sm">
-                <span className="font-bold text-accent">{i + 1}.</span>
-                <span className="text-foreground">{action}</span>
-              </div>
-            ))}
-          </div>
-        </section>
+         <section className="executive-actions-section">
+           <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-foreground">
+             <Target className="h-5 w-5 text-accent" />
+             Executive Actions
+           </h3>
+           <div className="space-y-2">
+             {cockpit.executiveActions.map((action, i) => (
+               <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-accent-muted text-sm">
+                 <span className="font-bold text-accent">{i + 1}.</span>
+                 <span className="text-foreground">{action}</span>
+               </div>
+             ))}
+           </div>
+         </section>
 
         <footer className="border-t border-border pt-6 text-center text-sm text-muted">
           <div className="flex items-center justify-center gap-2 mb-2">

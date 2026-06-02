@@ -194,6 +194,76 @@ h1, h2, h3, h4, h5, h6 {
     page-break-before: always;
   }
 
+  /* Specifically avoid breaking the opportunity section header with its content */
+  .opportunity-section-header {
+    page-break-inside: avoid !important;
+  }
+
+  /* Avoid breaking the Executive Actions header with its content */
+  .executive-actions-section {
+    page-break-inside: avoid !important;
+  }
+
+  /* Ensure white background and black text for print */
+  * {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Override specific colors for print */
+  .bg-white {
+    background: white !important;
+  }
+  
+  .text-white,
+  .text-white\/[0-9]+,
+  .text-white\/\* {
+    color: black !important;
+  }
+  
+  .text-gray-100,
+  .text-gray-200,
+  .text-gray-300,
+  .text-gray-400,
+  .text-gray-500,
+  .text-gray-600,
+  .text-gray-700,
+  .text-gray-800,
+  .text-gray-900 {
+    color: black !important;
+  }
+  
+  .border,
+  .border-border,
+  .border-error,
+  .border-success,
+  .border-warning,
+  .border-info,
+  .border-accent {
+    color: #ddd !important;
+  }
+
+  /* Ensure text remains readable */
+  h1, h2, h3, h4, h5, h6 {
+    color: black !important;
+
+}
+
+  /* Hide interactive elements when printing */
+  .no-print,
+  button,
+  [onClick],
+  .cursor-pointer {
+    display: none !important;
+  }
+
+  /* Ensure clean page breaks */
+  .print-break {
+    page-break-before: always;
+  }
+
   /* Avoid breaking opportunity cards and similar elements across pages */
   .avoid-print-break,
   .bg-white.rounded-2xl.border,
