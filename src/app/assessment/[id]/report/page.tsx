@@ -35,6 +35,9 @@ const formatSystemLabel = (key: string): string => {
     aws: "AWS",
     azure: "Azure",
     gcp: "GCP",
+    finance: "Finance",
+    spreadsheets: "Spreadsheets",
+    other: "Other",
   };
   return map[key.toLowerCase()] || key.replace(/([A-Z])/g, ' $1').trim();
 };
@@ -78,23 +81,28 @@ export default function ReportPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="no-print sticky top-0 z-50 border-b border-border bg-white/90 backdrop-blur-md">
-        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-accent to-cyan flex items-center justify-center">
-              <Brain className="h-4 w-4 text-white" />
-            </div>
-            <div>
-              <span className="font-bold text-foreground">PulseIQ Assessment Report</span>
-              <span className="text-xs text-muted ml-2 hidden sm:inline">by RightSense Technologies</span>
-            </div>
-          </div>
-          <Button onClick={() => window.print()} size="sm" className="bg-accent hover:bg-accent-hover text-white shadow-sm">
-            <Printer className="h-4 w-4 mr-1" />
-            Print / Save as PDF
-          </Button>
-        </div>
-      </div>
+         <div className="no-print sticky top-0 z-50 border-b border-border bg-white/90 backdrop-blur-md">
+           <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+             <div className="flex items-center gap-3">
+               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-accent to-cyan flex items-center justify-center">
+                 <Brain className="h-4 w-4 text-white" />
+               </div>
+               <div>
+                 <span className="font-bold text-foreground">PulseIQ Assessment Report</span>
+                 <span className="text-xs text-muted ml-2 hidden sm:inline">by RightSense Technologies</span>
+               </div>
+             </div>
+             <div className="flex items-center gap-3">
+               <Button onClick={() => window.print()} size="sm" className="bg-accent hover:bg-accent-hover text-white shadow-sm">
+                 <Printer className="h-4 w-4 mr-1" />
+                 Print / Save as PDF
+               </Button>
+               <span className="text-xs text-muted">
+                 For clean PDF export, disable browser Headers and footers in the print dialog.
+               </span>
+             </div>
+           </div>
+         </div>
 
         <main className="max-w-5xl mx-auto px-6 py-8 space-y-8">
           {/* Executive Report Cover */}
@@ -238,7 +246,7 @@ export default function ReportPage() {
           </div>
         </section>
 
-          <section className="print-break">
+          <section className="print-break avoid-print-break opportunity-section-header">
             <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-foreground">
               <Lightbulb className="h-5 w-5 text-warning" />
               AI Transformation Opportunities

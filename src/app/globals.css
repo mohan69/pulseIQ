@@ -204,6 +204,11 @@ h1, h2, h3, h4, h5, h6 {
     page-break-inside: avoid !important;
   }
 
+  /* Specifically avoid breaking the opportunity section header with its content */
+  .opportunity-section-header {
+    page-break-inside: avoid !important;
+  }
+
   /* Ensure white background and black text for print */
   * {
     background: white !important;
