@@ -19,6 +19,47 @@ import {
   TrendingUp,
 } from "lucide-react";
 
+const formatSystemLabel = (key: string): string => {
+  const map: Record<string, string> = {
+    erp: "ERP",
+    crm: "CRM",
+    plm: "PLM / MES",
+    hrms: "HRMS",
+    projecttools: "Project Tools",
+    sap: "SAP",
+    oracle: "Oracle",
+    salesforce: "Salesforce",
+    workday: "Workday",
+    servicenow: "ServiceNow",
+    microsoft: "Microsoft",
+    aws: "AWS",
+    azure: "Azure",
+    gcp: "GCP",
+  };
+  return map[key.toLowerCase()] || key.replace(/([A-Z])/g, ' $1').trim();
+};
+
+const formatOpportunityTag = (tier: string): string => {
+  const map: Record<string, string> = {
+    quick_win: "Quick Win",
+    strategic: "Strategic",
+  };
+  return map[tier] || tier.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+};
+
+const formatImpactType = (type: string): string => {
+  const map: Record<string, string> = {
+    cycle_time: "Cycle Time",
+    cost: "Cost",
+    governance: "Governance",
+    revenue: "Revenue",
+    quality: "Quality",
+    safety: "Safety",
+    compliance: "Compliance",
+  };
+  return map[type] || type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+};
+
 export default function ReportPage() {
   const params = useParams();
   const getAssessment = useAssessmentStore((s) => s.getAssessment);
@@ -55,29 +96,36 @@ export default function ReportPage() {
         </div>
       </div>
 
-       <main className="max-w-5xl mx-auto px-6 py-8 space-y-8">
-         {/* Executive Report Cover/Header */}
-         <div className="bg-white rounded-2xl border border-border p-10 mb-8 shadow-sm">
-           <div className="text-center">
-             <div className="inline-flex items-center gap-3 rounded-full bg-accent-muted px-6 py-3 text-sm text-accent font-medium mb-6">
-               <Brain className="h-4 w-4" />
-               PulseIQ Enterprise Intelligence Assessment Report
-             </div>
-             <h1 className="text-4xl font-bold text-foreground mb-3">{profile.companyName}</h1>
-             <div className="flex items-center justify-center gap-6 mt-2 text-sm text-muted">
-               <span className="flex items-center gap-2"><Building2 className="h-4 w-4" /> {profile.industry}</span>
-               <span className="w-px h-8 bg-border" />
-               <span className="flex items-center gap-2"><IndianRupee className="h-4 w-4" /> {profile.revenueRange}</span>
-               <span className="w-px h-8 bg-border" />
-               <span className="flex items-center gap-2"><Users className="h-4 w-4" /> {profile.employeeCount.toLocaleString()} employees</span>
-             </div>
-             <div className="mt-6 flex items-center justify-center gap-4 text-xs text-muted">
-               <span>Prepared by RightSense Technologies</span>
-               <span className="mx-2">|</span>
-               <span>PulseIQ Enterprise Intelligence</span>
-             </div>
-           </div>
-         </div>
+        <main className="max-w-5xl mx-auto px-6 py-8 space-y-8">
+          {/* Executive Report Cover */}
+          <div className="bg-white rounded-2xl border border-border p-12 mb-10 shadow-sm">
+            <div className="text-center">
+              <div className="inline-flex items-center gap-4 rounded-full bg-accent-muted px-6 py-2 text-sm text-accent font-medium mb-6">
+                <Brain className="h-4 w-4" />
+                PulseIQ Enterprise Intelligence Assessment Report
+              </div>
+              <h1 className="text-5xl font-bold text-foreground mb-4">{profile.companyName}</h1>
+              <div className="space-y-2">
+                <div className="flex items-center justify-center gap-6 mt-2 text-sm text-muted">
+                  <span className="flex items-center gap-2"><Building2 className="h-4 w-4" /> {profile.industry}</span>
+                  <span className="w-px h-8 bg-border" />
+                  <span className="flex items-center gap-2"><IndianRupee className="h-4 w-4" /> {profile.revenueRange}</span>
+                  <span className="w-px h-8 bg-border" />
+                  <span className="flex items-center gap-2"><Users className="h-4 w-4" /> {profile.employeeCount.toLocaleString()} employees</span>
+                </div>
+                <div className="mt-4">
+                  <span className="text-xs text-muted">Prepared by RightSense Technologies</span>
+                  <span className="mx-2">|</span>
+                  <span className="text-xs text-muted">Generated: {new Date().toLocaleDateString()}</span>
+                </div>
+                <div className="mt-6 text-center max-w-2xl mx-auto">
+                  <p className="text-sm text-muted leading-relaxed">
+                    Current operating model, AI transformation opportunities, business impact estimates, and 90-day execution roadmap.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
 
          {/* Executive Summary */}
          <section className="print-break bg-white rounded-2xl border border-border p-8 mb-6 shadow-sm">
@@ -147,20 +195,20 @@ export default function ReportPage() {
              Company Profile
           </h3>
           <div className="grid md:grid-cols-2 gap-5">
-            <div>
-              <h4 className="font-semibold mb-2 text-foreground">Current Systems</h4>
-              <div className="space-y-1 text-sm">
-                {Object.entries(profile.currentSystems).map(
-                  ([key, value]) =>
-                    value && (
-                      <div key={key} className="flex justify-between py-2 border-b border-border-subtle">
-                        <span className="text-muted capitalize font-medium">{key}</span>
-                        <span className="font-semibold text-foreground">{value}</span>
-                      </div>
-                    )
-                )}
-              </div>
-            </div>
+             <div>
+               <h4 className="font-semibold mb-2 text-foreground">Current Systems</h4>
+               <div className="space-y-1 text-sm">
+                 {Object.entries(profile.currentSystems).map(
+                   ([key, value]) =>
+                     value && (
+                       <div key={key} className="flex justify-between py-2 border-b border-border-subtle">
+                         <span className="text-muted font-medium">{formatSystemLabel(key)}</span>
+                         <span className="font-semibold text-foreground">{value}</span>
+                       </div>
+                     )
+                 )}
+               </div>
+             </div>
             <div>
               <h4 className="font-semibold mb-2 text-foreground">Strategic Priorities</h4>
               <div className="space-y-2">
@@ -190,49 +238,56 @@ export default function ReportPage() {
           </div>
         </section>
 
-        <section className="print-break">
-          <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-foreground">
-            <Lightbulb className="h-5 w-5 text-warning" />
-            AI Transformation Opportunities
-          </h3>
-          <div className="grid md:grid-cols-2 gap-4 mb-4">
-            <div className="p-4 rounded-xl bg-accent-muted border border-accent/10">
-              <div className="text-2xl font-bold text-accent">{cockpit.opportunityValue}</div>
-              <div className="text-sm text-muted">Total Opportunity Value</div>
-            </div>
-            <div className="p-4 rounded-xl bg-success-muted border border-success/10">
-              <div className="text-2xl font-bold text-success">{cockpit.quickWinsCount}</div>
-              <div className="text-sm text-muted">Quick Wins</div>
-            </div>
-          </div>
-          <div className="space-y-3">
-            {assessment.opportunities.slice(0, 6).map((opp) => (
-              <div key={opp.id} className="p-4 rounded-xl border border-border">
-                <div className="flex items-center gap-2 mb-1">
-                  <Badge
-                    variant={
-                      opp.priorityTier === "quick_win"
-                        ? "success"
-                        : opp.priorityTier === "strategic"
-                          ? "info"
-                          : "outline"
-                    }
-                    className="font-medium"
-                  >
-                    {opp.priorityTier.replace("_", " ")}
-                  </Badge>
-                  <Badge variant="outline" className="font-medium">{opp.impactType.replace("_", " ")}</Badge>
-                </div>
-                <h4 className="font-semibold text-foreground">{opp.title}</h4>
-                <p className="text-sm text-muted mt-1">{opp.description}</p>
-                <div className="text-sm mt-2">
-                  <span className="font-medium text-muted">Impact: </span>
-                  <span className="font-semibold text-foreground">{opp.estimatedImpact}</span>
-                </div>
+          <section className="print-break">
+            <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-foreground">
+              <Lightbulb className="h-5 w-5 text-warning" />
+              AI Transformation Opportunities
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4 mb-4">
+              <div className="p-4 rounded-xl bg-accent-muted border border-accent/10">
+                <div className="text-2xl font-bold text-accent">{cockpit.opportunityValue}</div>
+                <div className="text-sm text-muted">Total Opportunity Value</div>
               </div>
-            ))}
-          </div>
-        </section>
+              <div className="p-4 rounded-xl bg-success-muted border border-success/10">
+                <div className="text-2xl font-bold text-success">{cockpit.quickWinsCount}</div>
+                <div className="text-sm text-muted">Quick Wins</div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="mb-3">
+                <p className="text-sm text-muted italic max-w-2xl">
+                  Impact estimates are directional and based on current assessment inputs. Final values should be validated during the 2-week discovery sprint.
+                </p>
+              </div>
+              {assessment.opportunities.slice(0, 6).map((opp) => (
+                <div key={opp.id} className="p-4 rounded-xl border border-border">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge
+                      variant={
+                        opp.priorityTier === "quick_win"
+                          ? "success"
+                          : opp.priorityTier === "strategic"
+                            ? "info"
+                            : "outline"
+                      }
+                      className="font-medium"
+                    >
+                      {formatOpportunityTag(opp.priorityTier)}
+                    </Badge>
+                    <Badge variant="outline" className="font-medium">
+                      {formatImpactType(opp.impactType)}
+                    </Badge>
+                  </div>
+                  <h4 className="font-semibold text-foreground">{opp.title}</h4>
+                  <p className="text-sm text-muted mt-1">{opp.description}</p>
+                  <div className="text-sm mt-2">
+                    <span className="font-medium text-muted">Impact: </span>
+                    <span className="font-semibold text-foreground">{opp.estimatedImpact}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
 
         <section className="print-break">
           <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-foreground">
