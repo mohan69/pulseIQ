@@ -17,44 +17,51 @@ export function AssessmentShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen">
       <StepProgress assessmentId={assessmentId} />
       {assessment && (
-        <div className="bg-white border-b border-border">
-          <div className="max-w-[1200px] mx-auto px-8 py-4">
-            <div className="flex items-center justify-between gap-6">
-              <div className="flex items-center gap-5 min-w-0">
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-accent to-cyan flex items-center justify-center">
-                    <Building2 className="h-4.5 w-4.5 text-white" />
+        <>
+          {/* Dark Navy Grid Banner for Assessment Context */}
+          <section className="dark-grid-banner relative overflow-hidden">
+            <div className="hero-glow absolute inset-0" />
+            <div className="max-w-[1200px] mx-auto px-8 py-6">
+              <div className="flex items-center justify-between gap-8">
+                <div className="flex items-center gap-6 min-w-0">
+                  <div className="flex items-center gap-4 shrink-0">
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-accent to-cyan flex items-center justify-center">
+                      <Building2 className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xl font-bold text-white truncate">{assessment.enterpriseProfile.companyName}</div>
+                      <div className="text-lg text-white/90">{assessment.enterpriseProfile.industry}</div>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <div className="text-base font-bold text-foreground truncate">{assessment.enterpriseProfile.companyName}</div>
-                    <div className="text-sm text-muted">{assessment.enterpriseProfile.industry}</div>
+                  <div className="hidden md:flex items-center gap-5 text-white/90">
+                    <div className="flex items-center gap-2">
+                      <IndianRupee className="h-4 w-4" />
+                      <span className="font-medium">{assessment.enterpriseProfile.revenueRange}</span>
+                    </div>
+                    <div className="w-px h-5 bg-white/20" />
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      <span className="font-medium">{assessment.enterpriseProfile.employeeCount.toLocaleString()}</span>
+                    </div>
                   </div>
                 </div>
-                <div className="hidden md:flex items-center gap-4 text-sm text-muted">
-                  <div className="flex items-center gap-1.5">
-                    <IndianRupee className="h-3.5 w-3.5" />
-                    <span className="font-medium">{assessment.enterpriseProfile.revenueRange}</span>
+                <div className="flex items-center gap-6">
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-white">{assessment.cockpit.transformationScore}</div>
+                    <div className="text-sm text-white/70 uppercase">Readiness</div>
                   </div>
-                  <div className="w-px h-4 bg-border" />
-                  <div className="flex items-center gap-1.5">
-                    <Users className="h-3.5 w-3.5" />
-                    <span className="font-medium">{assessment.enterpriseProfile.employeeCount.toLocaleString()}</span>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-white">{assessment.cockpit.opportunityValue}</div>
+                    <div className="text-sm text-white/70 uppercase">Opportunity</div>
                   </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-5 shrink-0">
-                <div className="text-right">
-                  <div className="text-xl font-bold text-accent">{assessment.cockpit.transformationScore}</div>
-                  <div className="text-sm text-muted uppercase">Score</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xl font-bold text-success">{assessment.cockpit.opportunityValue}</div>
-                  <div className="text-sm text-muted uppercase">Opportunity</div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          </section>
+          
+          {/* Optional separator */}
+          <div className="border-t border-border/20"></div>
+        </>
       )}
       <main className="max-w-[1200px] mx-auto px-8 py-8">{children}</main>
     </div>

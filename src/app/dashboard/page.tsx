@@ -44,14 +44,27 @@ export default function DashboardPage() {
         </div>
       </nav>
 
-       <main className="max-w-[1200px] mx-auto px-6 py-12">
-         <div className="bg-white rounded-2xl border border-border p-8 mb-8 shadow-sm">
-           <h2 className="text-2xl font-bold text-foreground mb-4">Enterprise Intelligence Demo Center</h2>
-           <p className="text-foreground-secondary text-lg max-w-3xl">
-             Explore how PulseIQ converts operating complexity into AI transformation priorities, business impact, and a 90-day roadmap.
-           </p>
-         </div>
-         <div className="mb-6">
+       <main className="max-w-[1200px] mx-auto px-6 py-0">
+         {/* Dark Navy Grid Banner */}
+         <section className="dark-grid-banner relative overflow-hidden">
+           <div className="hero-glow absolute inset-0" />
+           <div className="max-w-[1200px] mx-auto px-6 py-12 text-center">
+             <h2 className="text-2xl font-bold mb-4">Enterprise Intelligence Demo Center</h2>
+             <p className="text-lg max-w-3xl">
+               Explore how PulseIQ converts operating complexity into AI transformation priorities, business impact, and a 90-day roadmap.
+             </p>
+             <div className="mt-8">
+               <Link href="/assessment/bharat-heavy-fabrications/intake">
+                 <Button size="lg" className="text-base px-8 h-[52px] bg-green hover:bg-green/90 text-white shadow-lg font-semibold">
+                   Explore Demo Assessment
+                   <ArrowRight className="h-5 w-5" />
+                 </Button>
+               </Link>
+             </div>
+           </div>
+         </section>
+         
+         <div className="mb-8">
            <h3 className="text-xl font-bold text-foreground mb-4">Available Demo Assessments</h3>
            <p className="text-foreground-secondary text-lg max-w-2xl">
              Select a seeded demo assessment to see how PulseIQ converts operating complexity into AI transformation priorities.

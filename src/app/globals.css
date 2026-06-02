@@ -114,6 +114,44 @@ h1, h2, h3, h4, h5, h6 {
   background-size: 60px 60px;
 }
 
+/* Reusable Dark Navy Grid Banner */
+.dark-grid-banner {
+  background-color: var(--hero-bg);
+  background-image:
+    linear-gradient(rgba(255,255,255,0.10) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.10) 1px, transparent 1px);
+  background-size: 60px 60px;
+  color: var(--hero-text);
+}
+
+.dark-grid-banner .hero-glow {
+  background: radial-gradient(ellipse at 50% 40%, rgba(37, 99, 235, 0.12) 0%, transparent 60%);
+}
+
+/* Text variants for dark banner */
+.dark-grid-banner h1,
+.dark-grid-banner h2,
+.dark-grid-banner h3,
+.dark-grid-banner h4,
+.dark-grid-banner h5,
+.dark-grid-banner h6 {
+  color: var(--hero-text);
+}
+
+.dark-grid-banner p,
+.dark-grid-banner span,
+.dark-grid-banner div {
+  color: var(--hero-text-secondary);
+}
+
+.dark-grid-banner .text-white {
+  color: var(--hero-text);
+}
+
+.dark-grid-banner .text-white\/[0-9]+ {
+  color: var(--hero-text-secondary);
+}
+
 /* Hero Glow Effect */
 .hero-glow {
   background: radial-gradient(ellipse at 50% 40%, rgba(37, 99, 235, 0.12) 0%, transparent 60%);
