@@ -22,7 +22,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <nav className="border-b border-border bg-white/90 backdrop-blur-md sticky top-0 z-50">
+      <nav className="border-b border-border bg-white sticky top-0 z-50">
         <div className="max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-accent to-cyan flex items-center justify-center shadow-sm">
@@ -45,7 +45,6 @@ export default function DashboardPage() {
       </nav>
 
       <main className="max-w-[1200px] mx-auto px-6 py-8">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Enterprise Assessments</h1>
           <p className="text-foreground-secondary mt-2 text-lg max-w-2xl">
@@ -53,7 +52,6 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* KPI Strip */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[
             { icon: Building2, value: "4", label: "Demo Enterprises", color: "accent" },
@@ -73,13 +71,9 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* Assessment Cards */}
         <div className="grid md:grid-cols-2 gap-6">
           {assessments.map((assessment) => (
-            <Link
-              key={assessment.id}
-              href={`/assessment/${assessment.id}/intake`}
-            >
+            <Link key={assessment.id} href={`/assessment/${assessment.id}/intake`}>
               <div className="bg-white rounded-2xl border border-border shadow-sm hover:shadow-lg hover:border-accent/20 transition-all duration-200 cursor-pointer h-full overflow-hidden group">
                 <div className="p-5 pb-4">
                   <div className="flex items-start justify-between gap-4 mb-3">
@@ -91,10 +85,7 @@ export default function DashboardPage() {
                         <Badge variant="outline" className="bg-background font-medium text-xs">
                           {assessment.enterpriseProfile.industry}
                         </Badge>
-                        <Badge
-                          variant={assessment.status === "complete" ? "success" : "default"}
-                          className="text-xs"
-                        >
+                        <Badge variant={assessment.status === "complete" ? "success" : "default"} className="text-xs">
                           {assessment.status}
                         </Badge>
                       </div>
@@ -139,10 +130,7 @@ export default function DashboardPage() {
 
                   <div className="space-y-1.5">
                     {assessment.cockpit.topBottlenecks.slice(0, 2).map((bottleneck) => (
-                      <div
-                        key={bottleneck}
-                        className="flex items-center gap-2 text-xs bg-error-muted text-error px-2.5 py-1.5 rounded-lg"
-                      >
+                      <div key={bottleneck} className="flex items-center gap-2 text-xs bg-error-muted text-error px-2.5 py-1.5 rounded-lg">
                         <AlertTriangle className="h-3 w-3 shrink-0" />
                         <span className="truncate">{bottleneck}</span>
                       </div>
