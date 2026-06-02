@@ -42,10 +42,13 @@ export default function Home() {
               Results
             </Link>
             <Link href="/assessment/bharat-heavy-fabrications/intake" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
-              Samples
+              Demo
             </Link>
             <Link href="/assessment/bharat-heavy-fabrications/intake" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
               Pilot Offer
+            </Link>
+            <Link href="/assessment/bharat-heavy-fabrications/intake" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
+              Book Demo
             </Link>
           </div>
           <div className="flex items-center gap-3">
