@@ -44,32 +44,38 @@ export default function DashboardPage() {
         </div>
       </nav>
 
-      <main className="max-w-[1200px] mx-auto px-6 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Enterprise Assessments</h1>
-          <p className="text-foreground-secondary mt-2 text-lg max-w-2xl">
-            Select a seeded demo assessment to see how PulseIQ converts operating complexity into AI transformation priorities.
-          </p>
-        </div>
+       <main className="max-w-[1200px] mx-auto px-6 py-12">
+         <div className="bg-white rounded-2xl border border-border p-8 mb-8 shadow-sm">
+           <h2 className="text-2xl font-bold text-foreground mb-4">Enterprise Intelligence Demo Center</h2>
+           <p className="text-foreground-secondary text-lg max-w-3xl">
+             Explore how PulseIQ converts operating complexity into AI transformation priorities, business impact, and a 90-day roadmap.
+           </p>
+         </div>
+         <div className="mb-6">
+           <h3 className="text-xl font-bold text-foreground mb-4">Available Demo Assessments</h3>
+           <p className="text-foreground-secondary text-lg max-w-2xl">
+             Select a seeded demo assessment to see how PulseIQ converts operating complexity into AI transformation priorities.
+           </p>
+         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {[
-            { icon: Building2, value: "4", label: "Demo Enterprises", color: "accent" },
-            { icon: IndianRupee, value: "₹100Cr+", label: "Opportunity Range", color: "success" },
-            { icon: Zap, value: "21", label: "AI Opportunities", color: "warning" },
-            { icon: TrendingUp, value: "12", label: "Quick Wins", color: "info" },
-          ].map((kpi) => (
-            <div key={kpi.label} className="bg-white rounded-2xl border border-border p-4 flex items-center gap-4 shadow-sm">
-              <div className={`h-11 w-11 rounded-xl bg-${kpi.color}-muted flex items-center justify-center shrink-0`}>
-                <kpi.icon className={`h-5 w-5 text-${kpi.color}`} />
-              </div>
-              <div>
-                <div className="text-xl font-bold text-foreground">{kpi.value}</div>
-                <div className="text-sm text-muted">{kpi.label}</div>
-              </div>
-            </div>
-          ))}
-        </div>
+         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+           {[
+             { icon: Building2, value: "4", label: "Demo Enterprises", color: "accent" },
+             { icon: IndianRupee, value: "₹100Cr+", label: "Opportunity Range", color: "success" },
+             { icon: Zap, value: "21", label: "AI Opportunities", color: "warning" },
+             { icon: TrendingUp, value: "12", label: "Quick Wins", color: "info" },
+           ].map((kpi) => (
+             <div key={kpi.label} className="bg-white rounded-2xl border border-border p-6 flex items-center gap-5 shadow-sm hover:shadow-md transition-shadow duration-200">
+               <div className={`h-12 w-12 rounded-xl bg-${kpi.color}-muted flex items-center justify-center shrink-0`}>
+                 <kpi.icon className={`h-6 w-6 text-${kpi.color}`} />
+               </div>
+               <div>
+                 <div className="text-2xl font-bold text-foreground">{kpi.value}</div>
+                 <div className="text-base text-muted">{kpi.label}</div>
+               </div>
+             </div>
+           ))}
+         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
           {assessments.map((assessment) => (

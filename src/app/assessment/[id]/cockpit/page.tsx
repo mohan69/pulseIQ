@@ -17,8 +17,8 @@ import {
 
 const scoreBg = (score: number) => {
   if (score >= 70) return "from-success to-success/80";
-  if (score >= 40) return "from-warning to-warning/80";
-  return "from-error to-error/80";
+  if (score >= 40) return "from-amber to-amber/80";
+  return "from-blue to-blue/80";
 };
 
 export default function CockpitPage() {
@@ -53,8 +53,11 @@ export default function CockpitPage() {
                 <div className="text-xs text-white/70 uppercase mt-1">/ 100</div>
               </div>
             </div>
-            <h3 className="text-lg font-bold text-foreground mt-2">Transformation Score</h3>
-            <p className="text-sm text-muted text-center mt-1 max-w-xs">{cockpit.aiAdoptionReadiness}</p>
+            <h3 className="text-lg font-bold text-foreground mt-2">Transformation Readiness</h3>
+            <p className="text-sm text-muted text-center mt-1 max-w-xs">
+              Low score indicates high improvement opportunity, not failure.
+            </p>
+            <p className="text-xs text-muted text-center mt-2">{cockpit.aiAdoptionReadiness}</p>
           </div>
 
           <div className="lg:col-span-2 grid md:grid-cols-2 gap-4">
