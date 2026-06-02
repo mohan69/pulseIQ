@@ -45,15 +45,10 @@ export default function Home() {
               Samples
             </Link>
             <Link href="/assessment/bharat-heavy-fabrications/intake" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
-              Book Demo
+              Pilot Offer
             </Link>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/dashboard">
-              <Button variant="outline" size="sm" className="border-border text-foreground hover:bg-background-alt">
-                Log In
-              </Button>
-            </Link>
             <Link href="/dashboard">
               <Button size="sm" className="bg-navy hover:bg-navy/90 text-white shadow-sm font-semibold px-5">
                 Dashboard
@@ -68,18 +63,18 @@ export default function Home() {
         <div className="hero-glow absolute inset-0" />
         <div className="max-w-[980px] mx-auto px-6 py-24 lg:py-28 relative z-10 text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-5 py-2 text-sm text-white/90 font-medium mb-8 backdrop-blur-sm">
-            <Zap className="h-4 w-4" />
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-4 py-1.5 text-sm text-white/90 font-medium mb-6 backdrop-blur-sm">
+            <Zap className="h-3.5 w-3.5" />
             AI-native enterprise operating intelligence platform
           </div>
 
           {/* Headline */}
-          <h1 className="text-5xl lg:text-[3.5rem] font-bold leading-[1.08] text-white mb-6 tracking-tight">
-            Enterprise Operating Intelligence Platform for AI Transformation Leaders
+          <h1 className="text-5xl lg:text-[3.75rem] font-bold leading-[1.05] text-white mb-4 tracking-tight">
+            Enterprise Operating Intelligence for AI Transformation Leaders
           </h1>
 
           {/* Subtitle */}
-          <p className="text-xl text-white/80 leading-relaxed max-w-[760px] mx-auto mb-10">
+          <p className="text-lg text-white/80 leading-relaxed max-w-[760px] mx-auto mb-10">
             Map current systems, departments, processes, bottlenecks and AI opportunities into a CXO-ready 90-day execution roadmap.
           </p>
 
@@ -92,7 +87,7 @@ export default function Home() {
               </Button>
             </Link>
             <Link href="/dashboard">
-              <Button variant="outline" size="lg" className="text-base px-8 h-[52px] border-white/25 text-white hover:bg-white/10 backdrop-blur-sm font-semibold">
+              <Button variant="outline" size="lg" className="text-base px-8 h-[52px] border-white/20 text-white hover:bg-white/10 backdrop-blur-sm font-semibold">
                 View PulseIQ Demo
               </Button>
             </Link>
@@ -102,16 +97,16 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {[
               { icon: Clock, value: "2-week", label: "assessment sprint" },
-              { icon: Calendar, value: "30/60/90", label: "roadmap" },
+              { icon: Calendar, value: "30/60/90", label: "execution roadmap" },
               { icon: Target, value: "CXO-ready", label: "operating model" },
               { icon: TrendingUp, value: "AI-ranked", label: "opportunity pipeline" },
               { icon: BarChart3, value: "Impact", label: "visibility for leadership" },
             ].map((tile) => (
-              <div key={tile.label} className="flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-xl bg-white/8 border border-white/15 backdrop-blur-sm">
+              <div key={tile.label} className="flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-white/8 border border-white/15">
                 <tile.icon className="h-4 w-4 text-green shrink-0" />
-                <div className="text-left">
+                <div className="text-center">
                   <div className="text-sm font-bold text-white leading-tight">{tile.value}</div>
-                  <div className="text-[11px] text-white/60 leading-tight">{tile.label}</div>
+                  <div className="text-xs text-white/60 leading-tight">{tile.label}</div>
                 </div>
               </div>
             ))}
