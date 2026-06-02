@@ -115,11 +115,11 @@ export default function ReportPage() {
                   <span className="w-px h-8 bg-border" />
                   <span className="flex items-center gap-2"><Users className="h-4 w-4" /> {profile.employeeCount.toLocaleString()} employees</span>
                 </div>
-                <div className="mt-4">
-                  <span className="text-xs text-muted">Prepared by RightSense Technologies</span>
-                  <span className="mx-2">|</span>
-                  <span className="text-xs text-muted">Generated: {formatDate(new Date())}</span>
-                </div>
+                 <div className="mt-4">
+                   <span className="text-xs text-muted">Prepared by RightSense Technologies</span>
+                    <span className="mx-2"> | </span>
+                   <span className="text-xs text-muted">Generated: {formatDate(new Date())}</span>
+                 </div>
                 <div className="mt-6 text-center max-w-2xl mx-auto">
                   <p className="text-sm text-muted leading-relaxed">
                     Current operating model, AI transformation opportunities, business impact estimates, and 90-day execution roadmap.

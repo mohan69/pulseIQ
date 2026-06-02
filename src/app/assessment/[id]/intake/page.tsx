@@ -115,20 +115,29 @@ export default function IntakePage() {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="space-y-2">
-                {Object.entries(profile.currentSystems).map(
-                  ([key, value]) =>
-                    value && (
-                      <div
-                        key={key}
-                        className="flex items-center justify-between py-2 px-3 rounded-xl bg-background border border-border-subtle"
-                      >
-                        <span className="text-sm text-muted capitalize font-medium">
-                          {key === "plm" ? "PLM / MES" : key === "hrms" ? "HRMS" : key}
-                        </span>
-                        <span className="text-sm font-semibold text-foreground">{value}</span>
-                      </div>
-                    )
-                )}
+                 {Object.entries(profile.currentSystems).map(
+                   ([key, value]) =>
+                     value && (
+                       <div
+                         key={key}
+                         className="flex items-center justify-between py-2 px-3 rounded-xl bg-background border border-border-subtle"
+                       >
+                          <span className="text-sm text-muted font-medium">
+                            {{
+                              erp: "ERP",
+                              crm: "CRM",
+                              plm: "PLM / MES",
+                              hrms: "HRMS",
+                              finance: "Finance",
+                              projectTools: "Project Tools",
+                              spreadsheets: "Spreadsheets",
+                              other: "Other",
+                            }[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                         </span>
+                         <span className="text-sm font-semibold text-foreground">{value}</span>
+                       </div>
+                     )
+                 )}
               </div>
             </CardContent>
           </Card>
