@@ -3,21 +3,8 @@
 import { useParams } from "next/navigation";
 import { useAssessmentStore } from "@/stores/assessment";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Brain,
-  Printer,
-  Building2,
-  AlertTriangle,
-  Target,
-  Lightbulb,
-  Rocket,
-  Calendar,
-  CheckCircle2,
-  Users,
-  IndianRupee,
-  TrendingUp,
-} from "lucide-react";
+import { Brain, Building2, AlertTriangle, Target, Lightbulb, Rocket, Calendar, CheckCircle2, Users, IndianRupee, TrendingUp } from "lucide-react";
+import PrintButton from "@/components/report/PrintButton";
 
 const formatSystemLabel = (key: string): string => {
   const map: Record<string, string> = {
@@ -100,15 +87,14 @@ export default function ReportPage() {
                  <span className="text-xs text-muted ml-2 hidden sm:inline">by RightSense Technologies</span>
                </div>
              </div>
-             <div className="flex items-center gap-3">
-               <Button onClick={() => window.print()} size="sm" className="bg-accent hover:bg-accent-hover text-white shadow-sm">
-                 <Printer className="h-4 w-4 mr-1" />
-                 Print / Save as PDF
-               </Button>
-               <span className="text-xs text-muted">
-                 For clean PDF export, disable browser Headers and footers in the print dialog.
-               </span>
-             </div>
+              <div className="flex items-center gap-3">
+                 <PrintButton className="bg-accent hover:bg-accent-hover text-white shadow-sm">
+                   Print / Save as PDF
+                 </PrintButton>
+                <span className="text-xs text-muted">
+                  For clean PDF export, disable browser Headers and footers in the print dialog.
+                </span>
+              </div>
            </div>
          </div>
 

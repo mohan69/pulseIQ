@@ -41,13 +41,16 @@ export default function Home() {
             <Link href="/#results" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
               Results
             </Link>
-            <Link href="/assessment/bharat-heavy-fabrications/intake" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
+            <Link href="/demo" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
               Demo
             </Link>
-            <Link href="/assessment/bharat-heavy-fabrications/intake" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
-              Pilot Offer
+            <Link href="/offerings" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
+              Offerings
             </Link>
-            <Link href="/assessment/bharat-heavy-fabrications/intake" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
+            <Link href="/openexo" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
+              OpenExO Support
+            </Link>
+            <Link href="/demo" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
               Book Demo
             </Link>
           </div>
