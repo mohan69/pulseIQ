@@ -59,8 +59,8 @@ export function AddSourceForm({ assessmentId }: { assessmentId: string }) {
             Register a new source
           </div>
           <div className="text-xs text-muted mt-0.5">
-            Add a document, export, or summary. TXT and CSV are extracted now;
-            PDF, DOCX, PPTX, and XLSX are stored and marked for extraction.
+            Add a document, export, or summary. TXT, CSV, searchable PDF, DOCX,
+            and XLSX are extracted now; PPTX is stored and marked pending.
           </div>
         </div>
         <button

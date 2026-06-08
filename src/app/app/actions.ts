@@ -158,7 +158,7 @@ export async function addSourceAction(
     bytes,
   });
 
-  const extraction = extractUploadedFile(validation.extension, bytes);
+  const extraction = await extractUploadedFile(validation.extension, bytes);
   const extractedAt =
     extraction.status === "extracted" ? new Date().toISOString() : undefined;
   const extractedTextPreview = extraction.text
@@ -166,9 +166,15 @@ export async function addSourceAction(
     : undefined;
 
   await updateSource(source.id, {
-    status: extraction.status === "extracted" ? "parsed" : "registered",
+    status:
+      extraction.status === "extracted"
+        ? "parsed"
+        : extraction.status === "failed"
+          ? "failed"
+          : "registered",
     storageProvider: stored.provider,
     storageKey: stored.key,
+    pageCount: extraction.pageCount,
     extractionStatus: extraction.status,
     extractedTextPreview,
     extractedAt,
@@ -184,6 +190,9 @@ export async function addSourceAction(
         extension: validation.extension,
         mimeType: validation.mimeType,
         checksumSha256: checksum,
+        pageCount: extraction.pageCount,
+        truncated: extraction.truncated,
+        warning: extraction.error,
       },
     });
   }
@@ -201,6 +210,8 @@ export async function addSourceAction(
       byteSize: source.byteSize,
       checksumSha256: checksum,
       extractionStatus: extraction.status,
+      pageCount: extraction.pageCount,
+      truncated: extraction.truncated,
     },
   });
 

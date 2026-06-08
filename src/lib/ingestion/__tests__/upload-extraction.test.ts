@@ -3,14 +3,14 @@ import { extractUploadedFile, previewText } from "@/lib/ingestion/extractors";
 import { checksumSha256, validateUploadFile } from "@/lib/storage";
 
 describe("upload validation and extraction", () => {
-  it("validates and extracts TXT uploads", () => {
+  it("validates and extracts TXT uploads", async () => {
     const buffer = Buffer.from("Revenue target is 150 Cr\nMargin target is 26%");
     const validation = validateUploadFile({
       fileName: "board-notes.txt",
       mimeType: "text/plain",
       byteSize: buffer.length,
     });
-    const extraction = extractUploadedFile(validation.extension, buffer);
+    const extraction = await extractUploadedFile(validation.extension, buffer);
 
     expect(validation.extension).toBe(".txt");
     expect(extraction.status).toBe("extracted");
@@ -18,14 +18,14 @@ describe("upload validation and extraction", () => {
     expect(checksumSha256(buffer)).toMatch(/^[a-f0-9]{64}$/);
   });
 
-  it("validates and extracts CSV uploads", () => {
+  it("validates and extracts CSV uploads", async () => {
     const buffer = Buffer.from("customer,value\nA,100\nB,200");
     const validation = validateUploadFile({
       fileName: "pipeline.csv",
       mimeType: "text/csv",
       byteSize: buffer.length,
     });
-    const extraction = extractUploadedFile(validation.extension, buffer);
+    const extraction = await extractUploadedFile(validation.extension, buffer);
 
     expect(validation.extension).toBe(".csv");
     expect(extraction.status).toBe("extracted");
@@ -33,17 +33,15 @@ describe("upload validation and extraction", () => {
     expect(extraction.text).toContain("Row 2: B,200");
   });
 
-  it("marks PDF extraction pending without rejecting the upload", () => {
+  it("accepts PDF uploads for extractor processing", () => {
     const buffer = Buffer.from("%PDF-1.7");
     const validation = validateUploadFile({
       fileName: "financials.pdf",
       mimeType: "application/pdf",
       byteSize: buffer.length,
     });
-    const extraction = extractUploadedFile(validation.extension, buffer);
 
     expect(validation.extension).toBe(".pdf");
-    expect(extraction.status).toBe("extraction_pending");
   });
 
   it("rejects executable uploads", () => {

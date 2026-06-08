@@ -50,16 +50,35 @@ Each uploaded source stores:
 
 ## Extraction Behavior
 
-TXT and CSV files are extracted immediately:
+TXT, CSV, searchable PDF, DOCX, and XLSX files are extracted immediately:
 
 - TXT is decoded as UTF-8 text.
 - CSV is decoded as UTF-8 and stored as header plus numbered rows.
+- PDF uses searchable text extraction only. Scanned or image-based PDFs are
+  marked failed with: "PDF appears to be scanned or image-based. OCR is not
+  enabled yet."
+- DOCX uses document text extraction and keeps paragraphs readable. Basic table
+  text is included when the document exposes it as text.
+- XLSX extracts workbook sheets, includes sheet names, headers, and the first
+  configured rows per sheet.
 - Full extracted content is stored as a `SourceDocument`.
 - A compact preview is stored on the source for the registry UI.
 
-PDF, DOCX, PPTX, and XLSX files are stored successfully but marked
-`extraction_pending`. Stage 3 does not add OCR or unreliable best-effort
-parsing.
+PPTX files are stored successfully but remain `extraction_pending`. Stage 6 does
+not add OCR or slide extraction.
+
+## Extraction Limits
+
+Extraction is capped to avoid oversized source documents:
+
+```env
+PULSEIQ_MAX_EXTRACTED_CHARS=100000
+PULSEIQ_XLSX_MAX_ROWS_PER_SHEET=200
+```
+
+If extracted text is capped, the source registry shows a truncation indicator
+and the stored text includes a truncation note. XLSX sheets are capped per sheet
+before the overall character cap is applied.
 
 ## Memory And Database Modes
 
@@ -83,6 +102,7 @@ This internal MVP does not yet include:
 - Automated retention/deletion rules
 - Content-disposition download routes
 - Deep file-signature inspection
+- OCR for scanned/image-based PDFs
 
 Do not expose this upload route to untrusted public users before those controls
 are added.

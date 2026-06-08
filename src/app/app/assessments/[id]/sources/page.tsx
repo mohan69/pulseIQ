@@ -150,6 +150,9 @@ export default async function SourcesPage({
                             {s.extractedTextPreview}
                           </div>
                         )}
+                        {isTruncationNotice(s.extractionError) && (
+                          <Badge variant="warning">Truncated</Badge>
+                        )}
                         {s.extractionError && (
                           <div className="text-xs text-warning max-w-sm">
                             {s.extractionError}
@@ -261,6 +264,10 @@ function ExtractionBadge({ status }: { status?: string }) {
   if (status === "failed")
     return <Badge variant="destructive">Extraction failed</Badge>;
   return <Badge variant="outline">Not applicable</Badge>;
+}
+
+function isTruncationNotice(value?: string) {
+  return value?.toLowerCase().includes("truncated") ?? false;
 }
 
 function analysisStatusLabel(status: string): string {
