@@ -85,6 +85,7 @@ export type Source = {
   byteSize?: number;
   checksumSha256?: string;
   storageProvider?: string;
+  storageContainer?: string;
   storageKey?: string;
   extractionStatus?: ExtractionStatus;
   extractedTextPreview?: string;

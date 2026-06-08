@@ -155,7 +155,9 @@ export async function addSourceAction(
     assessmentId,
     sourceId: source.id,
     fileName: upload.name,
+    mimeType: validation.mimeType,
     bytes,
+    checksumSha256: checksum,
   });
 
   const extraction = await extractUploadedFile(validation.extension, bytes);
@@ -173,6 +175,7 @@ export async function addSourceAction(
           ? "failed"
           : "registered",
     storageProvider: stored.provider,
+    storageContainer: stored.container,
     storageKey: stored.key,
     pageCount: extraction.pageCount,
     extractionStatus: extraction.status,

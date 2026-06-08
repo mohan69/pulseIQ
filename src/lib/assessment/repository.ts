@@ -36,6 +36,7 @@ export type AddSourceInput = {
   byteSize?: number;
   checksumSha256?: string;
   storageProvider?: string;
+  storageContainer?: string;
   storageKey?: string;
   extractionStatus?: Source["extractionStatus"];
   extractedTextPreview?: string;

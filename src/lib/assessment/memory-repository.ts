@@ -255,6 +255,7 @@ export const memoryAssessmentRepository: AssessmentRepository = {
       byteSize: input.byteSize,
       checksumSha256: input.checksumSha256,
       storageProvider: input.storageProvider,
+      storageContainer: input.storageContainer,
       storageKey: input.storageKey,
       extractionStatus:
         input.extractionStatus ?? (input.fileName ? "extraction_pending" : "not_applicable"),

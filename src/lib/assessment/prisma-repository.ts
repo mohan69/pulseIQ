@@ -93,6 +93,7 @@ function mapSource(row: DbDataSource): Source {
     byteSize: row.byteSize ?? undefined,
     checksumSha256: row.checksumSha256 ?? undefined,
     storageProvider: row.storageProvider ?? row.storageBucket ?? undefined,
+    storageContainer: row.storageBucket ?? undefined,
     storageKey: row.storageKey ?? undefined,
     extractionStatus:
       (row.extractionStatus as Source["extractionStatus"] | null) ?? undefined,
@@ -371,7 +372,7 @@ export const prismaAssessmentRepository: AssessmentRepository = {
         byteSize: input.byteSize,
         checksumSha256: input.checksumSha256,
         storageProvider: input.storageProvider,
-        storageBucket: input.storageProvider,
+        storageBucket: input.storageContainer,
         storageKey: input.storageKey,
         extractionStatus:
           input.extractionStatus ??
@@ -404,7 +405,7 @@ export const prismaAssessmentRepository: AssessmentRepository = {
           byteSize: patch.byteSize,
           checksumSha256: patch.checksumSha256,
           storageProvider: patch.storageProvider,
-          storageBucket: patch.storageProvider,
+          storageBucket: patch.storageContainer,
           storageKey: patch.storageKey,
           extractionStatus: patch.extractionStatus,
           extractedTextPreview: patch.extractedTextPreview,

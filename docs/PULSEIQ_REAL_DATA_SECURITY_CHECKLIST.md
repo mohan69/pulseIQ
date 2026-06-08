@@ -24,6 +24,9 @@ INTERNAL_APP_MODE=true
 DEPLOYMENT_PROTECTION_NOTE="Protected by Vercel Authentication"
 PULSEIQ_DATA_MODE=database
 DATABASE_URL="postgresql://..."
+STORAGE_PROVIDER=azure
+AZURE_STORAGE_CONNECTION_STRING="DefaultEndpointsProtocol=..."
+AZURE_STORAGE_CONTAINER=pulseiq-sources
 PULSEIQ_MAX_UPLOAD_BYTES=10485760
 AI_PROVIDER=mock
 OPENROUTER_API_KEY=
@@ -39,9 +42,13 @@ OPENROUTER_APP_NAME="PulseIQ"
   rejected.
 - `PULSEIQ_MAX_UPLOAD_BYTES` controls max upload size. Default is 10 MB.
 - Local storage writes to `.pulseiq/uploads/...` and is dev/internal only.
-- Secure object storage is required for production, such as S3 or Azure Blob
-  with private buckets, scoped access, encryption, retention policies, and
-  auditable deletion.
+- Azure Blob Storage is supported for production-style uploads when
+  `STORAGE_PROVIDER=azure`.
+- Azure containers must remain private. Do not enable public blob/container
+  access.
+- Secure object storage is required for production, such as Azure Blob or S3
+  with private containers/buckets, scoped access, encryption, retention
+  policies, and auditable deletion.
 - Malware scanning is required before production customer use.
 
 ## Audit Events
@@ -71,8 +78,9 @@ database mode.
 - Current limitation: local uploaded files under `.pulseiq/uploads/...` are not
   deleted automatically by the Stage 5 controls. For local/internal use, remove
   the matching upload directory as part of the customer deletion procedure.
-- Production object storage must implement explicit file deletion and retention
-  workflows before broader real-data use.
+- Azure Blob delete support exists at the provider layer. Production operations
+  still need explicit retention and deletion workflows before broader real-data
+  use.
 
 ## Customer Data Deletion Procedure
 

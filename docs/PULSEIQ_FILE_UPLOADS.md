@@ -28,6 +28,12 @@ PULSEIQ_MAX_UPLOAD_BYTES=10485760
 
 ## Local Storage
 
+Local storage remains the default development provider:
+
+```env
+STORAGE_PROVIDER=local
+```
+
 The local development provider writes files outside public web routes:
 
 ```text
@@ -92,6 +98,32 @@ Both repository modes support upload metadata:
 Memory metadata resets when the process restarts. Local file bytes remain on
 disk until manually deleted.
 
+## Azure Blob Storage
+
+Production-style storage can use Azure Blob Storage:
+
+```env
+STORAGE_PROVIDER=azure
+AZURE_STORAGE_CONNECTION_STRING="DefaultEndpointsProtocol=..."
+AZURE_STORAGE_CONTAINER=pulseiq-sources
+```
+
+When `STORAGE_PROVIDER=azure`, uploaded file bytes are written to a private Blob
+container. The workbench stores only metadata plus the container and blob key in
+the database. It does not create public URLs.
+
+Blob keys use this shape:
+
+```text
+org/{organizationId}/assessment/{assessmentId}/source/{sourceId}/{checksum}-{safeFileName}
+```
+
+Until tenant/auth work is added, `organizationId` defaults to
+`org-pulseiq-internal` unless `PULSEIQ_STORAGE_ORGANIZATION_ID` is configured.
+
+The current upload path extracts content from the in-memory uploaded buffer
+immediately, so analysis does not need to read files back from Azure yet.
+
 ## Security Limitations
 
 This internal MVP does not yet include:
@@ -109,7 +141,8 @@ are added.
 
 ## Future Storage Providers
 
-The storage interface is provider-based. A later stage can add private AWS S3,
-Azure Blob Storage, or another object store while keeping repository metadata
-and UI behavior stable. Production providers should use private buckets,
-server-side encryption, short-lived signed URLs, and malware scanning.
+The storage interface is provider-based. Azure Blob Storage is available now;
+a later stage can add AWS S3 or another object store while keeping repository
+metadata and UI behavior stable. Production providers should use private
+buckets/containers, server-side encryption, short-lived signed URLs only when
+download routes are added, and malware scanning.

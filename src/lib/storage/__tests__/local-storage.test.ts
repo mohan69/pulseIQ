@@ -25,14 +25,19 @@ describe("local storage provider", () => {
       sourceId,
       fileName: "../customer-notes.txt",
       bytes,
+      checksumSha256: "local-test-checksum",
     });
 
     expect(stored.provider).toBe("local");
+    expect(stored.container).toBe("local");
     expect(stored.key).toBe(
       `.pulseiq/uploads/${assessmentId}/${sourceId}/customer-notes.txt`,
     );
+    expect(stored.absolutePath).toBeTruthy();
+    expect(stored.byteSize).toBe(bytes.length);
+    expect(stored.checksumSha256).toBe("local-test-checksum");
     expect(stored.absolutePath).not.toContain(`${path.sep}public${path.sep}`);
-    await expect(readFile(stored.absolutePath, "utf8")).resolves.toBe(
+    await expect(readFile(stored.absolutePath!, "utf8")).resolves.toBe(
       "PulseIQ local storage test",
     );
   });

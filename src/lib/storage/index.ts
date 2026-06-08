@@ -1,12 +1,16 @@
 import { createHash } from "node:crypto";
 import path from "node:path";
 import type { SourceType } from "@/lib/assessment/types";
+import { azureStorageProvider } from "./azure";
 import { localStorageProvider } from "./local";
 
 export type StoredFile = {
   provider: string;
+  container?: string;
   key: string;
-  absolutePath: string;
+  absolutePath?: string;
+  byteSize: number;
+  checksumSha256: string;
 };
 
 export type FileValidationResult = {
@@ -26,11 +30,15 @@ export type SupportedUploadExtension =
 export type StorageProvider = {
   readonly name: string;
   put(input: {
+    organizationId?: string;
     assessmentId: string;
     sourceId: string;
     fileName: string;
+    mimeType?: string;
     bytes: Buffer;
+    checksumSha256: string;
   }): Promise<StoredFile>;
+  delete?(input: { key: string; container?: string }): Promise<void>;
 };
 
 const MAX_FILE_SIZE_BYTES = Number(
@@ -92,8 +100,31 @@ const ARCHIVE_EXTENSIONS = new Set([
   ".zip",
 ]);
 
-export function getStorageProvider(): StorageProvider {
-  return localStorageProvider;
+export type StorageProviderName = "local" | "azure";
+
+export function getStorageProvider(
+  env: Record<string, string | undefined> = process.env,
+): StorageProvider {
+  const provider = (env.STORAGE_PROVIDER ?? "local").toLowerCase();
+  if (provider === "local") {
+    return localStorageProvider;
+  }
+  if (provider === "azure") {
+    return azureStorageProvider;
+  }
+  throw new Error(
+    `Unsupported STORAGE_PROVIDER="${provider}". Expected "local" or "azure".`,
+  );
+}
+
+export function resolveStorageProviderName(
+  env: Record<string, string | undefined> = process.env,
+): StorageProviderName {
+  const provider = (env.STORAGE_PROVIDER ?? "local").toLowerCase();
+  if (provider === "local" || provider === "azure") return provider;
+  throw new Error(
+    `Unsupported STORAGE_PROVIDER="${provider}". Expected "local" or "azure".`,
+  );
 }
 
 export function sanitizeFileName(fileName: string): string {
