@@ -48,7 +48,7 @@ export default async function ReportPage({
             save as PDF.
           </p>
         </div>
-        <ReportPrintButton />
+        <ReportPrintButton assessmentId={id} />
       </div>
 
       <article className="rounded-2xl border border-border bg-white p-6 lg:p-10 print:border-0 print:p-0 print:shadow-none space-y-8 print:space-y-6 max-w-3xl mx-auto">

@@ -53,7 +53,27 @@ describe("upload validation and extraction", () => {
         mimeType: "application/octet-stream",
         byteSize: 10,
       }),
-    ).toThrow("Executable files are not allowed.");
+    ).toThrow("Executable or script files are not allowed.");
+  });
+
+  it("rejects archive uploads", () => {
+    expect(() =>
+      validateUploadFile({
+        fileName: "customer-data.zip",
+        mimeType: "application/octet-stream",
+        byteSize: 10,
+      }),
+    ).toThrow("Archive files are not allowed.");
+  });
+
+  it("rejects suspicious double extensions", () => {
+    expect(() =>
+      validateUploadFile({
+        fileName: "financials.exe.pdf",
+        mimeType: "application/pdf",
+        byteSize: 10,
+      }),
+    ).toThrow("double extensions");
   });
 
   it("builds compact previews", () => {

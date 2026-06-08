@@ -25,6 +25,7 @@ import type {
   TruthLayer,
 } from "./types";
 import type {
+  AddAuditEventInput,
   AddFactInput,
   AddSourceInput,
   AddSourceDocumentInput,
@@ -251,6 +252,31 @@ async function setOutput<T>(
   });
 }
 
+async function organizationIdForAudit(input: AddAuditEventInput) {
+  if (input.assessmentId) {
+    const assessment = await prisma.assessment.findUnique({
+      where: { id: input.assessmentId },
+      select: { organizationId: true },
+    });
+    return assessment?.organizationId;
+  }
+  if (input.entityType === "assessment") {
+    const assessment = await prisma.assessment.findUnique({
+      where: { id: input.entityId },
+      select: { organizationId: true },
+    });
+    return assessment?.organizationId;
+  }
+  if (input.entityType === "source") {
+    const source = await prisma.dataSource.findUnique({
+      where: { id: input.entityId },
+      select: { assessment: { select: { organizationId: true } } },
+    });
+    return source?.assessment.organizationId;
+  }
+  return undefined;
+}
+
 export const prismaAssessmentRepository: AssessmentRepository = {
   async listAssessments() {
     const rows = await prisma.assessment.findMany({
@@ -306,6 +332,15 @@ export const prismaAssessmentRepository: AssessmentRepository = {
       return mapAssessment(row);
     } catch {
       return undefined;
+    }
+  },
+
+  async deleteAssessment(id: string) {
+    try {
+      await prisma.assessment.delete({ where: { id } });
+      return true;
+    } catch {
+      return false;
     }
   },
 
@@ -384,6 +419,22 @@ export const prismaAssessmentRepository: AssessmentRepository = {
       return mapSource(row);
     } catch {
       return undefined;
+    }
+  },
+
+  async deleteSource(sourceId: string) {
+    try {
+      const row = await prisma.dataSource.delete({
+        where: { id: sourceId },
+        select: { assessmentId: true },
+      });
+      await prisma.assessment.update({
+        where: { id: row.assessmentId },
+        data: { updatedAt: new Date() },
+      });
+      return true;
+    } catch {
+      return false;
     }
   },
 
@@ -570,6 +621,19 @@ export const prismaAssessmentRepository: AssessmentRepository = {
 
   async markAssessmentAnalysisFailed(id: string) {
     return this.updateAssessmentStatus(id, "analysis_failed");
+  },
+
+  async addAuditEvent(input: AddAuditEventInput) {
+    const organizationId = await organizationIdForAudit(input);
+    await prisma.auditEvent.create({
+      data: {
+        organizationId,
+        action: input.action,
+        entityType: input.entityType,
+        entityId: input.entityId,
+        metadata: input.metadata as object | undefined,
+      },
+    });
   },
 };
 

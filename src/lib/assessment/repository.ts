@@ -57,6 +57,14 @@ export type SourcePatch = Partial<
   Omit<Source, "id" | "assessmentId" | "createdAt">
 >;
 
+export type AddAuditEventInput = {
+  action: string;
+  entityType: string;
+  entityId: string;
+  assessmentId?: string;
+  metadata?: Record<string, unknown>;
+};
+
 export interface AssessmentRepository {
   listAssessments(): Awaitable<Assessment[]>;
   getAssessment(id: string): Awaitable<Assessment | undefined>;
@@ -65,6 +73,7 @@ export interface AssessmentRepository {
     id: string,
     status: AssessmentStatus,
   ): Awaitable<Assessment | undefined>;
+  deleteAssessment(id: string): Awaitable<boolean>;
 
   getSources(assessmentId: string): Awaitable<Source[]>;
   addSource(
@@ -75,6 +84,7 @@ export interface AssessmentRepository {
     sourceId: string,
     patch: SourcePatch,
   ): Awaitable<Source | undefined>;
+  deleteSource(sourceId: string): Awaitable<boolean>;
   addSourceDocument(
     sourceId: string,
     input: AddSourceDocumentInput,
@@ -117,4 +127,5 @@ export interface AssessmentRepository {
   markAssessmentAnalyzing(id: string): Awaitable<Assessment | undefined>;
   markAssessmentAnalyzed(id: string): Awaitable<Assessment | undefined>;
   markAssessmentAnalysisFailed(id: string): Awaitable<Assessment | undefined>;
+  addAuditEvent(input: AddAuditEventInput): Awaitable<void>;
 }

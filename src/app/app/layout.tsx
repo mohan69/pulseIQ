@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { AppBreadcrumbs } from "@/components/layout/AppBreadcrumbs";
-import { Bell, Search, User } from "lucide-react";
+import { Bell, Search, ShieldCheck, User } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Workbench | PulseIQ",
@@ -43,6 +43,18 @@ export default function WorkbenchLayout({
           </div>
         </header>
         <main className="flex-1 min-w-0 px-6 lg:px-8 py-8 max-w-[1280px] w-full mx-auto">
+          <div className="mb-6 rounded-xl border border-warning/30 bg-warning-muted px-4 py-3 text-sm text-foreground-secondary">
+            <div className="flex items-start gap-2">
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+              <p>
+                <span className="font-semibold text-foreground">
+                  Internal RightSense Assessment Workbench.
+                </span>{" "}
+                Do not upload customer data unless the engagement is approved,
+                protected, and covered by NDA/confidentiality terms.
+              </p>
+            </div>
+          </div>
           {children}
         </main>
       </div>

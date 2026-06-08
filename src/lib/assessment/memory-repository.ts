@@ -27,6 +27,7 @@ import type {
   TruthLayer,
 } from "./types";
 import type {
+  AddAuditEventInput,
   AddFactInput,
   AddSourceInput,
   AddSourceDocumentInput,
@@ -45,6 +46,7 @@ type StoreState = {
   scenarios: Map<string, Scenario[]>;
   recommendations: Map<string, Recommendation[]>;
   plans: Map<string, ActionPhase[]>;
+  auditEvents: AddAuditEventInput[];
 };
 
 declare global {
@@ -63,6 +65,7 @@ function getOrInitState(): StoreState {
     scenarios: new Map(),
     recommendations: new Map(),
     plans: new Map(),
+    auditEvents: [],
   };
   state.assessments.set(demoAssessment.id, demoAssessment);
   state.sources.set(
@@ -211,6 +214,24 @@ export const memoryAssessmentRepository: AssessmentRepository = {
     return next;
   },
 
+  deleteAssessment(id: string) {
+    const s = getOrInitState();
+    const existed = s.assessments.delete(id);
+    if (!existed) return false;
+    const sources = s.sources.get(id) ?? [];
+    for (const source of sources) {
+      s.sourceDocuments.delete(source.id);
+    }
+    s.sources.delete(id);
+    s.facts.delete(id);
+    s.truthLayers.delete(id);
+    s.cockpits.delete(id);
+    s.scenarios.delete(id);
+    s.recommendations.delete(id);
+    s.plans.delete(id);
+    return true;
+  },
+
   getSources(assessmentId: string) {
     return getOrInitState().sources.get(assessmentId) ?? [];
   },
@@ -261,6 +282,29 @@ export const memoryAssessmentRepository: AssessmentRepository = {
       }
     }
     return undefined;
+  },
+
+  deleteSource(sourceId: string) {
+    const s = getOrInitState();
+    for (const [assessmentId, list] of s.sources.entries()) {
+      const idx = list.findIndex((x) => x.id === sourceId);
+      if (idx >= 0) {
+        s.sources.set(
+          assessmentId,
+          list.filter((source) => source.id !== sourceId),
+        );
+        s.sourceDocuments.delete(sourceId);
+        s.facts.set(
+          assessmentId,
+          (s.facts.get(assessmentId) ?? []).filter(
+            (fact) => fact.sourceId !== sourceId,
+          ),
+        );
+        touch(assessmentId);
+        return true;
+      }
+    }
+    return false;
   },
 
   addSourceDocument(sourceId: string, input: AddSourceDocumentInput) {
@@ -416,5 +460,9 @@ export const memoryAssessmentRepository: AssessmentRepository = {
 
   markAssessmentAnalysisFailed(id: string) {
     return this.updateAssessmentStatus(id, "analysis_failed");
+  },
+
+  addAuditEvent(input: AddAuditEventInput) {
+    getOrInitState().auditEvents.push(input);
   },
 };

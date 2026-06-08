@@ -3,9 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
+  addAuditEvent,
   addSourceDocument,
   addSource as storeAddSource,
   createAssessment as storeCreateAssessment,
+  deleteAssessment,
+  deleteSource,
+  getAssessment,
   updateAssessmentStatus as storeUpdateStatus,
   updateSource,
 } from "@/lib/assessment/store";
@@ -23,6 +27,8 @@ import type {
   Industry,
   SourceType,
 } from "@/lib/assessment/types";
+
+const DEMO_ASSESSMENT_ID = "asm-bharat-heavy-fabrications";
 
 function parseNumber(v: FormDataEntryValue | null, fallback: number): number {
   if (v === null) return fallback;
@@ -61,6 +67,17 @@ export async function createAssessmentAction(formData: FormData) {
     cashTarget: cashTargetCr * 10_000_000,
     headcountProductivityTarget: rpeTargetL * 100_000,
   });
+  await addAuditEvent({
+    action: "assessment_created",
+    entityType: "assessment",
+    entityId: created.id,
+    assessmentId: created.id,
+    metadata: {
+      companyName: created.companyName,
+      industry: created.industry,
+      objective: created.objective,
+    },
+  });
   revalidatePath("/app/assessments");
   redirect(`/app/assessments/${created.id}`);
 }
@@ -84,12 +101,25 @@ export async function addSourceAction(
   }
 
   if (!hasFile) {
-    await storeAddSource(assessmentId, {
+    const source = await storeAddSource(assessmentId, {
       name,
       type,
       notes: notes || undefined,
       extractionStatus: "not_applicable",
     });
+    if (source) {
+      await addAuditEvent({
+        action: "source_added",
+        entityType: "source",
+        entityId: source.id,
+        assessmentId,
+        metadata: {
+          sourceName: source.name,
+          sourceType: source.type,
+          origin: source.origin ?? "manual",
+        },
+      });
+    }
     revalidatePath(`/app/assessments/${assessmentId}/sources`);
     revalidatePath(`/app/assessments/${assessmentId}`);
     revalidatePath(`/app/sources`);
@@ -158,6 +188,22 @@ export async function addSourceAction(
     });
   }
 
+  await addAuditEvent({
+    action: "source_uploaded",
+    entityType: "source",
+    entityId: source.id,
+    assessmentId,
+    metadata: {
+      sourceName: source.name,
+      sourceType: source.type,
+      fileName: source.fileName,
+      mimeType: source.mimeType,
+      byteSize: source.byteSize,
+      checksumSha256: checksum,
+      extractionStatus: extraction.status,
+    },
+  });
+
   revalidatePath(`/app/assessments/${assessmentId}/sources`);
   revalidatePath(`/app/assessments/${assessmentId}`);
   revalidatePath(`/app/sources`);
@@ -190,4 +236,61 @@ export async function analyzeAssessmentAction(assessmentId: string) {
   revalidatePath(`/app/assessments/${assessmentId}/report`);
   revalidatePath("/app");
   revalidatePath("/app/assessments");
+}
+
+export async function deleteSourceAction(
+  assessmentId: string,
+  formData: FormData,
+) {
+  if (assessmentId === DEMO_ASSESSMENT_ID) {
+    throw new Error("The golden demo assessment cannot be modified.");
+  }
+  const sourceId = String(formData.get("sourceId") ?? "");
+  if (!sourceId) throw new Error("Source id is required.");
+
+  await addAuditEvent({
+    action: "source_deleted",
+    entityType: "source",
+    entityId: sourceId,
+    assessmentId,
+  });
+  await deleteSource(sourceId);
+  revalidatePath(`/app/assessments/${assessmentId}`);
+  revalidatePath(`/app/assessments/${assessmentId}/sources`);
+  revalidatePath("/app/sources");
+}
+
+export async function deleteAssessmentAction(
+  assessmentId: string,
+  formData: FormData,
+) {
+  void formData;
+  if (assessmentId === DEMO_ASSESSMENT_ID) {
+    throw new Error("The golden demo assessment cannot be deleted.");
+  }
+  const assessment = await getAssessment(assessmentId);
+  if (!assessment) throw new Error("Assessment not found.");
+
+  await addAuditEvent({
+    action: "assessment_deleted",
+    entityType: "assessment",
+    entityId: assessmentId,
+    assessmentId,
+    metadata: {
+      companyName: assessment.companyName,
+    },
+  });
+  await deleteAssessment(assessmentId);
+  revalidatePath("/app");
+  revalidatePath("/app/assessments");
+  redirect("/app/assessments");
+}
+
+export async function reportPrintedAction(assessmentId: string) {
+  await addAuditEvent({
+    action: "report_printed",
+    entityType: "assessment",
+    entityId: assessmentId,
+    assessmentId,
+  });
 }

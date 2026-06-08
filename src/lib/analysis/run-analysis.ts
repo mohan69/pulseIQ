@@ -8,6 +8,7 @@ import {
   type AIContext,
 } from "@/lib/ai";
 import {
+  addAuditEvent,
   getAssessment,
   getFacts,
   getReport,
@@ -65,6 +66,13 @@ export async function runAssessmentAnalysis(
   }
 
   if (assessment.id === DEMO_ASSESSMENT_ID) {
+    await addAuditEvent({
+      action: "analysis_run_demo_skipped",
+      entityType: "assessment",
+      entityId: assessmentId,
+      assessmentId,
+      metadata: { provider: engine.provider },
+    });
     return {
       ok: true,
       assessmentId,
@@ -75,6 +83,13 @@ export async function runAssessmentAnalysis(
     };
   }
 
+  await addAuditEvent({
+    action: "analysis_run",
+    entityType: "assessment",
+    entityId: assessmentId,
+    assessmentId,
+    metadata: { provider: engine.provider },
+  });
   await markAssessmentAnalyzing(assessmentId);
 
   try {
@@ -168,8 +183,30 @@ export async function runAssessmentAnalysis(
       plan,
     });
     await getReport(assessmentId);
+    await addAuditEvent({
+      action: "report_generated",
+      entityType: "assessment",
+      entityId: assessmentId,
+      assessmentId,
+      metadata: {
+        provider: engine.provider,
+        factCount: currentFacts.length,
+        sourceCount: sources.length,
+      },
+    });
 
     await markAssessmentAnalyzed(assessmentId);
+    await addAuditEvent({
+      action: "analysis_completed",
+      entityType: "assessment",
+      entityId: assessmentId,
+      assessmentId,
+      metadata: {
+        provider: engine.provider,
+        factsAdded,
+        sourcesAnalyzed: corpus.length,
+      },
+    });
     return {
       ok: true,
       assessmentId,
@@ -180,6 +217,16 @@ export async function runAssessmentAnalysis(
     };
   } catch (error) {
     await markAssessmentAnalysisFailed(assessmentId);
+    await addAuditEvent({
+      action: "analysis_failed",
+      entityType: "assessment",
+      entityId: assessmentId,
+      assessmentId,
+      metadata: {
+        provider: engine.provider,
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+    });
     return {
       ok: false,
       assessmentId,

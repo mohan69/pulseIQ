@@ -17,9 +17,12 @@ import {
   XCircle,
   Clock,
   Shield,
+  Trash2,
 } from "lucide-react";
 import { AddSourceForm } from "@/components/workbench/AddSourceForm";
 import { AnalyzeAssessmentForm } from "@/components/workbench/AnalyzeAssessmentForm";
+import { Button } from "@/components/ui/button";
+import { deleteSourceAction } from "@/app/app/actions";
 
 export default async function SourcesPage({
   params,
@@ -30,6 +33,7 @@ export default async function SourcesPage({
   const assessment = await getAssessment(id);
   if (!assessment) notFound();
   const sources = await getSources(id);
+  const isDemo = assessment.id === "asm-bharat-heavy-fabrications";
 
   return (
     <div className="space-y-6">
@@ -94,6 +98,7 @@ export default async function SourcesPage({
                   <th className="pb-3 pr-3 font-medium">File</th>
                   <th className="pb-3 pr-3 font-medium">Extraction</th>
                   <th className="pb-3 pr-3 font-medium">Notes</th>
+                  <th className="pb-3 pr-3 font-medium">Controls</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-subtle">
@@ -154,6 +159,25 @@ export default async function SourcesPage({
                     </td>
                     <td className="py-3 pr-3 text-foreground-secondary max-w-md">
                       {s.notes || <span className="text-muted">—</span>}
+                    </td>
+                    <td className="py-3 pr-3">
+                      <form action={deleteSourceAction.bind(null, id)}>
+                        <input type="hidden" name="sourceId" value={s.id} />
+                        <Button
+                          type="submit"
+                          variant="outline"
+                          size="sm"
+                          disabled={isDemo}
+                          title={
+                            isDemo
+                              ? "Golden demo sources cannot be deleted."
+                              : "Delete this source and its extracted records."
+                          }
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Delete
+                        </Button>
+                      </form>
                     </td>
                   </tr>
                 ))}

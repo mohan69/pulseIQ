@@ -50,6 +50,7 @@ const ALLOWED_MIME_TYPES = new Set([
   "text/plain",
   "text/csv",
   "application/csv",
+  "application/vnd.ms-excel",
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "application/vnd.openxmlformats-officedocument.presentationml.presentation",
@@ -62,12 +63,33 @@ const EXECUTABLE_EXTENSIONS = new Set([
   ".bat",
   ".cmd",
   ".com",
+  ".cpl",
+  ".dll",
+  ".jar",
   ".js",
+  ".jse",
+  ".lnk",
   ".msi",
   ".ps1",
+  ".psm1",
+  ".reg",
   ".scr",
   ".sh",
+  ".ts",
+  ".tsx",
+  ".vb",
   ".vbs",
+  ".wsf",
+]);
+
+const ARCHIVE_EXTENSIONS = new Set([
+  ".7z",
+  ".bz2",
+  ".gz",
+  ".rar",
+  ".tar",
+  ".tgz",
+  ".zip",
 ]);
 
 export function getStorageProvider(): StorageProvider {
@@ -92,9 +114,24 @@ export function validateUploadFile(input: {
     .extname(input.fileName)
     .toLowerCase() as SupportedUploadExtension;
   const mimeType = input.mimeType || "application/octet-stream";
+  const normalizedName = input.fileName.toLowerCase();
+  const nameParts = normalizedName.split(".").filter(Boolean);
 
   if (EXECUTABLE_EXTENSIONS.has(extension)) {
-    throw new Error("Executable files are not allowed.");
+    throw new Error("Executable or script files are not allowed.");
+  }
+  if (ARCHIVE_EXTENSIONS.has(extension)) {
+    throw new Error("Archive files are not allowed. Upload TXT, CSV, PDF, DOCX, PPTX, or XLSX only.");
+  }
+  if (
+    nameParts.length > 2 &&
+    nameParts
+      .slice(0, -1)
+      .some((part) =>
+        EXECUTABLE_EXTENSIONS.has(`.${part}`) || ARCHIVE_EXTENSIONS.has(`.${part}`),
+      )
+  ) {
+    throw new Error("Files with executable, script, or archive double extensions are not allowed.");
   }
   if (!ALLOWED_EXTENSIONS.has(extension)) {
     throw new Error(

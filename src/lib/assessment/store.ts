@@ -4,6 +4,7 @@
 
 import { memoryAssessmentRepository } from "./memory-repository";
 import type {
+  AddAuditEventInput,
   AddFactInput,
   AddSourceInput,
   AddSourceDocumentInput,
@@ -50,6 +51,7 @@ async function getRepository(): Promise<AssessmentRepository> {
 
 export type {
   AddFactInput,
+  AddAuditEventInput,
   AddSourceInput,
   AddSourceDocumentInput,
   CreateAssessmentInput,
@@ -75,6 +77,10 @@ export async function updateAssessmentStatus(
   return (await getRepository()).updateAssessmentStatus(id, status);
 }
 
+export async function deleteAssessment(id: string) {
+  return (await getRepository()).deleteAssessment(id);
+}
+
 export async function setAssessmentStatus(
   id: string,
   status: AssessmentStatus,
@@ -92,6 +98,10 @@ export async function addSource(assessmentId: string, input: AddSourceInput) {
 
 export async function updateSource(sourceId: string, patch: SourcePatch) {
   return (await getRepository()).updateSource(sourceId, patch);
+}
+
+export async function deleteSource(sourceId: string) {
+  return (await getRepository()).deleteSource(sourceId);
 }
 
 export async function addSourceDocument(
@@ -196,4 +206,8 @@ export async function markAssessmentAnalyzed(id: string) {
 
 export async function markAssessmentAnalysisFailed(id: string) {
   return (await getRepository()).markAssessmentAnalysisFailed(id);
+}
+
+export async function addAuditEvent(input: AddAuditEventInput) {
+  return (await getRepository()).addAuditEvent(input);
 }

@@ -34,8 +34,10 @@ import {
   Activity,
   Building2,
   Clock,
+  Trash2,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { deleteAssessmentAction } from "@/app/app/actions";
 
 export default async function AssessmentOverviewPage({
   params,
@@ -59,6 +61,7 @@ export default async function AssessmentOverviewPage({
   const atRisk = cockpit.metrics.filter((m) => m.status === "at_risk");
   const onTrack = cockpit.metrics.filter((m) => m.status === "on_track");
   const totalGaps = layers.reduce((acc, l) => acc + l.gaps.length, 0);
+  const isDemo = assessment.id === "asm-bharat-heavy-fabrications";
 
   return (
     <div className="space-y-6">
@@ -258,16 +261,34 @@ export default async function AssessmentOverviewPage({
         <div className="text-xs text-muted flex items-center gap-1.5">
           <Clock className="h-3 w-3" />
           Last updated {new Date(assessment.updatedAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
-          {assessment.id === "asm-bharat-heavy-fabrications" && (
+          {isDemo && (
             <span className="ml-2 text-[10px] bg-accent-muted text-accent px-1.5 py-0.5 rounded">Demo data</span>
           )}
         </div>
-        <Link href={`/app/assessments/${id}/report`}>
-          <Button variant="outline" className="px-5">
-            View board report
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <form action={deleteAssessmentAction.bind(null, id)}>
+            <Button
+              type="submit"
+              variant="outline"
+              className="px-4"
+              disabled={isDemo}
+              title={
+                isDemo
+                  ? "The golden demo assessment cannot be deleted."
+                  : "Delete this assessment and its database records."
+              }
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete assessment
+            </Button>
+          </form>
+          <Link href={`/app/assessments/${id}/report`}>
+            <Button variant="outline" className="px-5">
+              View board report
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
   );

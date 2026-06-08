@@ -25,11 +25,16 @@ import {
   Sparkles,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { resolveAIEngineConfig } from "@/lib/ai";
 
 export const dynamic = "force-dynamic";
 
 export default async function WorkbenchDashboardPage() {
   const assessments = await listAssessments();
+  const aiConfig = resolveAIEngineConfig();
+  const dataMode = process.env.PULSEIQ_DATA_MODE === "database" ? "Database" : "Memory";
+  const internalMode = process.env.INTERNAL_APP_MODE === "true";
+  const protectionNote = process.env.DEPLOYMENT_PROTECTION_NOTE?.trim();
   const demo = assessments.find((a) => a.id === "asm-bharat-heavy-fabrications");
   const demoSources = demo ? 8 : 0;
   const demoTruthLayers = demo ? 5 : 0;
@@ -198,16 +203,30 @@ export default async function WorkbenchDashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <Row
-              label="Mode"
-              value="Demo (deterministic)"
-              tone="info"
+              label="Internal mode"
+              value={internalMode ? "Enabled" : "Not enabled"}
+              tone={internalMode ? "success" : "warning"}
               icon={CheckCircle2}
             />
+            {protectionNote && (
+              <Row
+                label="Deployment protection"
+                value={protectionNote}
+                tone="success"
+                icon={CheckCircle2}
+              />
+            )}
             <Row
               label="AI provider"
-              value="Not configured"
-              tone="warning"
-              icon={AlertTriangle}
+              value={aiProviderLabel(aiConfig.provider)}
+              tone={aiConfig.provider === "mock" ? "info" : "success"}
+              icon={aiConfig.provider === "mock" ? AlertTriangle : CheckCircle2}
+            />
+            <Row
+              label="Data mode"
+              value={dataMode}
+              tone={dataMode === "Database" ? "success" : "info"}
+              icon={CheckCircle2}
             />
             <Row
               label="Output validation"
@@ -253,6 +272,12 @@ export default async function WorkbenchDashboardPage() {
       </section>
     </div>
   );
+}
+
+function aiProviderLabel(provider: string): string {
+  if (provider === "openrouter") return "OpenRouter";
+  if (provider === "openai") return "OpenAI";
+  return "Mock";
 }
 
 function StatusPill({ status }: { status: string }) {
