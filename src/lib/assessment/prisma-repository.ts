@@ -13,7 +13,9 @@ import type {
   Assessment,
   AssessmentStatus,
   Cockpit,
+  CockpitMetric,
   ConfidenceLevel,
+  EvidenceRef,
   ExtractedFact,
   FactKind,
   Recommendation,
@@ -22,7 +24,11 @@ import type {
   SourceDocument,
   SourceStatus,
   SourceType,
+  TopOpportunity,
+  TopRisk,
+  TruthFinding,
   TruthLayer,
+  TruthLayerKey,
 } from "./types";
 import type {
   AddAuditEventInput,
@@ -284,9 +290,15 @@ function safeCockpit(value: unknown): Cockpit {
   if (!value || typeof value !== "object") return { metrics: [], topRisks: [], topOpportunities: [] };
   const v = value as Record<string, unknown>;
   return {
-    metrics: Array.isArray(v.metrics) ? v.metrics as Cockpit["metrics"] : [],
-    topRisks: Array.isArray(v.topRisks) ? v.topRisks as Cockpit["topRisks"] : [],
-    topOpportunities: Array.isArray(v.topOpportunities) ? v.topOpportunities as Cockpit["topOpportunities"] : [],
+    metrics: Array.isArray(v.metrics) ? v.metrics.filter((m): m is CockpitMetric =>
+      m != null && typeof m === "object" && typeof (m as Record<string, unknown>).status === "string"
+    ) : [],
+    topRisks: Array.isArray(v.topRisks) ? v.topRisks.filter((r): r is TopRisk =>
+      r != null && typeof r === "object"
+    ) : [],
+    topOpportunities: Array.isArray(v.topOpportunities) ? v.topOpportunities.filter((o): o is TopOpportunity =>
+      o != null && typeof o === "object"
+    ) : [],
   };
 }
 
@@ -294,9 +306,30 @@ function safeArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? value as T[] : [];
 }
 
+const EMPTY_TRUTH_LAYERS_MAP: Record<string, TruthLayerKey> = {
+  financial: "financial",
+  strategic: "strategic",
+  operational: "operational",
+  process: "process",
+  collaboration: "collaboration",
+};
+
 function safeTruthLayers(value: unknown): TruthLayer[] {
   if (!Array.isArray(value)) return emptyTruthLayers();
-  return value as TruthLayer[];
+  return value.map((l, i) => {
+    if (!l || typeof l !== "object") return emptyTruthLayers()[i] ?? emptyTruthLayers()[0];
+    const v = l as Record<string, unknown>;
+    return {
+      key: (EMPTY_TRUTH_LAYERS_MAP[v.key as string] as TruthLayerKey) ?? "financial" as TruthLayerKey,
+      title: typeof v.title === "string" ? v.title : "",
+      description: typeof v.description === "string" ? v.description : "",
+      findings: Array.isArray(v.findings) ? v.findings as TruthFinding[] : [],
+      evidence: Array.isArray(v.evidence) ? v.evidence as EvidenceRef[] : [],
+      confidence: (v.confidence as ConfidenceLevel) ?? "low",
+      gaps: Array.isArray(v.gaps) ? v.gaps as string[] : [],
+      contradictions: Array.isArray(v.contradictions) ? v.contradictions as string[] : [],
+    };
+  });
 }
 
 export const prismaAssessmentRepository: AssessmentRepository = {

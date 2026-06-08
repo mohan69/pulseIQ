@@ -36,7 +36,7 @@ import {
   Clock,
   Trash2,
 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/utils";
 import { deleteAssessmentAction } from "@/app/app/actions";
 
 export default async function AssessmentOverviewPage({
@@ -60,7 +60,7 @@ export default async function AssessmentOverviewPage({
   const offTrack = cockpit.metrics.filter((m) => m.status === "off_track");
   const atRisk = cockpit.metrics.filter((m) => m.status === "at_risk");
   const onTrack = cockpit.metrics.filter((m) => m.status === "on_track");
-  const totalGaps = layers.reduce((acc, l) => acc + l.gaps.length, 0);
+  const totalGaps = layers.reduce((acc, l) => acc + (Array.isArray(l.gaps) ? l.gaps.length : 0), 0);
   const isDemo = assessment.id === "asm-bharat-heavy-fabrications";
 
   return (
@@ -143,7 +143,7 @@ export default async function AssessmentOverviewPage({
                 <ArrowRight className="h-4 w-4 text-muted group-hover:text-accent transition-colors" />
               </div>
               <CardDescription>
-                {layers.filter((l) => l.findings.length > 0).length} of 5 layers populated
+                {layers.filter((l) => Array.isArray(l.findings) && l.findings.length > 0).length} of 5 layers populated
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -151,18 +151,18 @@ export default async function AssessmentOverviewPage({
                 {layers.slice(0, 4).map((l) => (
                   <li key={l.key} className="flex items-center gap-2 text-foreground-secondary">
                     <Layers className="h-3.5 w-3.5 text-muted shrink-0" />
-                    <span className="truncate">{l.title}</span>
+                    <span className="truncate">{l.title ?? ""}</span>
                     <Badge
                       variant={
-                        l.findings.length > 0
+                        Array.isArray(l.findings) && l.findings.length > 0
                           ? "success"
-                          : l.gaps.length > 0
+                          : Array.isArray(l.gaps) && l.gaps.length > 0
                             ? "warning"
                             : "outline"
                       }
                       className="ml-auto text-[10px]"
                     >
-                      {l.findings.length} findings
+                      {(Array.isArray(l.findings) ? l.findings.length : 0)} findings
                     </Badge>
                   </li>
                 ))}
@@ -260,7 +260,7 @@ export default async function AssessmentOverviewPage({
       <div className="flex items-center justify-between">
         <div className="text-xs text-muted flex items-center gap-1.5">
           <Clock className="h-3 w-3" />
-          Last updated {new Date(assessment.updatedAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+          Last updated {formatDate(assessment.updatedAt)}
           {isDemo && (
             <span className="ml-2 text-[10px] bg-accent-muted text-accent px-1.5 py-0.5 rounded">Demo data</span>
           )}

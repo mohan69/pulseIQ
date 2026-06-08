@@ -12,7 +12,8 @@
     "verify:demo": "vitest run src/lib/assessment/__tests__/demo-golden.test.ts",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:seed": "tsx scripts/seed-pulseiq-demo.ts"
+    "db:seed": "tsx scripts/seed-pulseiq-demo.ts",
+    "verify:db-demo": "tsx scripts/verify-db-demo.ts"
   },
   "dependencies": {
     "@azure/storage-blob": "^12.32.0",
