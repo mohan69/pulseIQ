@@ -26,9 +26,9 @@ export default async function SourcesPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const assessment = getAssessment(id);
+  const assessment = await getAssessment(id);
   if (!assessment) notFound();
-  const sources = getSources(id);
+  const sources = await getSources(id);
 
   return (
     <div className="space-y-6">

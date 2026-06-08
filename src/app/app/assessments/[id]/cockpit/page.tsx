@@ -35,9 +35,9 @@ export default async function CockpitPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const assessment = getAssessment(id);
+  const assessment = await getAssessment(id);
   if (!assessment) notFound();
-  const cockpit = getCockpit(id);
+  const cockpit = await getCockpit(id);
 
   return (
     <div className="space-y-6">

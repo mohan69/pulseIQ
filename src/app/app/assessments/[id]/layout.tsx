@@ -17,10 +17,12 @@ export default async function AssessmentLayout({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const assessment = getAssessment(id);
+  const assessment = await getAssessment(id);
   if (!assessment) notFound();
-  const sources = getSources(id);
-  const cockpit = getCockpit(id);
+  const [sources, cockpit] = await Promise.all([
+    getSources(id),
+    getCockpit(id),
+  ]);
   const offTrack = cockpit.metrics.filter((m) => m.status === "off_track").length;
   const atRisk = cockpit.metrics.filter((m) => m.status === "at_risk").length;
   const headline =

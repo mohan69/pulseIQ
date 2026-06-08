@@ -1,0 +1,464 @@
+// PulseIQ Workbench — Prisma/PostgreSQL repository.
+// This adapter persists the same workbench domain objects exposed by store.ts.
+
+import type {
+  Assessment as DbAssessment,
+  AssessmentOutput as DbAssessmentOutput,
+  BusinessFact as DbBusinessFact,
+  DataSource as DbDataSource,
+} from "@prisma/client";
+import { prisma } from "@/lib/db";
+import type {
+  ActionPhase,
+  Assessment,
+  AssessmentStatus,
+  Cockpit,
+  ConfidenceLevel,
+  ExtractedFact,
+  FactKind,
+  Recommendation,
+  Scenario,
+  Source,
+  SourceStatus,
+  SourceType,
+  TruthLayer,
+} from "./types";
+import type {
+  AddFactInput,
+  AddSourceInput,
+  AssessmentRepository,
+  CreateAssessmentInput,
+  SourcePatch,
+} from "./repository";
+
+const DEFAULT_ORGANIZATION_ID = "org-pulseiq-internal";
+const DEFAULT_ORGANIZATION_NAME = "PulseIQ Internal";
+
+const OUTPUT_TYPES = {
+  truthLayers: "truth_layers",
+  cockpit: "cockpit",
+  scenarios: "scenarios",
+  recommendations: "recommendations",
+  plan: "plan",
+} as const;
+
+async function ensureDefaultOrganization() {
+  return prisma.organization.upsert({
+    where: { id: DEFAULT_ORGANIZATION_ID },
+    update: {},
+    create: {
+      id: DEFAULT_ORGANIZATION_ID,
+      name: DEFAULT_ORGANIZATION_NAME,
+    },
+  });
+}
+
+function toDate(value: string): Date {
+  return new Date(value);
+}
+
+function mapAssessment(row: DbAssessment): Assessment {
+  return {
+    id: row.id,
+    companyName: row.companyName,
+    industry: row.industry as Assessment["industry"],
+    objective: row.objective as Assessment["objective"],
+    revenueTarget: Number(row.revenueTarget),
+    marginTarget: row.marginTarget,
+    cashTarget: Number(row.cashTarget),
+    headcountProductivityTarget: Number(row.headcountProductivityTarget),
+    status: row.status as AssessmentStatus,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+function mapSource(row: DbDataSource): Source {
+  return {
+    id: row.id,
+    assessmentId: row.assessmentId,
+    name: row.name,
+    type: row.type as SourceType,
+    status: row.status as SourceStatus,
+    confidence: row.confidence as ConfidenceLevel,
+    notes: row.notes,
+    createdAt: row.createdAt.toISOString(),
+    pageCount: row.pageCount ?? undefined,
+  };
+}
+
+function mapFact(row: DbBusinessFact): ExtractedFact {
+  return {
+    id: row.id,
+    assessmentId: row.assessmentId,
+    sourceId: row.sourceId,
+    kind: row.kind as FactKind,
+    label: row.label,
+    value: row.value,
+    numericValue: row.numericValue ?? undefined,
+    unit: row.unit ?? undefined,
+    evidence: row.evidence,
+    confidence: row.confidence as ConfidenceLevel,
+    capturedAt: row.capturedAt.toISOString(),
+  };
+}
+
+function outputData<T>(output: DbAssessmentOutput | null): T | undefined {
+  return output?.data as T | undefined;
+}
+
+function emptyTruthLayers(): TruthLayer[] {
+  return [
+    {
+      key: "financial",
+      title: "Official Financial Truth",
+      description: "",
+      confidence: "low",
+      findings: [],
+      evidence: [],
+      gaps: [],
+      contradictions: [],
+    },
+    {
+      key: "strategic",
+      title: "Strategic Management Intent",
+      description: "",
+      confidence: "low",
+      findings: [],
+      evidence: [],
+      gaps: [],
+      contradictions: [],
+    },
+    {
+      key: "operational",
+      title: "Operational Reality",
+      description: "",
+      confidence: "low",
+      findings: [],
+      evidence: [],
+      gaps: [],
+      contradictions: [],
+    },
+    {
+      key: "process",
+      title: "Process and SOP Truth",
+      description: "",
+      confidence: "low",
+      findings: [],
+      evidence: [],
+      gaps: [],
+      contradictions: [],
+    },
+    {
+      key: "collaboration",
+      title: "Collaboration Truth",
+      description: "",
+      confidence: "low",
+      findings: [],
+      evidence: [],
+      gaps: [],
+      contradictions: [],
+    },
+  ];
+}
+
+function buildExecutiveSummary(
+  assessment: Assessment,
+  sources: Source[],
+  facts: ExtractedFact[],
+  cockpit: Cockpit,
+): string {
+  const offTrack = cockpit.metrics.filter((m) => m.status === "off_track").length;
+  const atRisk = cockpit.metrics.filter((m) => m.status === "at_risk").length;
+  const headline =
+    offTrack > 0
+      ? `${offTrack} headline metric${offTrack === 1 ? "" : "s"} off track`
+      : atRisk > 0
+        ? `${atRisk} metric${atRisk === 1 ? "" : "s"} at risk`
+        : "operating broadly on plan";
+  return `Assessment of ${assessment.companyName} synthesised from ${sources.length} source${sources.length === 1 ? "" : "s"} and ${facts.length} extracted fact${facts.length === 1 ? "" : "s"}. Current operating posture: ${headline}.`;
+}
+
+async function getOutput<T>(
+  assessmentId: string,
+  type: string,
+): Promise<T | undefined> {
+  const output = await prisma.assessmentOutput.findUnique({
+    where: { assessmentId_type: { assessmentId, type } },
+  });
+  return outputData<T>(output);
+}
+
+async function setOutput<T>(
+  assessmentId: string,
+  type: string,
+  data: T,
+) {
+  await prisma.assessmentOutput.upsert({
+    where: { assessmentId_type: { assessmentId, type } },
+    update: {
+      data: data as object,
+      provider: "internal",
+    },
+    create: {
+      assessmentId,
+      type,
+      provider: "internal",
+      data: data as object,
+    },
+  });
+  await prisma.assessment.update({
+    where: { id: assessmentId },
+    data: { updatedAt: new Date() },
+  });
+}
+
+export const prismaAssessmentRepository: AssessmentRepository = {
+  async listAssessments() {
+    const rows = await prisma.assessment.findMany({
+      orderBy: { updatedAt: "desc" },
+    });
+    return rows.map(mapAssessment);
+  },
+
+  async getAssessment(id: string) {
+    const row = await prisma.assessment.findUnique({ where: { id } });
+    return row ? mapAssessment(row) : undefined;
+  },
+
+  async createAssessment(input: CreateAssessmentInput) {
+    await ensureDefaultOrganization();
+    const row = await prisma.assessment.create({
+      data: {
+        organizationId: DEFAULT_ORGANIZATION_ID,
+        companyName: input.companyName,
+        industry: input.industry,
+        objective: input.objective,
+        revenueTarget: BigInt(input.revenueTarget),
+        marginTarget: input.marginTarget,
+        cashTarget: BigInt(input.cashTarget),
+        headcountProductivityTarget: BigInt(
+          input.headcountProductivityTarget,
+        ),
+        status: "draft",
+      },
+    });
+    await setOutput(row.id, OUTPUT_TYPES.truthLayers, emptyTruthLayers());
+    await setOutput(row.id, OUTPUT_TYPES.cockpit, {
+      metrics: [],
+      topRisks: [],
+      topOpportunities: [],
+    } satisfies Cockpit);
+    await setOutput(row.id, OUTPUT_TYPES.scenarios, [] satisfies Scenario[]);
+    await setOutput(
+      row.id,
+      OUTPUT_TYPES.recommendations,
+      [] satisfies Recommendation[],
+    );
+    await setOutput(row.id, OUTPUT_TYPES.plan, [] satisfies ActionPhase[]);
+    return mapAssessment(row);
+  },
+
+  async updateAssessmentStatus(id: string, status: AssessmentStatus) {
+    try {
+      const row = await prisma.assessment.update({
+        where: { id },
+        data: { status },
+      });
+      return mapAssessment(row);
+    } catch {
+      return undefined;
+    }
+  },
+
+  async getSources(assessmentId: string) {
+    const rows = await prisma.dataSource.findMany({
+      where: { assessmentId },
+      orderBy: { createdAt: "desc" },
+    });
+    return rows.map(mapSource);
+  },
+
+  async addSource(assessmentId: string, input: AddSourceInput) {
+    const assessment = await prisma.assessment.findUnique({
+      where: { id: assessmentId },
+      select: { id: true },
+    });
+    if (!assessment) return undefined;
+    const row = await prisma.dataSource.create({
+      data: {
+        assessmentId,
+        name: input.name,
+        type: input.type,
+        status: "registered",
+        confidence: "medium",
+        notes: input.notes ?? "",
+      },
+    });
+    await prisma.assessment.update({
+      where: { id: assessmentId },
+      data: { updatedAt: new Date() },
+    });
+    return mapSource(row);
+  },
+
+  async updateSource(sourceId: string, patch: SourcePatch) {
+    try {
+      const row = await prisma.dataSource.update({
+        where: { id: sourceId },
+        data: {
+          name: patch.name,
+          type: patch.type,
+          status: patch.status,
+          confidence: patch.confidence,
+          notes: patch.notes,
+          pageCount: patch.pageCount,
+        },
+      });
+      await prisma.assessment.update({
+        where: { id: row.assessmentId },
+        data: { updatedAt: new Date() },
+      });
+      return mapSource(row);
+    } catch {
+      return undefined;
+    }
+  },
+
+  async getFacts(assessmentId: string) {
+    const rows = await prisma.businessFact.findMany({
+      where: { assessmentId },
+      orderBy: { capturedAt: "desc" },
+    });
+    return rows.map(mapFact);
+  },
+
+  async addFacts(
+    assessmentId: string,
+    sourceId: string,
+    facts: AddFactInput[],
+  ) {
+    const created = await prisma.$transaction(
+      facts.map((fact) =>
+        prisma.businessFact.create({
+          data: {
+            assessmentId,
+            sourceId,
+            kind: fact.kind,
+            label: fact.label,
+            value: fact.value,
+            numericValue: fact.numericValue,
+            unit: fact.unit,
+            evidence: fact.evidence,
+            confidence: fact.confidence,
+          },
+        }),
+      ),
+    );
+    await prisma.assessment.update({
+      where: { id: assessmentId },
+      data: { updatedAt: new Date() },
+    });
+    return created.map(mapFact);
+  },
+
+  async getTruthLayers(assessmentId: string) {
+    return (
+      (await getOutput<TruthLayer[]>(
+        assessmentId,
+        OUTPUT_TYPES.truthLayers,
+      )) ?? emptyTruthLayers()
+    );
+  },
+
+  async setTruthLayers(assessmentId: string, layers: TruthLayer[]) {
+    await setOutput(assessmentId, OUTPUT_TYPES.truthLayers, layers);
+  },
+
+  async getCockpit(assessmentId: string) {
+    return (
+      (await getOutput<Cockpit>(assessmentId, OUTPUT_TYPES.cockpit)) ?? {
+        metrics: [],
+        topRisks: [],
+        topOpportunities: [],
+      }
+    );
+  },
+
+  async setCockpit(assessmentId: string, cockpit: Cockpit) {
+    await setOutput(assessmentId, OUTPUT_TYPES.cockpit, cockpit);
+  },
+
+  async getScenarios(assessmentId: string) {
+    return (
+      (await getOutput<Scenario[]>(assessmentId, OUTPUT_TYPES.scenarios)) ?? []
+    );
+  },
+
+  async setScenarios(assessmentId: string, scenarios: Scenario[]) {
+    await setOutput(assessmentId, OUTPUT_TYPES.scenarios, scenarios);
+  },
+
+  async getRecommendations(assessmentId: string) {
+    return (
+      (await getOutput<Recommendation[]>(
+        assessmentId,
+        OUTPUT_TYPES.recommendations,
+      )) ?? []
+    );
+  },
+
+  async setRecommendations(assessmentId: string, recs: Recommendation[]) {
+    await setOutput(assessmentId, OUTPUT_TYPES.recommendations, recs);
+  },
+
+  async getPlan(assessmentId: string) {
+    return (await getOutput<ActionPhase[]>(assessmentId, OUTPUT_TYPES.plan)) ?? [];
+  },
+
+  async setPlan(assessmentId: string, plan: ActionPhase[]) {
+    await setOutput(assessmentId, OUTPUT_TYPES.plan, plan);
+  },
+
+  async getReport(assessmentId: string) {
+    const assessment = await this.getAssessment(assessmentId);
+    if (!assessment) return undefined;
+    const [sources, facts, truthLayers, cockpit, scenarios, recommendations, plan] =
+      await Promise.all([
+        this.getSources(assessmentId),
+        this.getFacts(assessmentId),
+        this.getTruthLayers(assessmentId),
+        this.getCockpit(assessmentId),
+        this.getScenarios(assessmentId),
+        this.getRecommendations(assessmentId),
+        this.getPlan(assessmentId),
+      ]);
+    return {
+      assessmentId,
+      generatedAt: new Date().toISOString(),
+      executiveSummary: buildExecutiveSummary(
+        assessment,
+        sources,
+        facts,
+        cockpit,
+      ),
+      sourceCount: sources.length,
+      factCount: facts.length,
+      truthLayers,
+      cockpit,
+      scenarios,
+      recommendations,
+      plan,
+      dataGaps: truthLayers.flatMap((l) =>
+        l.gaps.map((g) => `[${l.title}] ${g}`),
+      ),
+    };
+  },
+};
+
+export const prismaDemoHelpers = {
+  DEFAULT_ORGANIZATION_ID,
+  DEFAULT_ORGANIZATION_NAME,
+  OUTPUT_TYPES,
+  toDate,
+};

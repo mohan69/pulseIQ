@@ -1,11 +1,12 @@
 // PulseIQ Workbench — stable public store facade.
-// UI pages and Server Actions import this module. The implementation delegates
-// to the current in-memory repository until a database-backed adapter is added.
+// UI pages and Server Actions import this module. Memory remains the default;
+// database mode is selected with PULSEIQ_DATA_MODE=database.
 
 import { memoryAssessmentRepository } from "./memory-repository";
 import type {
   AddFactInput,
   AddSourceInput,
+  AssessmentRepository,
   CreateAssessmentInput,
   SourcePatch,
 } from "./repository";
@@ -18,7 +19,33 @@ import type {
   TruthLayer,
 } from "./types";
 
-const repository = memoryAssessmentRepository;
+type DataMode = "memory" | "database";
+
+let cachedDatabaseRepository: AssessmentRepository | null = null;
+
+function getDataMode(): DataMode {
+  const mode = process.env.PULSEIQ_DATA_MODE ?? "memory";
+  if (mode === "memory" || mode === "database") return mode;
+  throw new Error(
+    `Unsupported PULSEIQ_DATA_MODE="${mode}". Expected "memory" or "database".`,
+  );
+}
+
+async function getRepository(): Promise<AssessmentRepository> {
+  const mode = getDataMode();
+  if (mode === "memory") return memoryAssessmentRepository;
+
+  if (!process.env.DATABASE_URL) {
+    throw new Error(
+      "PULSEIQ_DATA_MODE=database requires DATABASE_URL. Set DATABASE_URL or switch PULSEIQ_DATA_MODE back to memory.",
+    );
+  }
+
+  if (cachedDatabaseRepository) return cachedDatabaseRepository;
+  const { prismaAssessmentRepository } = await import("./prisma-repository");
+  cachedDatabaseRepository = prismaAssessmentRepository;
+  return cachedDatabaseRepository;
+}
 
 export type {
   AddFactInput,
@@ -27,96 +54,105 @@ export type {
   SourcePatch,
 };
 
-export function listAssessments() {
-  return repository.listAssessments();
+export async function listAssessments() {
+  return (await getRepository()).listAssessments();
 }
 
-export function getAssessment(id: string) {
-  return repository.getAssessment(id);
+export async function getAssessment(id: string) {
+  return (await getRepository()).getAssessment(id);
 }
 
-export function createAssessment(input: CreateAssessmentInput) {
-  return repository.createAssessment(input);
+export async function createAssessment(input: CreateAssessmentInput) {
+  return (await getRepository()).createAssessment(input);
 }
 
-export function updateAssessmentStatus(
+export async function updateAssessmentStatus(
   id: string,
   status: AssessmentStatus,
 ) {
-  return repository.updateAssessmentStatus(id, status);
+  return (await getRepository()).updateAssessmentStatus(id, status);
 }
 
-export function setAssessmentStatus(id: string, status: AssessmentStatus) {
+export async function setAssessmentStatus(
+  id: string,
+  status: AssessmentStatus,
+) {
   return updateAssessmentStatus(id, status);
 }
 
-export function getSources(assessmentId: string) {
-  return repository.getSources(assessmentId);
+export async function getSources(assessmentId: string) {
+  return (await getRepository()).getSources(assessmentId);
 }
 
-export function addSource(assessmentId: string, input: AddSourceInput) {
-  return repository.addSource(assessmentId, input);
+export async function addSource(assessmentId: string, input: AddSourceInput) {
+  return (await getRepository()).addSource(assessmentId, input);
 }
 
-export function updateSource(sourceId: string, patch: SourcePatch) {
-  return repository.updateSource(sourceId, patch);
+export async function updateSource(sourceId: string, patch: SourcePatch) {
+  return (await getRepository()).updateSource(sourceId, patch);
 }
 
-export function getFacts(assessmentId: string) {
-  return repository.getFacts(assessmentId);
+export async function getFacts(assessmentId: string) {
+  return (await getRepository()).getFacts(assessmentId);
 }
 
-export function addFacts(
+export async function addFacts(
   assessmentId: string,
   sourceId: string,
   facts: AddFactInput[],
 ) {
-  return repository.addFacts(assessmentId, sourceId, facts);
+  return (await getRepository()).addFacts(assessmentId, sourceId, facts);
 }
 
-export function getTruthLayers(assessmentId: string) {
-  return repository.getTruthLayers(assessmentId);
+export async function getTruthLayers(assessmentId: string) {
+  return (await getRepository()).getTruthLayers(assessmentId);
 }
 
-export function setTruthLayers(assessmentId: string, layers: TruthLayer[]) {
-  repository.setTruthLayers(assessmentId, layers);
+export async function setTruthLayers(
+  assessmentId: string,
+  layers: TruthLayer[],
+) {
+  return (await getRepository()).setTruthLayers(assessmentId, layers);
 }
 
-export function getCockpit(assessmentId: string) {
-  return repository.getCockpit(assessmentId);
+export async function getCockpit(assessmentId: string) {
+  return (await getRepository()).getCockpit(assessmentId);
 }
 
-export function setCockpit(assessmentId: string, cockpit: Cockpit) {
-  repository.setCockpit(assessmentId, cockpit);
+export async function setCockpit(assessmentId: string, cockpit: Cockpit) {
+  return (await getRepository()).setCockpit(assessmentId, cockpit);
 }
 
-export function getScenarios(assessmentId: string) {
-  return repository.getScenarios(assessmentId);
+export async function getScenarios(assessmentId: string) {
+  return (await getRepository()).getScenarios(assessmentId);
 }
 
-export function setScenarios(assessmentId: string, scenarios: Scenario[]) {
-  repository.setScenarios(assessmentId, scenarios);
+export async function setScenarios(
+  assessmentId: string,
+  scenarios: Scenario[],
+) {
+  return (await getRepository()).setScenarios(assessmentId, scenarios);
 }
 
-export function getRecommendations(assessmentId: string) {
-  return repository.getRecommendations(assessmentId);
+export async function getRecommendations(assessmentId: string) {
+  return (await getRepository()).getRecommendations(assessmentId);
 }
 
-export function setRecommendations(
+export async function setRecommendations(
   assessmentId: string,
   recs: Recommendation[],
 ) {
-  repository.setRecommendations(assessmentId, recs);
+  return (await getRepository()).setRecommendations(assessmentId, recs);
 }
 
-export function getPlan(assessmentId: string) {
-  return repository.getPlan(assessmentId);
+export async function getPlan(assessmentId: string) {
+  return (await getRepository()).getPlan(assessmentId);
 }
 
-export function setPlan(assessmentId: string, plan: ActionPhase[]) {
-  repository.setPlan(assessmentId, plan);
+export async function setPlan(assessmentId: string, plan: ActionPhase[]) {
+  return (await getRepository()).setPlan(assessmentId, plan);
 }
 
-export function getReport(assessmentId: string) {
-  return repository.getReport(assessmentId);
+export async function getReport(assessmentId: string) {
+  return (await getRepository()).getReport(assessmentId);
 }

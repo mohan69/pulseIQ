@@ -36,9 +36,9 @@ export default async function TruthMapPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const assessment = getAssessment(id);
+  const assessment = await getAssessment(id);
   if (!assessment) notFound();
-  const layers = getTruthLayers(id);
+  const layers = await getTruthLayers(id);
   const ordered = LAYER_ORDER.map(
     (k) => layers.find((l) => l.key === k) ?? layers[0],
   );

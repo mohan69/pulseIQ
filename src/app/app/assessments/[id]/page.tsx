@@ -42,14 +42,17 @@ export default async function AssessmentOverviewPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const assessment = getAssessment(id);
+  const assessment = await getAssessment(id);
   if (!assessment) notFound();
-  const sources = getSources(id);
-  const facts = getFacts(id);
-  const layers = getTruthLayers(id);
-  const cockpit = getCockpit(id);
-  const scenarios = getScenarios(id);
-  const recs = getRecommendations(id);
+  const [sources, facts, layers, cockpit, scenarios, recs] =
+    await Promise.all([
+      getSources(id),
+      getFacts(id),
+      getTruthLayers(id),
+      getCockpit(id),
+      getScenarios(id),
+      getRecommendations(id),
+    ]);
 
   const offTrack = cockpit.metrics.filter((m) => m.status === "off_track");
   const atRisk = cockpit.metrics.filter((m) => m.status === "at_risk");

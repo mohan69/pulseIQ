@@ -28,9 +28,9 @@ export default async function ReportPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const report = getReport(id);
+  const report = await getReport(id);
   if (!report) notFound();
-  const assessment = getAssessment(id);
+  const assessment = await getAssessment(id);
   const isDemo = assessment?.id === "asm-bharat-heavy-fabrications";
 
   return (

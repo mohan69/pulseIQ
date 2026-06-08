@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Organization {
+  id          String       @id @default(cuid())
+  name        String
+  users       User[]
+  assessments Assessment[]
+  auditEvents AuditEvent[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model User {
+  id             String       @id @default(cuid())
+  organizationId String
+  email          String       @unique
+  name           String?
+  role           UserRole     @default(ANALYST)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Assessment {
+  id                              String             @id @default(cuid())
+  organizationId                  String
+  companyName                     String
+  industry                        String
+  objective                       String
+  revenueTarget                   BigInt
+  marginTarget                    Float
+  cashTarget                      BigInt
+  headcountProductivityTarget     BigInt
+  status                          String
+  isDemo                          Boolean            @default(false)
+  organization                    Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sources                         DataSource[]
+  facts                           BusinessFact[]
+  outputs                         AssessmentOutput[]
+  createdAt                       DateTime           @default(now())
+  updatedAt                       DateTime           @updatedAt
+
+  @@index([organizationId])
+  @@index([updatedAt])
+}
+
+model DataSource {
+  id             String           @id @default(cuid())
+  assessmentId   String
+  name           String
+  type           String
+  status         String
+  confidence     String
+  notes          String           @default("")
+  pageCount      Int?
+  fileName       String?
+  mimeType       String?
+  byteSize       Int?
+  checksumSha256 String?
+  storageBucket  String?
+  storageKey     String?
+  parsedAt       DateTime?
+  assessment     Assessment       @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  documents      SourceDocument[]
+  facts          BusinessFact[]
+  createdAt      DateTime         @default(now())
+
+  @@index([assessmentId])
+  @@index([status])
+}
+
+model SourceDocument {
+  id          String     @id @default(cuid())
+  sourceId    String
+  kind        String
+  pageNumber  Int?
+  chunkIndex  Int?
+  content     String?
+  data        Json?
+  metadata    Json?
+  source      DataSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  createdAt   DateTime   @default(now())
+
+  @@index([sourceId])
+}
+
+model BusinessFact {
+  id           String     @id @default(cuid())
+  assessmentId String
+  sourceId     String
+  kind         String
+  label        String
+  value        String
+  numericValue Float?
+  unit         String?
+  evidence     String
+  confidence   String
+  evidenceRef  Json?
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  source       DataSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  capturedAt   DateTime   @default(now())
+
+  @@index([assessmentId])
+  @@index([sourceId])
+  @@index([kind])
+}
+
+model AssessmentOutput {
+  id            String     @id @default(cuid())
+  assessmentId  String
+  type          String
+  provider      String     @default("demo")
+  model         String?
+  promptVersion String?
+  data          Json
+  assessment    Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  createdAt     DateTime   @default(now())
+
+  @@unique([assessmentId, type])
+  @@index([assessmentId])
+}
+
+model AuditEvent {
+  id             String        @id @default(cuid())
+  organizationId String?
+  actorUserId    String?
+  action         String
+  entityType     String
+  entityId       String
+  metadata       Json?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  createdAt      DateTime      @default(now())
+
+  @@index([organizationId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+enum UserRole {
+  ADMIN
+  ANALYST
+  VIEWER
+}

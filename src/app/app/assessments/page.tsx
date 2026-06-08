@@ -20,8 +20,8 @@ import {
 import { formatCurrency } from "@/lib/utils";
 import type { AssessmentStatus } from "@/lib/assessment/types";
 
-export default function AssessmentsListPage() {
-  const assessments = listAssessments();
+export default async function AssessmentsListPage() {
+  const assessments = await listAssessments();
 
   return (
     <div className="space-y-6">

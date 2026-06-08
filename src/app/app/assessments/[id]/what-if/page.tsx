@@ -24,9 +24,9 @@ export default async function WhatIfPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const assessment = getAssessment(id);
+  const assessment = await getAssessment(id);
   if (!assessment) notFound();
-  const scenarios = getScenarios(id);
+  const scenarios = await getScenarios(id);
 
   return (
     <div className="space-y-6">

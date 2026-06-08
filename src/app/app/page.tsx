@@ -26,8 +26,8 @@ import {
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
-export default function WorkbenchDashboardPage() {
-  const assessments = listAssessments();
+export default async function WorkbenchDashboardPage() {
+  const assessments = await listAssessments();
   const demo = assessments.find((a) => a.id === "asm-bharat-heavy-fabrications");
   const demoSources = demo ? 8 : 0;
   const demoTruthLayers = demo ? 5 : 0;

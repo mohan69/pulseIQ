@@ -19,8 +19,8 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
-export default function AllSourcesPage() {
-  const assessments = listAssessments();
+export default async function AllSourcesPage() {
+  const assessments = await listAssessments();
   type Row = {
     sourceId: string;
     sourceName: string;
@@ -30,10 +30,11 @@ export default function AllSourcesPage() {
     assessmentId: string;
     companyName: string;
   };
-  const rows: Row[] = [];
-  for (const a of assessments) {
-    for (const s of getSources(a.id)) {
-      rows.push({
+  const rows: Row[] = (
+    await Promise.all(
+      assessments.map(async (a) => {
+        const sources = await getSources(a.id);
+        return sources.map((s) => ({
         sourceId: s.id,
         sourceName: s.name,
         sourceType: s.type,
@@ -41,9 +42,10 @@ export default function AllSourcesPage() {
         sourceNotes: s.notes,
         assessmentId: a.id,
         companyName: a.companyName,
-      });
-    }
-  }
+        }));
+      }),
+    )
+  ).flat();
 
   return (
     <div className="space-y-6">

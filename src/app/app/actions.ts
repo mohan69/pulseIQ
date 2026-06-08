@@ -31,7 +31,7 @@ export async function createAssessmentAction(formData: FormData) {
   const cashTargetCr = parseNumber(formData.get("cashTargetCr"), 25);
   const rpeTargetL = parseNumber(formData.get("headcountProductivityTargetL"), 32);
 
-  const created = storeCreateAssessment({
+  const created = await storeCreateAssessment({
     companyName,
     industry,
     objective,
@@ -54,7 +54,7 @@ export async function addSourceAction(
   }
   const type = String(formData.get("type") ?? "financial_filing") as SourceType;
   const notes = String(formData.get("notes") ?? "").trim();
-  storeAddSource(assessmentId, { name, type, notes: notes || undefined });
+  await storeAddSource(assessmentId, { name, type, notes: notes || undefined });
   revalidatePath(`/app/assessments/${assessmentId}/sources`);
   revalidatePath(`/app/assessments/${assessmentId}`);
   revalidatePath(`/app/sources`);
@@ -67,7 +67,10 @@ export async function setAssessmentStatusAction(
 ) {
   const status = String(formData.get("status") ?? "");
   if (!status) return { ok: false } as const;
-  storeUpdateStatus(assessmentId, status as Parameters<typeof storeUpdateStatus>[1]);
+  await storeUpdateStatus(
+    assessmentId,
+    status as Parameters<typeof storeUpdateStatus>[1],
+  );
   revalidatePath(`/app/assessments/${assessmentId}`);
   revalidatePath("/app/assessments");
   return { ok: true } as const;

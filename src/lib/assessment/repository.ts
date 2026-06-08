@@ -14,6 +14,8 @@ import type {
   TruthLayer,
 } from "./types";
 
+export type Awaitable<T> = T | Promise<T>;
+
 export type CreateAssessmentInput = {
   companyName: string;
   industry: Industry;
@@ -40,39 +42,48 @@ export type SourcePatch = Partial<
 >;
 
 export interface AssessmentRepository {
-  listAssessments(): Assessment[];
-  getAssessment(id: string): Assessment | undefined;
-  createAssessment(input: CreateAssessmentInput): Assessment;
+  listAssessments(): Awaitable<Assessment[]>;
+  getAssessment(id: string): Awaitable<Assessment | undefined>;
+  createAssessment(input: CreateAssessmentInput): Awaitable<Assessment>;
   updateAssessmentStatus(
     id: string,
     status: AssessmentStatus,
-  ): Assessment | undefined;
+  ): Awaitable<Assessment | undefined>;
 
-  getSources(assessmentId: string): Source[];
-  addSource(assessmentId: string, input: AddSourceInput): Source | undefined;
-  updateSource(sourceId: string, patch: SourcePatch): Source | undefined;
+  getSources(assessmentId: string): Awaitable<Source[]>;
+  addSource(
+    assessmentId: string,
+    input: AddSourceInput,
+  ): Awaitable<Source | undefined>;
+  updateSource(
+    sourceId: string,
+    patch: SourcePatch,
+  ): Awaitable<Source | undefined>;
 
-  getFacts(assessmentId: string): ExtractedFact[];
+  getFacts(assessmentId: string): Awaitable<ExtractedFact[]>;
   addFacts(
     assessmentId: string,
     sourceId: string,
     facts: AddFactInput[],
-  ): ExtractedFact[];
+  ): Awaitable<ExtractedFact[]>;
 
-  getTruthLayers(assessmentId: string): TruthLayer[];
-  setTruthLayers(assessmentId: string, layers: TruthLayer[]): void;
+  getTruthLayers(assessmentId: string): Awaitable<TruthLayer[]>;
+  setTruthLayers(assessmentId: string, layers: TruthLayer[]): Awaitable<void>;
 
-  getCockpit(assessmentId: string): Cockpit;
-  setCockpit(assessmentId: string, cockpit: Cockpit): void;
+  getCockpit(assessmentId: string): Awaitable<Cockpit>;
+  setCockpit(assessmentId: string, cockpit: Cockpit): Awaitable<void>;
 
-  getScenarios(assessmentId: string): Scenario[];
-  setScenarios(assessmentId: string, scenarios: Scenario[]): void;
+  getScenarios(assessmentId: string): Awaitable<Scenario[]>;
+  setScenarios(assessmentId: string, scenarios: Scenario[]): Awaitable<void>;
 
-  getRecommendations(assessmentId: string): Recommendation[];
-  setRecommendations(assessmentId: string, recs: Recommendation[]): void;
+  getRecommendations(assessmentId: string): Awaitable<Recommendation[]>;
+  setRecommendations(
+    assessmentId: string,
+    recs: Recommendation[],
+  ): Awaitable<void>;
 
-  getPlan(assessmentId: string): ActionPhase[];
-  setPlan(assessmentId: string, plan: ActionPhase[]): void;
+  getPlan(assessmentId: string): Awaitable<ActionPhase[]>;
+  setPlan(assessmentId: string, plan: ActionPhase[]): Awaitable<void>;
 
-  getReport(assessmentId: string): Report | undefined;
+  getReport(assessmentId: string): Awaitable<Report | undefined>;
 }

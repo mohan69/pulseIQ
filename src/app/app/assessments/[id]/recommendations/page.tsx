@@ -59,9 +59,9 @@ export default async function RecommendationsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const assessment = getAssessment(id);
+  const assessment = await getAssessment(id);
   if (!assessment) notFound();
-  const recs = getRecommendations(id);
+  const recs = await getRecommendations(id);
 
   const p0 = recs.filter((r) => r.priority === "P0").length;
   const p1 = recs.filter((r) => r.priority === "P1").length;
