@@ -3,10 +3,20 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
+  addSourceDocument,
   addSource as storeAddSource,
   createAssessment as storeCreateAssessment,
   updateAssessmentStatus as storeUpdateStatus,
+  updateSource,
 } from "@/lib/assessment/store";
+import { extractUploadedFile, previewText } from "@/lib/ingestion/extractors";
+import {
+  checksumSha256,
+  getStorageProvider,
+  sanitizeFileName,
+  sourceTypeForExtension,
+  validateUploadFile,
+} from "@/lib/storage";
 import type {
   AssessmentObjective,
   Industry,
@@ -17,6 +27,16 @@ function parseNumber(v: FormDataEntryValue | null, fallback: number): number {
   if (v === null) return fallback;
   const n = Number(String(v));
   return Number.isFinite(n) ? n : fallback;
+}
+
+function isUploadFile(value: FormDataEntryValue | null): value is File {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "arrayBuffer" in value &&
+    "name" in value &&
+    "size" in value
+  );
 }
 
 export async function createAssessmentAction(formData: FormData) {
@@ -48,13 +68,95 @@ export async function addSourceAction(
   assessmentId: string,
   formData: FormData,
 ) {
-  const name = String(formData.get("name") ?? "").trim();
-  if (!name) {
-    throw new Error("Source name is required.");
-  }
-  const type = String(formData.get("type") ?? "financial_filing") as SourceType;
+  const upload = formData.get("file");
+  const hasFile = isUploadFile(upload) && upload.size > 0;
+  const rawName = String(formData.get("name") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
-  await storeAddSource(assessmentId, { name, type, notes: notes || undefined });
+  let type = String(formData.get("type") ?? "financial_filing") as SourceType;
+  let name = rawName;
+
+  if (!name && hasFile) {
+    name = sanitizeFileName(upload.name);
+  }
+  if (!name) {
+    throw new Error("Source name is required when no file is uploaded.");
+  }
+
+  if (!hasFile) {
+    await storeAddSource(assessmentId, {
+      name,
+      type,
+      notes: notes || undefined,
+      extractionStatus: "not_applicable",
+    });
+    revalidatePath(`/app/assessments/${assessmentId}/sources`);
+    revalidatePath(`/app/assessments/${assessmentId}`);
+    revalidatePath(`/app/sources`);
+    return { ok: true } as const;
+  }
+
+  const bytes = Buffer.from(await upload.arrayBuffer());
+  const validation = validateUploadFile({
+    fileName: upload.name,
+    mimeType: upload.type,
+    byteSize: upload.size,
+  });
+  type = type || sourceTypeForExtension(validation.extension) || "financial_filing";
+  const checksum = checksumSha256(bytes);
+
+  const source = await storeAddSource(assessmentId, {
+    name,
+    type,
+    notes: notes || undefined,
+    fileName: sanitizeFileName(upload.name),
+    mimeType: validation.mimeType,
+    byteSize: validation.byteSize,
+    checksumSha256: checksum,
+    extractionStatus: "extraction_pending",
+  });
+
+  if (!source) {
+    throw new Error("Assessment not found.");
+  }
+
+  const storage = getStorageProvider();
+  const stored = await storage.put({
+    assessmentId,
+    sourceId: source.id,
+    fileName: upload.name,
+    bytes,
+  });
+
+  const extraction = extractUploadedFile(validation.extension, bytes);
+  const extractedAt =
+    extraction.status === "extracted" ? new Date().toISOString() : undefined;
+  const extractedTextPreview = extraction.text
+    ? previewText(extraction.text)
+    : undefined;
+
+  await updateSource(source.id, {
+    status: extraction.status === "extracted" ? "parsed" : "registered",
+    storageProvider: stored.provider,
+    storageKey: stored.key,
+    extractionStatus: extraction.status,
+    extractedTextPreview,
+    extractedAt,
+    extractionError: extraction.error,
+  });
+
+  if (extraction.text) {
+    await addSourceDocument(source.id, {
+      kind: "text",
+      chunkIndex: 0,
+      content: extraction.text,
+      metadata: {
+        extension: validation.extension,
+        mimeType: validation.mimeType,
+        checksumSha256: checksum,
+      },
+    });
+  }
+
   revalidatePath(`/app/assessments/${assessmentId}/sources`);
   revalidatePath(`/app/assessments/${assessmentId}`);
   revalidatePath(`/app/sources`);

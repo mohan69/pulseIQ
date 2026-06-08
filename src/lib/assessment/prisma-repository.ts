@@ -19,6 +19,7 @@ import type {
   Recommendation,
   Scenario,
   Source,
+  SourceDocument,
   SourceStatus,
   SourceType,
   TruthLayer,
@@ -26,6 +27,7 @@ import type {
 import type {
   AddFactInput,
   AddSourceInput,
+  AddSourceDocumentInput,
   AssessmentRepository,
   CreateAssessmentInput,
   SourcePatch,
@@ -84,6 +86,42 @@ function mapSource(row: DbDataSource): Source {
     notes: row.notes,
     createdAt: row.createdAt.toISOString(),
     pageCount: row.pageCount ?? undefined,
+    origin: row.fileName ? "uploaded" : row.id.startsWith("src-") ? "demo" : "manual",
+    fileName: row.fileName ?? undefined,
+    mimeType: row.mimeType ?? undefined,
+    byteSize: row.byteSize ?? undefined,
+    checksumSha256: row.checksumSha256 ?? undefined,
+    storageProvider: row.storageProvider ?? row.storageBucket ?? undefined,
+    storageKey: row.storageKey ?? undefined,
+    extractionStatus:
+      (row.extractionStatus as Source["extractionStatus"] | null) ?? undefined,
+    extractedTextPreview: row.extractedTextPreview ?? undefined,
+    extractedAt: row.extractedAt?.toISOString(),
+    extractionError: row.extractionError ?? undefined,
+  };
+}
+
+function mapSourceDocument(row: {
+  id: string;
+  sourceId: string;
+  kind: string;
+  pageNumber: number | null;
+  chunkIndex: number | null;
+  content: string | null;
+  data: unknown;
+  metadata: unknown;
+  createdAt: Date;
+}): SourceDocument {
+  return {
+    id: row.id,
+    sourceId: row.sourceId,
+    kind: row.kind as SourceDocument["kind"],
+    pageNumber: row.pageNumber ?? undefined,
+    chunkIndex: row.chunkIndex ?? undefined,
+    content: row.content ?? undefined,
+    data: row.data ?? undefined,
+    metadata: row.metadata ?? undefined,
+    createdAt: row.createdAt.toISOString(),
   };
 }
 
@@ -293,6 +331,19 @@ export const prismaAssessmentRepository: AssessmentRepository = {
         status: "registered",
         confidence: "medium",
         notes: input.notes ?? "",
+        fileName: input.fileName,
+        mimeType: input.mimeType,
+        byteSize: input.byteSize,
+        checksumSha256: input.checksumSha256,
+        storageProvider: input.storageProvider,
+        storageBucket: input.storageProvider,
+        storageKey: input.storageKey,
+        extractionStatus:
+          input.extractionStatus ??
+          (input.fileName ? "extraction_pending" : "not_applicable"),
+        extractedTextPreview: input.extractedTextPreview,
+        extractedAt: input.extractedAt ? new Date(input.extractedAt) : undefined,
+        extractionError: input.extractionError,
       },
     });
     await prisma.assessment.update({
@@ -313,6 +364,17 @@ export const prismaAssessmentRepository: AssessmentRepository = {
           confidence: patch.confidence,
           notes: patch.notes,
           pageCount: patch.pageCount,
+          fileName: patch.fileName,
+          mimeType: patch.mimeType,
+          byteSize: patch.byteSize,
+          checksumSha256: patch.checksumSha256,
+          storageProvider: patch.storageProvider,
+          storageBucket: patch.storageProvider,
+          storageKey: patch.storageKey,
+          extractionStatus: patch.extractionStatus,
+          extractedTextPreview: patch.extractedTextPreview,
+          extractedAt: patch.extractedAt ? new Date(patch.extractedAt) : undefined,
+          extractionError: patch.extractionError,
         },
       });
       await prisma.assessment.update({
@@ -323,6 +385,33 @@ export const prismaAssessmentRepository: AssessmentRepository = {
     } catch {
       return undefined;
     }
+  },
+
+  async addSourceDocument(sourceId: string, input: AddSourceDocumentInput) {
+    try {
+      const row = await prisma.sourceDocument.create({
+        data: {
+          sourceId,
+          kind: input.kind,
+          pageNumber: input.pageNumber,
+          chunkIndex: input.chunkIndex,
+          content: input.content,
+          data: input.data as object | undefined,
+          metadata: input.metadata as object | undefined,
+        },
+      });
+      return mapSourceDocument(row);
+    } catch {
+      return undefined;
+    }
+  },
+
+  async getSourceDocuments(sourceId: string) {
+    const rows = await prisma.sourceDocument.findMany({
+      where: { sourceId },
+      orderBy: [{ chunkIndex: "asc" }, { createdAt: "asc" }],
+    });
+    return rows.map(mapSourceDocument);
   },
 
   async getFacts(assessmentId: string) {

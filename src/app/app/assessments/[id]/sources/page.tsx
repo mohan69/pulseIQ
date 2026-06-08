@@ -74,7 +74,8 @@ export default async function SourcesPage({
                   <th className="pb-3 pr-3 font-medium">Type</th>
                   <th className="pb-3 pr-3 font-medium">Status</th>
                   <th className="pb-3 pr-3 font-medium">Confidence</th>
-                  <th className="pb-3 pr-3 font-medium">Pages</th>
+                  <th className="pb-3 pr-3 font-medium">File</th>
+                  <th className="pb-3 pr-3 font-medium">Extraction</th>
                   <th className="pb-3 pr-3 font-medium">Notes</th>
                 </tr>
               </thead>
@@ -95,8 +96,44 @@ export default async function SourcesPage({
                     <td className="py-3 pr-3">
                       <ConfidenceBadge level={s.confidence} />
                     </td>
-                    <td className="py-3 pr-3 text-muted">
-                      {s.pageCount ?? "—"}
+                    <td className="py-3 pr-3 text-foreground-secondary min-w-48">
+                      {s.fileName ? (
+                        <div className="space-y-1">
+                          <div className="font-medium text-foreground">
+                            {s.fileName}
+                          </div>
+                          <div className="text-xs text-muted">
+                            {formatBytes(s.byteSize)} · {s.mimeType ?? "unknown MIME"}
+                          </div>
+                          <div className="text-[11px] text-muted">
+                            SHA-256 {s.checksumSha256?.slice(0, 12) ?? "—"}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          <Badge variant="outline" className="bg-white">
+                            {s.origin === "demo" ? "Demo" : "Manual"}
+                          </Badge>
+                          <div className="text-xs text-muted">
+                            {s.pageCount ? `${s.pageCount} pages` : "No file"}
+                          </div>
+                        </div>
+                      )}
+                    </td>
+                    <td className="py-3 pr-3 text-foreground-secondary min-w-64">
+                      <div className="space-y-1.5">
+                        <ExtractionBadge status={s.extractionStatus} />
+                        {s.extractedTextPreview && (
+                          <div className="text-xs rounded-lg border border-border-subtle bg-background-alt p-2 max-w-sm">
+                            {s.extractedTextPreview}
+                          </div>
+                        )}
+                        {s.extractionError && (
+                          <div className="text-xs text-warning max-w-sm">
+                            {s.extractionError}
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3 pr-3 text-foreground-secondary max-w-md">
                       {s.notes || <span className="text-muted">—</span>}
@@ -173,4 +210,21 @@ function ConfidenceBadge({ level }: { level: string }) {
   if (level === "medium")
     return <Badge variant="warning">Medium</Badge>;
   return <Badge variant="destructive">Low</Badge>;
+}
+
+function ExtractionBadge({ status }: { status?: string }) {
+  if (status === "extracted")
+    return <Badge variant="success">Extracted</Badge>;
+  if (status === "extraction_pending")
+    return <Badge variant="warning">Extraction pending</Badge>;
+  if (status === "failed")
+    return <Badge variant="destructive">Extraction failed</Badge>;
+  return <Badge variant="outline">Not applicable</Badge>;
+}
+
+function formatBytes(value?: number) {
+  if (!value) return "0 B";
+  if (value < 1024) return `${value} B`;
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+  return `${(value / 1024 / 1024).toFixed(1)} MB`;
 }

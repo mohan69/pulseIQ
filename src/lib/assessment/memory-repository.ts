@@ -23,11 +23,13 @@ import type {
   Report,
   Scenario,
   Source,
+  SourceDocument,
   TruthLayer,
 } from "./types";
 import type {
   AddFactInput,
   AddSourceInput,
+  AddSourceDocumentInput,
   AssessmentRepository,
   CreateAssessmentInput,
   SourcePatch,
@@ -36,6 +38,7 @@ import type {
 type StoreState = {
   assessments: Map<string, Assessment>;
   sources: Map<string, Source[]>;
+  sourceDocuments: Map<string, SourceDocument[]>;
   facts: Map<string, ExtractedFact[]>;
   truthLayers: Map<string, TruthLayer[]>;
   cockpits: Map<string, Cockpit>;
@@ -53,6 +56,7 @@ function getOrInitState(): StoreState {
   const state: StoreState = {
     assessments: new Map(),
     sources: new Map(),
+    sourceDocuments: new Map(),
     facts: new Map(),
     truthLayers: new Map(),
     cockpits: new Map(),
@@ -61,7 +65,10 @@ function getOrInitState(): StoreState {
     plans: new Map(),
   };
   state.assessments.set(demoAssessment.id, demoAssessment);
-  state.sources.set(demoAssessment.id, [...demoSources]);
+  state.sources.set(
+    demoAssessment.id,
+    demoSources.map((source) => ({ ...source, origin: "demo" as const })),
+  );
   state.facts.set(demoAssessment.id, [...demoFacts]);
   state.truthLayers.set(demoAssessment.id, [...demoTruthLayers]);
   state.cockpits.set(demoAssessment.id, demoCockpit);
@@ -221,6 +228,18 @@ export const memoryAssessmentRepository: AssessmentRepository = {
       confidence: "medium",
       notes: input.notes ?? "",
       createdAt: nowIso(),
+      origin: input.fileName ? "uploaded" : "manual",
+      fileName: input.fileName,
+      mimeType: input.mimeType,
+      byteSize: input.byteSize,
+      checksumSha256: input.checksumSha256,
+      storageProvider: input.storageProvider,
+      storageKey: input.storageKey,
+      extractionStatus:
+        input.extractionStatus ?? (input.fileName ? "extraction_pending" : "not_applicable"),
+      extractedTextPreview: input.extractedTextPreview,
+      extractedAt: input.extractedAt,
+      extractionError: input.extractionError,
     };
     const list = s.sources.get(assessmentId) ?? [];
     s.sources.set(assessmentId, [src, ...list]);
@@ -242,6 +261,22 @@ export const memoryAssessmentRepository: AssessmentRepository = {
       }
     }
     return undefined;
+  },
+
+  addSourceDocument(sourceId: string, input: AddSourceDocumentInput) {
+    const document: SourceDocument = {
+      id: `doc-${generateId()}`,
+      sourceId,
+      createdAt: nowIso(),
+      ...input,
+    };
+    const list = getOrInitState().sourceDocuments.get(sourceId) ?? [];
+    getOrInitState().sourceDocuments.set(sourceId, [...list, document]);
+    return document;
+  },
+
+  getSourceDocuments(sourceId: string) {
+    return getOrInitState().sourceDocuments.get(sourceId) ?? [];
   },
 
   getFacts(assessmentId: string) {

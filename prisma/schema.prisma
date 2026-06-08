@@ -64,7 +64,12 @@ model DataSource {
   byteSize       Int?
   checksumSha256 String?
   storageBucket  String?
+  storageProvider String?
   storageKey     String?
+  extractionStatus String?
+  extractedTextPreview String?
+  extractionError String?
+  extractedAt     DateTime?
   parsedAt       DateTime?
   assessment     Assessment       @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
   documents      SourceDocument[]

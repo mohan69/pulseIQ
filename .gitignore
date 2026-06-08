@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+/.pulseiq/
 
 # next.js
 /.next/

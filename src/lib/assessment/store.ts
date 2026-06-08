@@ -6,6 +6,7 @@ import { memoryAssessmentRepository } from "./memory-repository";
 import type {
   AddFactInput,
   AddSourceInput,
+  AddSourceDocumentInput,
   AssessmentRepository,
   CreateAssessmentInput,
   SourcePatch,
@@ -50,6 +51,7 @@ async function getRepository(): Promise<AssessmentRepository> {
 export type {
   AddFactInput,
   AddSourceInput,
+  AddSourceDocumentInput,
   CreateAssessmentInput,
   SourcePatch,
 };
@@ -90,6 +92,17 @@ export async function addSource(assessmentId: string, input: AddSourceInput) {
 
 export async function updateSource(sourceId: string, patch: SourcePatch) {
   return (await getRepository()).updateSource(sourceId, patch);
+}
+
+export async function addSourceDocument(
+  sourceId: string,
+  input: AddSourceDocumentInput,
+) {
+  return (await getRepository()).addSourceDocument(sourceId, input);
+}
+
+export async function getSourceDocuments(sourceId: string) {
+  return (await getRepository()).getSourceDocuments(sourceId);
 }
 
 export async function getFacts(assessmentId: string) {

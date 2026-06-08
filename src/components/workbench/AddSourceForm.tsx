@@ -59,8 +59,8 @@ export function AddSourceForm({ assessmentId }: { assessmentId: string }) {
             Register a new source
           </div>
           <div className="text-xs text-muted mt-0.5">
-            Add a document, export, or summary. The workbench will mark it as
-            parsed in the MVP (no real file upload yet).
+            Add a document, export, or summary. TXT and CSV are extracted now;
+            PDF, DOCX, PPTX, and XLSX are stored and marked for extraction.
           </div>
         </div>
         <button
@@ -75,11 +75,10 @@ export function AddSourceForm({ assessmentId }: { assessmentId: string }) {
       <div className="grid gap-4">
         <label className="block">
           <div className="text-sm font-medium text-foreground mb-1.5">
-            Source name <span className="text-error">*</span>
+            Source name <span className="text-muted font-normal">(optional with file)</span>
           </div>
           <input
             name="name"
-            required
             placeholder="e.g. FY25 Audited Financials"
             className="form-input"
             autoFocus
@@ -96,6 +95,22 @@ export function AddSourceForm({ assessmentId }: { assessmentId: string }) {
               </option>
             ))}
           </select>
+        </label>
+        <label className="block">
+          <div className="text-sm font-medium text-foreground mb-1.5">
+            File upload <span className="text-muted font-normal">(optional)</span>
+          </div>
+          <input
+            name="file"
+            type="file"
+            accept=".txt,.csv,.pdf,.docx,.pptx,.xlsx,text/plain,text/csv,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            className="form-input"
+            style={{ paddingTop: 8 }}
+          />
+          <p className="mt-1 text-[11px] text-muted">
+            Max 10 MB. Files are stored privately under local workbench storage
+            in development.
+          </p>
         </label>
         <label className="block">
           <div className="text-sm font-medium text-foreground mb-1.5">

@@ -10,6 +10,7 @@ import type {
   Report,
   Scenario,
   Source,
+  SourceDocument,
   SourceType,
   TruthLayer,
 } from "./types";
@@ -30,7 +31,22 @@ export type AddSourceInput = {
   name: string;
   type: SourceType;
   notes?: string;
+  fileName?: string;
+  mimeType?: string;
+  byteSize?: number;
+  checksumSha256?: string;
+  storageProvider?: string;
+  storageKey?: string;
+  extractionStatus?: Source["extractionStatus"];
+  extractedTextPreview?: string;
+  extractedAt?: string;
+  extractionError?: string;
 };
+
+export type AddSourceDocumentInput = Omit<
+  SourceDocument,
+  "id" | "sourceId" | "createdAt"
+>;
 
 export type AddFactInput = Omit<
   ExtractedFact,
@@ -59,6 +75,11 @@ export interface AssessmentRepository {
     sourceId: string,
     patch: SourcePatch,
   ): Awaitable<Source | undefined>;
+  addSourceDocument(
+    sourceId: string,
+    input: AddSourceDocumentInput,
+  ): Awaitable<SourceDocument | undefined>;
+  getSourceDocuments(sourceId: string): Awaitable<SourceDocument[]>;
 
   getFacts(assessmentId: string): Awaitable<ExtractedFact[]>;
   addFacts(

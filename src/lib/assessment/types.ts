@@ -59,6 +59,14 @@ export type SourceStatus = "registered" | "parsing" | "parsed" | "failed";
 
 export type ConfidenceLevel = "high" | "medium" | "low";
 
+export type SourceOrigin = "demo" | "manual" | "uploaded";
+
+export type ExtractionStatus =
+  | "not_applicable"
+  | "extracted"
+  | "extraction_pending"
+  | "failed";
+
 export type Source = {
   id: string;
   assessmentId: string;
@@ -69,6 +77,29 @@ export type Source = {
   notes: string;
   createdAt: string;
   pageCount?: number;
+  origin?: SourceOrigin;
+  fileName?: string;
+  mimeType?: string;
+  byteSize?: number;
+  checksumSha256?: string;
+  storageProvider?: string;
+  storageKey?: string;
+  extractionStatus?: ExtractionStatus;
+  extractedTextPreview?: string;
+  extractedAt?: string;
+  extractionError?: string;
+};
+
+export type SourceDocument = {
+  id: string;
+  sourceId: string;
+  kind: "text" | "table" | "page" | "chunk";
+  pageNumber?: number;
+  chunkIndex?: number;
+  content?: string;
+  data?: unknown;
+  metadata?: unknown;
+  createdAt: string;
 };
 
 export type FactKind =

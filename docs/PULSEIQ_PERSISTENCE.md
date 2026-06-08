@@ -81,7 +81,7 @@ golden regression tests independent from external services.
 
 ## Current Limitations
 
-- No file upload or object storage yet.
+- Local private file uploads are supported; production object storage is not yet configured.
 - No auth or organization-level authorization yet.
 - No live connectors yet.
 - Database mode uses a single default internal organization until auth/tenant
