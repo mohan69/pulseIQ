@@ -148,7 +148,7 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--hero-text);
 }
 
-.dark-grid-banner .text-white\/[0-9]+ {
+.dark-grid-banner [class*="text-white/"] {
   color: var(--hero-text-secondary);
 }
 
@@ -218,11 +218,10 @@ h1, h2, h3, h4, h5, h6 {
   }
   
   .text-white,
-  .text-white\/[0-9]+,
-  .text-white\/\* {
+  [class*="text-white/"] {
     color: black !important;
   }
-  
+
   .text-gray-100,
   .text-gray-200,
   .text-gray-300,
@@ -293,11 +292,10 @@ h1, h2, h3, h4, h5, h6 {
   }
   
   .text-white,
-  .text-white\/[0-9]+,
-  .text-white\/\* {
+  [class*="text-white/"] {
     color: black !important;
   }
-  
+
   .text-gray-100,
   .text-gray-200,
   .text-gray-300,
