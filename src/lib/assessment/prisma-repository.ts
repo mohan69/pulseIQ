@@ -144,7 +144,8 @@ function mapFact(row: DbBusinessFact): ExtractedFact {
 }
 
 function outputData<T>(output: DbAssessmentOutput | null): T | undefined {
-  return output?.data as T | undefined;
+  if (!output) return undefined;
+  return (output.data ?? undefined) as T | undefined;
 }
 
 function emptyTruthLayers(): TruthLayer[] {
@@ -636,6 +637,16 @@ export const prismaAssessmentRepository: AssessmentRepository = {
       },
     });
   },
+};
+
+// Exported for testing — mapping functions used by the public repository.
+// These are safe to call with mock Prisma row data (no DB required).
+export const prismaMapping = {
+  mapAssessment,
+  mapSource,
+  mapFact,
+  mapSourceDocument,
+  outputData,
 };
 
 export const prismaDemoHelpers = {
