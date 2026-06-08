@@ -1,5 +1,5 @@
 // PulseIQ Workbench — AI provider abstraction
-// MVP: deterministic MockEngine. Real providers (OpenAI / Gemini) plug in behind
+// MVP: deterministic MockEngine. Real providers (OpenAI / OpenRouter) plug in behind
 // the same interface. All outputs are Zod-validated before they reach the UI.
 
 import { z } from "zod";
@@ -155,7 +155,7 @@ export type PlanResult = z.infer<typeof PlanResultSchema>;
 // Engine interface
 // ---------------------------------------------------------------------------
 
-export type AIProviderName = "mock" | "openai" | "gemini";
+export type AIProviderName = "mock" | "openai" | "openrouter";
 
 export interface AIContext {
   assessmentId: string;
@@ -227,26 +227,71 @@ class MockEngine implements AIEngine {
 }
 
 // ---------------------------------------------------------------------------
-// OpenAI provider — interface stub, used only when OPENAI_API_KEY is set.
+// OpenAI-compatible providers — used only when explicitly configured.
 // ---------------------------------------------------------------------------
 
-class OpenAIEngine implements AIEngine {
-  readonly provider: AIProviderName = "openai";
-  private apiKey: string;
+type ProviderConfig = {
+  provider: AIProviderName;
+  apiKey?: string;
+  baseUrl?: string;
+  model?: string;
+  siteUrl?: string;
+  appName?: string;
+};
 
-  constructor(apiKey: string) {
-    this.apiKey = apiKey;
+const OPENAI_BASE_URL = "https://api.openai.com/v1";
+const OPENAI_DEFAULT_MODEL = "gpt-4o-mini";
+const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
+const OPENROUTER_DEFAULT_MODEL = "openrouter/auto";
+
+function joinUrl(baseUrl: string, path: string): string {
+  return `${baseUrl.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;
+}
+
+function safeJsonParse(raw: string): unknown {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+}
+
+class OpenAICompatibleEngine implements AIEngine {
+  readonly provider: AIProviderName;
+  private apiKey: string;
+  private baseUrl: string;
+  private model: string;
+  private siteUrl?: string;
+  private appName?: string;
+
+  constructor(config: Required<Pick<ProviderConfig, "provider" | "apiKey" | "baseUrl" | "model">> &
+    Pick<ProviderConfig, "siteUrl" | "appName">) {
+    this.provider = config.provider;
+    this.apiKey = config.apiKey;
+    this.baseUrl = config.baseUrl;
+    this.model = config.model;
+    this.siteUrl = config.siteUrl;
+    this.appName = config.appName;
+  }
+
+  private headers(): Record<string, string> {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${this.apiKey}`,
+    };
+    if (this.provider === "openrouter") {
+      if (this.siteUrl) headers["HTTP-Referer"] = this.siteUrl;
+      if (this.appName) headers["X-Title"] = this.appName;
+    }
+    return headers;
   }
 
   private async callModel(prompt: string): Promise<string> {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    const res = await fetch(joinUrl(this.baseUrl, "/chat/completions"), {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.apiKey}`,
-      },
+      headers: this.headers(),
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: this.model,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: "Return strict JSON only." },
@@ -254,8 +299,32 @@ class OpenAIEngine implements AIEngine {
         ],
       }),
     });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const message =
+        typeof data?.error?.message === "string"
+          ? data.error.message
+          : `HTTP ${res.status}`;
+      throw new Error(`${this.provider} request failed: ${message}`);
+    }
     return data.choices?.[0]?.message?.content ?? "{}";
+  }
+
+  private async validated<T>(
+    prompt: string,
+    schema: z.ZodType<T>,
+    fallback: T,
+  ): Promise<T> {
+    try {
+      const raw = await this.callModel(prompt);
+      return schema.parse(safeJsonParse(raw));
+    } catch (error) {
+      console.warn(
+        `[PulseIQ AI] ${this.provider} output rejected; using safe fallback.`,
+        error,
+      );
+      return fallback;
+    }
   }
 
   async extractFacts(
@@ -267,8 +336,7 @@ Source: ${source.name} (${source.type})
 Notes: ${source.notes}
 Existing facts: ${JSON.stringify(ctx.facts.slice(0, 20))}
 Return JSON matching: {"facts":[{"kind","label","value","numericValue?","unit?","evidence","confidence"}]}`;
-    const raw = await this.callModel(prompt);
-    return ExtractionResultSchema.parse(JSON.parse(raw));
+    return this.validated(prompt, ExtractionResultSchema, { facts: [] });
   }
 
   async buildTruthMap(ctx: AIContext): Promise<TruthMapResult> {
@@ -277,16 +345,18 @@ Layers: financial, strategic, operational, process, collaboration.
 Facts: ${JSON.stringify(ctx.facts)}
 Sources: ${JSON.stringify(ctx.sources.map((s) => ({ id: s.id, name: s.name, type: s.type })))}
 Return JSON matching: {"layers":[{"key","title","description","findings":[{"text","impact"}],"gaps","contradictions","confidence"}]}`;
-    const raw = await this.callModel(prompt);
-    return TruthMapResultSchema.parse(JSON.parse(raw));
+    return this.validated(prompt, TruthMapResultSchema, { layers: [] });
   }
 
   async buildCockpit(ctx: AIContext): Promise<CockpitResult> {
     const prompt = `Build an executive cockpit for ${ctx.companyName}.
 Facts: ${JSON.stringify(ctx.facts)}
 Return JSON matching: {"metrics":[{"key","label","value","target","unit","status","note"}],"topRisks":[{"title","description","likelihood","impact"}],"topOpportunities":[{"title","description","impactInr","timeframeDays"}]}`;
-    const raw = await this.callModel(prompt);
-    return CockpitResultSchema.parse(JSON.parse(raw));
+    return this.validated(prompt, CockpitResultSchema, {
+      metrics: [],
+      topRisks: [],
+      topOpportunities: [],
+    });
   }
 
   async buildScenarios(ctx: AIContext): Promise<ScenariosResult> {
@@ -294,24 +364,23 @@ Return JSON matching: {"metrics":[{"key","label","value","target","unit","status
 Keys: revenue_plus_10, margin_plus_10, cost_minus_10, headcount_minus_15, cash_improvement.
 Facts: ${JSON.stringify(ctx.facts)}
 Return JSON matching: {"scenarios":[{"key","label","description","currentBaseline","target","options","pros","shortfalls","expectedImpact","risks","recommendation","confidence"}]}`;
-    const raw = await this.callModel(prompt);
-    return ScenariosResultSchema.parse(JSON.parse(raw));
+    return this.validated(prompt, ScenariosResultSchema, { scenarios: [] });
   }
 
   async buildRecommendations(ctx: AIContext): Promise<RecommendationsResult> {
     const prompt = `Produce the top 10 recommendations for ${ctx.companyName}.
 Facts: ${JSON.stringify(ctx.facts)}
 Return JSON matching: {"recommendations":[{"rank","title","description","priority","businessImpact","effort","timeframeDays","ownerRole","evidence","confidence"}]}`;
-    const raw = await this.callModel(prompt);
-    return RecommendationsResultSchema.parse(JSON.parse(raw));
+    return this.validated(prompt, RecommendationsResultSchema, {
+      recommendations: [],
+    });
   }
 
   async buildPlan(ctx: AIContext): Promise<PlanResult> {
     const prompt = `Build a 4-phase 90-day plan for ${ctx.companyName}.
 Facts: ${JSON.stringify(ctx.facts)}
 Return JSON matching: {"phases":[{"phase","windowLabel","title","description","deliverables"}]}`;
-    const raw = await this.callModel(prompt);
-    return PlanResultSchema.parse(JSON.parse(raw));
+    return this.validated(prompt, PlanResultSchema, { phases: [] });
   }
 }
 
@@ -321,11 +390,89 @@ Return JSON matching: {"phases":[{"phase","windowLabel","title","description","d
 
 let cachedEngine: AIEngine | null = null;
 
+export function resolveAIEngineConfig(
+  env: Record<string, string | undefined> = process.env,
+): ProviderConfig {
+  const requestedProvider = env.AI_PROVIDER as AIProviderName | undefined;
+
+  if (requestedProvider === "openrouter") {
+    return {
+      provider: env.OPENROUTER_API_KEY ? "openrouter" : "mock",
+      apiKey: env.OPENROUTER_API_KEY,
+      baseUrl: env.OPENROUTER_BASE_URL || OPENROUTER_BASE_URL,
+      model: env.OPENROUTER_MODEL || OPENROUTER_DEFAULT_MODEL,
+      siteUrl: env.OPENROUTER_SITE_URL,
+      appName: env.OPENROUTER_APP_NAME,
+    };
+  }
+
+  if (requestedProvider === "openai") {
+    return {
+      provider: env.OPENAI_API_KEY ? "openai" : "mock",
+      apiKey: env.OPENAI_API_KEY,
+      baseUrl: OPENAI_BASE_URL,
+      model: env.OPENAI_MODEL || OPENAI_DEFAULT_MODEL,
+    };
+  }
+
+  if (requestedProvider === "mock") {
+    return { provider: "mock" };
+  }
+
+  if (env.OPENROUTER_API_KEY) {
+    return {
+      provider: "openrouter",
+      apiKey: env.OPENROUTER_API_KEY,
+      baseUrl: env.OPENROUTER_BASE_URL || OPENROUTER_BASE_URL,
+      model: env.OPENROUTER_MODEL || OPENROUTER_DEFAULT_MODEL,
+      siteUrl: env.OPENROUTER_SITE_URL,
+      appName: env.OPENROUTER_APP_NAME,
+    };
+  }
+
+  if (env.OPENAI_API_KEY) {
+    return {
+      provider: "openai",
+      apiKey: env.OPENAI_API_KEY,
+      baseUrl: OPENAI_BASE_URL,
+      model: env.OPENAI_MODEL || OPENAI_DEFAULT_MODEL,
+    };
+  }
+
+  return { provider: "mock" };
+}
+
 export function createAIEngine(): AIEngine {
   if (cachedEngine) return cachedEngine;
-  const openaiKey = process.env.OPENAI_API_KEY;
-  if (openaiKey) {
-    cachedEngine = new OpenAIEngine(openaiKey);
+  const config = resolveAIEngineConfig();
+  if (
+    config.provider === "openrouter" &&
+    config.apiKey &&
+    config.baseUrl &&
+    config.model
+  ) {
+    cachedEngine = new OpenAICompatibleEngine({
+      provider: "openrouter",
+      apiKey: config.apiKey,
+      baseUrl: config.baseUrl,
+      model: config.model,
+      siteUrl: config.siteUrl,
+      appName: config.appName,
+    });
+    return cachedEngine;
+  }
+  if (
+    config.provider === "openai" &&
+    config.apiKey &&
+    config.baseUrl &&
+    config.model
+  ) {
+    cachedEngine = new OpenAICompatibleEngine({
+      provider: "openai",
+      apiKey: config.apiKey,
+      baseUrl: config.baseUrl,
+      model: config.model,
+    });
     return cachedEngine;
   }
   cachedEngine = new MockEngine();

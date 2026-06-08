@@ -20,6 +20,8 @@ import {
 import { formatCurrency } from "@/lib/utils";
 import type { AssessmentStatus } from "@/lib/assessment/types";
 
+export const dynamic = "force-dynamic";
+
 export default async function AssessmentsListPage() {
   const assessments = await listAssessments();
 

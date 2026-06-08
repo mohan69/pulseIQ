@@ -19,6 +19,8 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function AllSourcesPage() {
   const assessments = await listAssessments();
   type Row = {
