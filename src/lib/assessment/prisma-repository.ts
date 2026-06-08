@@ -414,12 +414,28 @@ export const prismaAssessmentRepository: AssessmentRepository = {
     return rows.map(mapSourceDocument);
   },
 
+  async getExtractedDocuments(assessmentId: string) {
+    const rows = await prisma.sourceDocument.findMany({
+      where: { source: { assessmentId } },
+      orderBy: [{ sourceId: "asc" }, { chunkIndex: "asc" }, { createdAt: "asc" }],
+    });
+    return rows.map(mapSourceDocument);
+  },
+
   async getFacts(assessmentId: string) {
     const rows = await prisma.businessFact.findMany({
       where: { assessmentId },
       orderBy: { capturedAt: "desc" },
     });
     return rows.map(mapFact);
+  },
+
+  async saveExtractedFacts(
+    assessmentId: string,
+    sourceId: string,
+    facts: AddFactInput[],
+  ) {
+    return this.addFacts(assessmentId, sourceId, facts);
   },
 
   async addFacts(
@@ -542,6 +558,18 @@ export const prismaAssessmentRepository: AssessmentRepository = {
         l.gaps.map((g) => `[${l.title}] ${g}`),
       ),
     };
+  },
+
+  async markAssessmentAnalyzing(id: string) {
+    return this.updateAssessmentStatus(id, "analyzing");
+  },
+
+  async markAssessmentAnalyzed(id: string) {
+    return this.updateAssessmentStatus(id, "analysis");
+  },
+
+  async markAssessmentAnalysisFailed(id: string) {
+    return this.updateAssessmentStatus(id, "analysis_failed");
   },
 };
 

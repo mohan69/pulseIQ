@@ -279,8 +279,22 @@ export const memoryAssessmentRepository: AssessmentRepository = {
     return getOrInitState().sourceDocuments.get(sourceId) ?? [];
   },
 
+  getExtractedDocuments(assessmentId: string) {
+    const s = getOrInitState();
+    const sources = s.sources.get(assessmentId) ?? [];
+    return sources.flatMap((source) => s.sourceDocuments.get(source.id) ?? []);
+  },
+
   getFacts(assessmentId: string) {
     return getOrInitState().facts.get(assessmentId) ?? [];
+  },
+
+  saveExtractedFacts(
+    assessmentId: string,
+    sourceId: string,
+    facts: AddFactInput[],
+  ) {
+    return this.addFacts(assessmentId, sourceId, facts);
   },
 
   addFacts(
@@ -390,5 +404,17 @@ export const memoryAssessmentRepository: AssessmentRepository = {
       plan,
       dataGaps: gaps,
     };
+  },
+
+  markAssessmentAnalyzing(id: string) {
+    return this.updateAssessmentStatus(id, "analyzing");
+  },
+
+  markAssessmentAnalyzed(id: string) {
+    return this.updateAssessmentStatus(id, "analysis");
+  },
+
+  markAssessmentAnalysisFailed(id: string) {
+    return this.updateAssessmentStatus(id, "analysis_failed");
   },
 };

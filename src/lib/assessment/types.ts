@@ -24,7 +24,9 @@ export type AssessmentStatus =
   | "draft"
   | "intake"
   | "ingestion"
+  | "analyzing"
   | "analysis"
+  | "analysis_failed"
   | "review"
   | "delivered";
 

@@ -19,6 +19,7 @@ import {
   Shield,
 } from "lucide-react";
 import { AddSourceForm } from "@/components/workbench/AddSourceForm";
+import { AnalyzeAssessmentForm } from "@/components/workbench/AnalyzeAssessmentForm";
 
 export default async function SourcesPage({
   params,
@@ -41,8 +42,24 @@ export default async function SourcesPage({
             Email and meeting sources are optional and only ever summarised.
           </p>
         </div>
-        <AddSourceForm assessmentId={id} />
+        <div className="flex flex-wrap items-center gap-2">
+          <AnalyzeAssessmentForm assessment={assessment} />
+          <AddSourceForm assessmentId={id} />
+        </div>
       </div>
+
+      <Card>
+        <CardContent className="flex flex-col gap-2 p-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="text-sm font-medium text-foreground">
+              Analysis status: {analysisStatusLabel(assessment.status)}
+            </div>
+            <div className="text-xs text-muted mt-0.5">
+              Analyze after TXT/CSV extraction completes. Pending binary sources are stored but skipped until their extractors are added.
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {sources.length === 0 ? (
         <Card className="p-12 text-center">
@@ -220,6 +237,13 @@ function ExtractionBadge({ status }: { status?: string }) {
   if (status === "failed")
     return <Badge variant="destructive">Extraction failed</Badge>;
   return <Badge variant="outline">Not applicable</Badge>;
+}
+
+function analysisStatusLabel(status: string): string {
+  if (status === "analyzing") return "Analyzing";
+  if (status === "analysis") return "Analysis ready";
+  if (status === "analysis_failed") return "Analysis failed";
+  return "Not analyzed";
 }
 
 function formatBytes(value?: number) {

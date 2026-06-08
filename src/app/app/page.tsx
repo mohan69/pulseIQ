@@ -263,7 +263,9 @@ function StatusPill({ status }: { status: string }) {
     draft: { label: "Draft", variant: "outline" },
     intake: { label: "Intake", variant: "info" },
     ingestion: { label: "Ingestion", variant: "info" },
-    analysis: { label: "Analysis", variant: "default" },
+    analyzing: { label: "Analyzing", variant: "info" },
+    analysis: { label: "Analysis ready", variant: "default" },
+    analysis_failed: { label: "Analysis failed", variant: "warning" },
     review: { label: "Review", variant: "warning" },
     delivered: { label: "Delivered", variant: "success" },
   };

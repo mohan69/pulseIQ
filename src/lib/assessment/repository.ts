@@ -80,8 +80,14 @@ export interface AssessmentRepository {
     input: AddSourceDocumentInput,
   ): Awaitable<SourceDocument | undefined>;
   getSourceDocuments(sourceId: string): Awaitable<SourceDocument[]>;
+  getExtractedDocuments(assessmentId: string): Awaitable<SourceDocument[]>;
 
   getFacts(assessmentId: string): Awaitable<ExtractedFact[]>;
+  saveExtractedFacts(
+    assessmentId: string,
+    sourceId: string,
+    facts: AddFactInput[],
+  ): Awaitable<ExtractedFact[]>;
   addFacts(
     assessmentId: string,
     sourceId: string,
@@ -107,4 +113,8 @@ export interface AssessmentRepository {
   setPlan(assessmentId: string, plan: ActionPhase[]): Awaitable<void>;
 
   getReport(assessmentId: string): Awaitable<Report | undefined>;
+
+  markAssessmentAnalyzing(id: string): Awaitable<Assessment | undefined>;
+  markAssessmentAnalyzed(id: string): Awaitable<Assessment | undefined>;
+  markAssessmentAnalysisFailed(id: string): Awaitable<Assessment | undefined>;
 }

@@ -14,27 +14,78 @@ import type {
   TopOpportunity,
   TruthLayer,
 } from "@/lib/assessment/types";
+import { classifySourcePrompt } from "./prompts/classify-source";
+import { extractBusinessFactsPrompt } from "./prompts/extract-business-facts";
+import { generateCockpitPrompt } from "./prompts/generate-cockpit";
+import { generateRecommendationsPrompt } from "./prompts/generate-recommendations";
+import { generateReportPrompt } from "./prompts/generate-report";
+import { generateTruthMapPrompt } from "./prompts/generate-truth-map";
+import { generateWhatIfPrompt } from "./prompts/generate-what-if";
 
 // ---------------------------------------------------------------------------
 // Output schemas — these are the *contracts* the workbench UI consumes.
 // Any provider (mock or real) must return data that parses against these.
 // ---------------------------------------------------------------------------
 
+const FactKindSchema = z.enum([
+  "revenue",
+  "cost",
+  "margin",
+  "cash",
+  "receivables",
+  "payables",
+  "pipeline",
+  "orders",
+  "backlog",
+  "headcount",
+  "customer",
+  "product",
+  "supplier",
+  "risk",
+  "opportunity",
+  "action_item",
+  "commitment",
+  "target",
+  "sop_rule",
+]);
+
+const SourceTypeSchema = z.enum([
+  "financial_filing",
+  "strategy_deck",
+  "sop",
+  "excel_tracker",
+  "erp_export",
+  "crm_export",
+  "hrms_export",
+  "operations_report",
+  "proposal_report",
+  "email_summary",
+  "meeting_summary",
+]);
+
+export const SourceClassificationSchema = z.object({
+  sourceType: SourceTypeSchema,
+  confidence: z.enum(["high", "medium", "low"]),
+  reason: z.string(),
+}).strict();
+export type SourceClassification = z.infer<typeof SourceClassificationSchema>;
+
 export const FactDraftSchema = z.object({
-  kind: z.string(),
+  kind: FactKindSchema,
   label: z.string(),
   value: z.string(),
   numericValue: z.number().optional(),
   unit: z.string().optional(),
   evidence: z.string(),
   confidence: z.enum(["high", "medium", "low"]),
-});
+}).strict();
 export type FactDraft = z.infer<typeof FactDraftSchema>;
 
 export const ExtractionResultSchema = z.object({
   facts: z.array(FactDraftSchema),
-});
+}).strict();
 export type ExtractionResult = z.infer<typeof ExtractionResultSchema>;
+export const BusinessFactExtractionSchema = ExtractionResultSchema;
 
 export const TruthLayerDraftSchema = z.object({
   key: z.enum([
@@ -50,18 +101,19 @@ export const TruthLayerDraftSchema = z.object({
     z.object({
       text: z.string(),
       impact: z.enum(["high", "medium", "low"]),
-    }),
+    }).strict(),
   ),
   gaps: z.array(z.string()),
   contradictions: z.array(z.string()),
   confidence: z.enum(["high", "medium", "low"]),
-});
+}).strict();
 export type TruthLayerDraft = z.infer<typeof TruthLayerDraftSchema>;
 
 export const TruthMapResultSchema = z.object({
   layers: z.array(TruthLayerDraftSchema),
-});
+}).strict();
 export type TruthMapResult = z.infer<typeof TruthMapResultSchema>;
+export const TruthMapOutputSchema = TruthMapResultSchema;
 
 export const CockpitMetricSchema = z.object({
   key: z.string(),
@@ -71,7 +123,7 @@ export const CockpitMetricSchema = z.object({
   unit: z.enum(["₹", "%", "₹/employee", "count"]),
   status: z.enum(["on_track", "at_risk", "off_track"]),
   note: z.string(),
-});
+}).strict();
 export const CockpitResultSchema = z.object({
   metrics: z.array(CockpitMetricSchema),
   topRisks: z.array(
@@ -80,7 +132,7 @@ export const CockpitResultSchema = z.object({
       description: z.string(),
       likelihood: z.enum(["high", "medium", "low"]),
       impact: z.enum(["high", "medium", "low"]),
-    }),
+    }).strict(),
   ),
   topOpportunities: z.array(
     z.object({
@@ -88,10 +140,11 @@ export const CockpitResultSchema = z.object({
       description: z.string(),
       impactInr: z.number(),
       timeframeDays: z.number(),
-    }),
+    }).strict(),
   ),
-});
+}).strict();
 export type CockpitResult = z.infer<typeof CockpitResultSchema>;
+export const CockpitOutputSchema = CockpitResultSchema;
 
 export type ScenarioDraft = z.infer<typeof ScenarioDraftSchema>;
 
@@ -114,11 +167,12 @@ export const ScenarioDraftSchema = z.object({
   risks: z.array(z.string()),
   recommendation: z.string(),
   confidence: z.enum(["high", "medium", "low"]),
-});
+}).strict();
 export const ScenariosResultSchema = z.object({
   scenarios: z.array(ScenarioDraftSchema),
-});
+}).strict();
 export type ScenariosResult = z.infer<typeof ScenariosResultSchema>;
+export const WhatIfOutputSchema = ScenariosResultSchema;
 
 export type RecommendationDraft = z.infer<typeof RecommendationDraftSchema>;
 
@@ -133,11 +187,12 @@ export const RecommendationDraftSchema = z.object({
   ownerRole: z.string(),
   evidence: z.string(),
   confidence: z.enum(["high", "medium", "low"]),
-});
+}).strict();
 export const RecommendationsResultSchema = z.object({
   recommendations: z.array(RecommendationDraftSchema),
-});
+}).strict();
 export type RecommendationsResult = z.infer<typeof RecommendationsResultSchema>;
+export const RecommendationOutputSchema = RecommendationsResultSchema;
 
 export const PlanPhaseSchema = z.object({
   phase: z.string(),
@@ -145,11 +200,18 @@ export const PlanPhaseSchema = z.object({
   title: z.string(),
   description: z.string(),
   deliverables: z.array(z.string()),
-});
+}).strict();
 export const PlanResultSchema = z.object({
   phases: z.array(PlanPhaseSchema),
-});
+}).strict();
 export type PlanResult = z.infer<typeof PlanResultSchema>;
+
+export const ReportSnapshotOutputSchema = z.object({
+  executiveSummary: z.string(),
+  dataGaps: z.array(z.string()),
+  confidence: z.enum(["high", "medium", "low"]),
+}).strict();
+export type ReportSnapshotOutput = z.infer<typeof ReportSnapshotOutputSchema>;
 
 // ---------------------------------------------------------------------------
 // Engine interface
@@ -168,6 +230,21 @@ export interface AIContext {
 
 export interface AIEngine {
   readonly provider: AIProviderName;
+  classifySource(
+    ctx: AIContext,
+    source: Source,
+    extractedText: string,
+  ): Promise<SourceClassification>;
+  extractBusinessFacts(
+    ctx: AIContext,
+    source: Source,
+    extractedText: string,
+  ): Promise<ExtractionResult>;
+  generateTruthMap(ctx: AIContext): Promise<TruthMapResult>;
+  generateCockpitMetrics(ctx: AIContext): Promise<CockpitResult>;
+  generateWhatIfScenarios(ctx: AIContext): Promise<ScenariosResult>;
+  generateRecommendations(ctx: AIContext): Promise<RecommendationsResult>;
+  generateReportSnapshot(ctx: AIContext): Promise<ReportSnapshotOutput>;
   extractFacts(ctx: AIContext, source: Source): Promise<ExtractionResult>;
   buildTruthMap(ctx: AIContext): Promise<TruthMapResult>;
   buildCockpit(ctx: AIContext): Promise<CockpitResult>;
@@ -185,6 +262,63 @@ export interface AIEngine {
 class MockEngine implements AIEngine {
   readonly provider: AIProviderName = "mock";
 
+  async classifySource(
+    ctx: AIContext,
+    source: Source,
+    extractedText: string,
+  ): Promise<SourceClassification> {
+    void ctx;
+    void extractedText;
+    return {
+      sourceType: source.type,
+      confidence: source.confidence,
+      reason: "Deterministic mock mode keeps the registered source type.",
+    };
+  }
+
+  async extractBusinessFacts(
+    ctx: AIContext,
+    source: Source,
+    extractedText: string,
+  ): Promise<ExtractionResult> {
+    void ctx;
+    void source;
+    void extractedText;
+    return { facts: [] };
+  }
+
+  async generateTruthMap(ctx: AIContext): Promise<TruthMapResult> {
+    void ctx;
+    return { layers: [] };
+  }
+
+  async generateCockpitMetrics(ctx: AIContext): Promise<CockpitResult> {
+    void ctx;
+    return { metrics: [], topRisks: [], topOpportunities: [] };
+  }
+
+  async generateWhatIfScenarios(ctx: AIContext): Promise<ScenariosResult> {
+    void ctx;
+    return { scenarios: [] };
+  }
+
+  async generateRecommendations(
+    ctx: AIContext,
+  ): Promise<RecommendationsResult> {
+    void ctx;
+    return { recommendations: [] };
+  }
+
+  async generateReportSnapshot(
+    ctx: AIContext,
+  ): Promise<ReportSnapshotOutput> {
+    return {
+      executiveSummary: `Assessment of ${ctx.companyName} is ready for deterministic analysis.`,
+      dataGaps: [],
+      confidence: "medium",
+    };
+  }
+
   async extractFacts(
     ctx: AIContext,
     source: Source,
@@ -199,25 +333,19 @@ class MockEngine implements AIEngine {
   }
 
   async buildTruthMap(ctx: AIContext): Promise<TruthMapResult> {
-    void ctx;
-    return {
-      layers: [],
-    };
+    return this.generateTruthMap(ctx);
   }
 
   async buildCockpit(ctx: AIContext): Promise<CockpitResult> {
-    void ctx;
-    return { metrics: [], topRisks: [], topOpportunities: [] };
+    return this.generateCockpitMetrics(ctx);
   }
 
   async buildScenarios(ctx: AIContext): Promise<ScenariosResult> {
-    void ctx;
-    return { scenarios: [] };
+    return this.generateWhatIfScenarios(ctx);
   }
 
   async buildRecommendations(ctx: AIContext): Promise<RecommendationsResult> {
-    void ctx;
-    return { recommendations: [] };
+    return this.generateRecommendations(ctx);
   }
 
   async buildPlan(ctx: AIContext): Promise<PlanResult> {
@@ -327,53 +455,111 @@ class OpenAICompatibleEngine implements AIEngine {
     }
   }
 
-  async extractFacts(
+  async classifySource(
     ctx: AIContext,
     source: Source,
+    extractedText: string,
+  ): Promise<SourceClassification> {
+    return this.validated(
+      classifySourcePrompt({
+        companyName: ctx.companyName,
+        source,
+        extractedText,
+      }),
+      SourceClassificationSchema,
+      {
+        sourceType: source.type,
+        confidence: source.confidence,
+        reason: "Provider fallback kept the registered source type.",
+      },
+    );
+  }
+
+  async extractBusinessFacts(
+    ctx: AIContext,
+    source: Source,
+    extractedText: string,
   ): Promise<ExtractionResult> {
-    const prompt = `Extract atomic facts from this source for assessment ${ctx.assessmentId} (${ctx.companyName}, ${ctx.industry}, objective=${ctx.objective}).
-Source: ${source.name} (${source.type})
-Notes: ${source.notes}
-Existing facts: ${JSON.stringify(ctx.facts.slice(0, 20))}
-Return JSON matching: {"facts":[{"kind","label","value","numericValue?","unit?","evidence","confidence"}]}`;
-    return this.validated(prompt, ExtractionResultSchema, { facts: [] });
+    return this.validated(
+      extractBusinessFactsPrompt({
+        companyName: ctx.companyName,
+        industry: ctx.industry,
+        objective: ctx.objective,
+        source,
+        extractedText,
+      }),
+      BusinessFactExtractionSchema,
+      { facts: [] },
+    );
   }
 
-  async buildTruthMap(ctx: AIContext): Promise<TruthMapResult> {
-    const prompt = `Build a 5-layer truth map for ${ctx.companyName}.
-Layers: financial, strategic, operational, process, collaboration.
-Facts: ${JSON.stringify(ctx.facts)}
-Sources: ${JSON.stringify(ctx.sources.map((s) => ({ id: s.id, name: s.name, type: s.type })))}
-Return JSON matching: {"layers":[{"key","title","description","findings":[{"text","impact"}],"gaps","contradictions","confidence"}]}`;
-    return this.validated(prompt, TruthMapResultSchema, { layers: [] });
+  async generateTruthMap(ctx: AIContext): Promise<TruthMapResult> {
+    return this.validated(generateTruthMapPrompt(ctx), TruthMapOutputSchema, {
+      layers: [],
+    });
   }
 
-  async buildCockpit(ctx: AIContext): Promise<CockpitResult> {
-    const prompt = `Build an executive cockpit for ${ctx.companyName}.
-Facts: ${JSON.stringify(ctx.facts)}
-Return JSON matching: {"metrics":[{"key","label","value","target","unit","status","note"}],"topRisks":[{"title","description","likelihood","impact"}],"topOpportunities":[{"title","description","impactInr","timeframeDays"}]}`;
-    return this.validated(prompt, CockpitResultSchema, {
+  async generateCockpitMetrics(ctx: AIContext): Promise<CockpitResult> {
+    return this.validated(generateCockpitPrompt(ctx), CockpitOutputSchema, {
       metrics: [],
       topRisks: [],
       topOpportunities: [],
     });
   }
 
+  async generateWhatIfScenarios(ctx: AIContext): Promise<ScenariosResult> {
+    return this.validated(generateWhatIfPrompt(ctx), WhatIfOutputSchema, {
+      scenarios: [],
+    });
+  }
+
+  async generateRecommendations(
+    ctx: AIContext,
+  ): Promise<RecommendationsResult> {
+    return this.validated(
+      generateRecommendationsPrompt(ctx),
+      RecommendationOutputSchema,
+      {
+        recommendations: [],
+      },
+    );
+  }
+
+  async generateReportSnapshot(
+    ctx: AIContext,
+  ): Promise<ReportSnapshotOutput> {
+    return this.validated(
+      generateReportPrompt(ctx),
+      ReportSnapshotOutputSchema,
+      {
+        executiveSummary: `Assessment of ${ctx.companyName} is ready for review.`,
+        dataGaps: [],
+        confidence: "medium",
+      },
+    );
+  }
+
+  async extractFacts(
+    ctx: AIContext,
+    source: Source,
+  ): Promise<ExtractionResult> {
+    return this.extractBusinessFacts(ctx, source, source.notes);
+  }
+
+  async buildTruthMap(ctx: AIContext): Promise<TruthMapResult> {
+    return this.generateTruthMap(ctx);
+  }
+
+  async buildCockpit(ctx: AIContext): Promise<CockpitResult> {
+    return this.generateCockpitMetrics(ctx);
+  }
+
   async buildScenarios(ctx: AIContext): Promise<ScenariosResult> {
-    const prompt = `Build the 5 standard what-if scenarios for ${ctx.companyName}.
-Keys: revenue_plus_10, margin_plus_10, cost_minus_10, headcount_minus_15, cash_improvement.
-Facts: ${JSON.stringify(ctx.facts)}
-Return JSON matching: {"scenarios":[{"key","label","description","currentBaseline","target","options","pros","shortfalls","expectedImpact","risks","recommendation","confidence"}]}`;
-    return this.validated(prompt, ScenariosResultSchema, { scenarios: [] });
+    return this.generateWhatIfScenarios(ctx);
   }
 
   async buildRecommendations(ctx: AIContext): Promise<RecommendationsResult> {
-    const prompt = `Produce the top 10 recommendations for ${ctx.companyName}.
-Facts: ${JSON.stringify(ctx.facts)}
-Return JSON matching: {"recommendations":[{"rank","title","description","priority","businessImpact","effort","timeframeDays","ownerRole","evidence","confidence"}]}`;
-    return this.validated(prompt, RecommendationsResultSchema, {
-      recommendations: [],
-    });
+    return this.generateRecommendations(ctx);
   }
 
   async buildPlan(ctx: AIContext): Promise<PlanResult> {

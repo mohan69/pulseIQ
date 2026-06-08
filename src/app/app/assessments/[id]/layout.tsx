@@ -45,7 +45,9 @@ export default async function AssessmentLayout({
                 <h1 className="text-xl font-bold text-foreground truncate">
                   {assessment.companyName}
                 </h1>
-                <Badge variant="default">{assessment.status}</Badge>
+                <Badge variant="default">
+                  {assessmentStatusLabel(assessment.status)}
+                </Badge>
               </div>
               <div className="text-sm text-muted mt-1 flex items-center gap-2 flex-wrap">
                 <span className="capitalize">
@@ -95,4 +97,11 @@ export default async function AssessmentLayout({
       <div>{children}</div>
     </div>
   );
+}
+
+function assessmentStatusLabel(status: string): string {
+  if (status === "analyzing") return "Analyzing";
+  if (status === "analysis") return "Analysis ready";
+  if (status === "analysis_failed") return "Analysis failed";
+  return status.replace(/_/g, " ");
 }

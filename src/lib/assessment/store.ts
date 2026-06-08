@@ -105,8 +105,24 @@ export async function getSourceDocuments(sourceId: string) {
   return (await getRepository()).getSourceDocuments(sourceId);
 }
 
+export async function getExtractedDocuments(assessmentId: string) {
+  return (await getRepository()).getExtractedDocuments(assessmentId);
+}
+
 export async function getFacts(assessmentId: string) {
   return (await getRepository()).getFacts(assessmentId);
+}
+
+export async function saveExtractedFacts(
+  assessmentId: string,
+  sourceId: string,
+  facts: AddFactInput[],
+) {
+  return (await getRepository()).saveExtractedFacts(
+    assessmentId,
+    sourceId,
+    facts,
+  );
 }
 
 export async function addFacts(
@@ -168,4 +184,16 @@ export async function setPlan(assessmentId: string, plan: ActionPhase[]) {
 
 export async function getReport(assessmentId: string) {
   return (await getRepository()).getReport(assessmentId);
+}
+
+export async function markAssessmentAnalyzing(id: string) {
+  return (await getRepository()).markAssessmentAnalyzing(id);
+}
+
+export async function markAssessmentAnalyzed(id: string) {
+  return (await getRepository()).markAssessmentAnalyzed(id);
+}
+
+export async function markAssessmentAnalysisFailed(id: string) {
+  return (await getRepository()).markAssessmentAnalysisFailed(id);
 }

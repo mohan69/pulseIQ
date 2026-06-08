@@ -10,6 +10,7 @@ import {
   updateSource,
 } from "@/lib/assessment/store";
 import { extractUploadedFile, previewText } from "@/lib/ingestion/extractors";
+import { runAssessmentAnalysis } from "@/lib/analysis/run-analysis";
 import {
   checksumSha256,
   getStorageProvider,
@@ -176,4 +177,17 @@ export async function setAssessmentStatusAction(
   revalidatePath(`/app/assessments/${assessmentId}`);
   revalidatePath("/app/assessments");
   return { ok: true } as const;
+}
+
+export async function analyzeAssessmentAction(assessmentId: string) {
+  await runAssessmentAnalysis(assessmentId);
+  revalidatePath(`/app/assessments/${assessmentId}`);
+  revalidatePath(`/app/assessments/${assessmentId}/sources`);
+  revalidatePath(`/app/assessments/${assessmentId}/truth-map`);
+  revalidatePath(`/app/assessments/${assessmentId}/cockpit`);
+  revalidatePath(`/app/assessments/${assessmentId}/what-if`);
+  revalidatePath(`/app/assessments/${assessmentId}/recommendations`);
+  revalidatePath(`/app/assessments/${assessmentId}/report`);
+  revalidatePath("/app");
+  revalidatePath("/app/assessments");
 }

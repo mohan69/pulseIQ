@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AnalyzeAssessmentForm } from "@/components/workbench/AnalyzeAssessmentForm";
 import {
   ArrowRight,
   AlertTriangle,
@@ -74,11 +75,22 @@ export default async function AssessmentOverviewPage({
               </CardDescription>
             </div>
             <Badge variant="outline" className="bg-white">
-              {assessment.status.charAt(0).toUpperCase() + assessment.status.slice(1)}
+              {analysisStatusLabel(assessment.status)}
             </Badge>
           </div>
         </CardHeader>
         <CardContent>
+          <div className="mb-4 flex flex-col gap-3 rounded-xl border border-border-subtle bg-background-alt p-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="text-sm font-medium text-foreground">
+                Analysis status: {analysisStatusLabel(assessment.status)}
+              </div>
+              <div className="text-xs text-muted mt-0.5">
+                Runs on extracted TXT/CSV content and manual notes. Pending PDF/DOCX/PPTX/XLSX extraction is skipped for now.
+              </div>
+            </div>
+            <AnalyzeAssessmentForm assessment={assessment} />
+          </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <Snapshot label="Off track" value={offTrack.length} icon={XCircle} tone="error" />
             <Snapshot label="At risk" value={atRisk.length} icon={AlertTriangle} tone="warning" />
@@ -259,6 +271,13 @@ export default async function AssessmentOverviewPage({
       </div>
     </div>
   );
+}
+
+function analysisStatusLabel(status: string): string {
+  if (status === "analyzing") return "Analyzing";
+  if (status === "analysis") return "Analysis ready";
+  if (status === "analysis_failed") return "Analysis failed";
+  return "Not analyzed";
 }
 
 function Snapshot({
