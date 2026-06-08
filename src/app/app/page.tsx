@@ -235,9 +235,10 @@ export default async function WorkbenchDashboardPage() {
               icon={CheckCircle2}
             />
             <p className="text-xs text-muted pt-2 leading-relaxed">
-              The demo runs on a deterministic engine so numbers are stable for
-              review. Connect an AI provider later to auto-extract facts from
-              uploaded documents — all outputs stay schema-validated.
+              The golden demo uses deterministic outputs so numbers remain
+              stable for review. New uploaded assessments can use the configured
+              AI provider, with all outputs schema-validated before they appear
+              in the workbench.
             </p>
           </CardContent>
         </Card>
@@ -257,7 +258,7 @@ export default async function WorkbenchDashboardPage() {
               "Read-only philosophy: summarise, never surveil.",
               "Email and meeting sources are optional and summarised only.",
               "Every fact in the UI traces back to a source and confidence level.",
-              "Data is in-memory by design — a Prisma adapter drops in later.",
+              "Data is persisted through the configured repository. Database mode is enabled for real diagnostic work, while memory mode remains available for local demo/testing.",
             ].map((line) => (
               <div
                 key={line}
