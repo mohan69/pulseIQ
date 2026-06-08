@@ -145,7 +145,8 @@ function mapFact(row: DbBusinessFact): ExtractedFact {
 
 function outputData<T>(output: DbAssessmentOutput | null): T | undefined {
   if (!output) return undefined;
-  return (output.data ?? undefined) as T | undefined;
+  if (output.data == null) return undefined;
+  return output.data as T;
 }
 
 function emptyTruthLayers(): TruthLayer[] {
@@ -277,6 +278,25 @@ async function organizationIdForAudit(input: AddAuditEventInput) {
     return source?.assessment.organizationId;
   }
   return undefined;
+}
+
+function safeCockpit(value: unknown): Cockpit {
+  if (!value || typeof value !== "object") return { metrics: [], topRisks: [], topOpportunities: [] };
+  const v = value as Record<string, unknown>;
+  return {
+    metrics: Array.isArray(v.metrics) ? v.metrics as Cockpit["metrics"] : [],
+    topRisks: Array.isArray(v.topRisks) ? v.topRisks as Cockpit["topRisks"] : [],
+    topOpportunities: Array.isArray(v.topOpportunities) ? v.topOpportunities as Cockpit["topOpportunities"] : [],
+  };
+}
+
+function safeArray<T>(value: unknown): T[] {
+  return Array.isArray(value) ? value as T[] : [];
+}
+
+function safeTruthLayers(value: unknown): TruthLayer[] {
+  if (!Array.isArray(value)) return emptyTruthLayers();
+  return value as TruthLayer[];
 }
 
 export const prismaAssessmentRepository: AssessmentRepository = {
@@ -521,11 +541,8 @@ export const prismaAssessmentRepository: AssessmentRepository = {
   },
 
   async getTruthLayers(assessmentId: string) {
-    return (
-      (await getOutput<TruthLayer[]>(
-        assessmentId,
-        OUTPUT_TYPES.truthLayers,
-      )) ?? emptyTruthLayers()
+    return safeTruthLayers(
+      await getOutput<TruthLayer[]>(assessmentId, OUTPUT_TYPES.truthLayers),
     );
   },
 
@@ -534,12 +551,8 @@ export const prismaAssessmentRepository: AssessmentRepository = {
   },
 
   async getCockpit(assessmentId: string) {
-    return (
-      (await getOutput<Cockpit>(assessmentId, OUTPUT_TYPES.cockpit)) ?? {
-        metrics: [],
-        topRisks: [],
-        topOpportunities: [],
-      }
+    return safeCockpit(
+      await getOutput<Cockpit>(assessmentId, OUTPUT_TYPES.cockpit),
     );
   },
 
@@ -548,8 +561,8 @@ export const prismaAssessmentRepository: AssessmentRepository = {
   },
 
   async getScenarios(assessmentId: string) {
-    return (
-      (await getOutput<Scenario[]>(assessmentId, OUTPUT_TYPES.scenarios)) ?? []
+    return safeArray<Scenario>(
+      await getOutput<Scenario[]>(assessmentId, OUTPUT_TYPES.scenarios),
     );
   },
 
@@ -558,11 +571,11 @@ export const prismaAssessmentRepository: AssessmentRepository = {
   },
 
   async getRecommendations(assessmentId: string) {
-    return (
-      (await getOutput<Recommendation[]>(
+    return safeArray<Recommendation>(
+      await getOutput<Recommendation[]>(
         assessmentId,
         OUTPUT_TYPES.recommendations,
-      )) ?? []
+      ),
     );
   },
 
@@ -571,7 +584,9 @@ export const prismaAssessmentRepository: AssessmentRepository = {
   },
 
   async getPlan(assessmentId: string) {
-    return (await getOutput<ActionPhase[]>(assessmentId, OUTPUT_TYPES.plan)) ?? [];
+    return safeArray<ActionPhase>(
+      await getOutput<ActionPhase[]>(assessmentId, OUTPUT_TYPES.plan),
+    );
   },
 
   async setPlan(assessmentId: string, plan: ActionPhase[]) {
@@ -647,6 +662,9 @@ export const prismaMapping = {
   mapFact,
   mapSourceDocument,
   outputData,
+  safeCockpit,
+  safeArray,
+  safeTruthLayers,
 };
 
 export const prismaDemoHelpers = {

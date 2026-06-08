@@ -71,13 +71,27 @@ async function main() {
     },
   });
 
+  // Idempotent upsert: sources, facts, and outputs are replaced on every seed.
+  // Using deleteMany + createMany so the seed is a full reset regardless of prior state.
+  const priorSources = await prisma.dataSource.findMany({
+    where: { assessmentId: demoAssessment.id },
+    select: { id: true },
+  });
+  const priorSourceIds = priorSources.map((s) => s.id);
+
+  if (priorSourceIds.length > 0) {
+    // Cascade: facts and sourceDocuments reference sources
+    await prisma.businessFact.deleteMany({
+      where: { sourceId: { in: priorSourceIds } },
+    });
+    await prisma.sourceDocument.deleteMany({
+      where: { sourceId: { in: priorSourceIds } },
+    });
+    await prisma.dataSource.deleteMany({
+      where: { id: { in: priorSourceIds } },
+    });
+  }
   await prisma.assessmentOutput.deleteMany({
-    where: { assessmentId: demoAssessment.id },
-  });
-  await prisma.businessFact.deleteMany({
-    where: { assessmentId: demoAssessment.id },
-  });
-  await prisma.dataSource.deleteMany({
     where: { assessmentId: demoAssessment.id },
   });
 
@@ -119,7 +133,7 @@ async function main() {
         provider: "demo",
         model: "seed",
         promptVersion: "bhf-demo-v1",
-        data: demoTruthLayers,
+        data: demoTruthLayers as object,
       },
       {
         assessmentId: demoAssessment.id,
@@ -127,7 +141,7 @@ async function main() {
         provider: "demo",
         model: "seed",
         promptVersion: "bhf-demo-v1",
-        data: demoCockpit,
+        data: demoCockpit as object,
       },
       {
         assessmentId: demoAssessment.id,
@@ -135,7 +149,7 @@ async function main() {
         provider: "demo",
         model: "seed",
         promptVersion: "bhf-demo-v1",
-        data: demoScenarios,
+        data: demoScenarios as object,
       },
       {
         assessmentId: demoAssessment.id,
@@ -143,7 +157,7 @@ async function main() {
         provider: "demo",
         model: "seed",
         promptVersion: "bhf-demo-v1",
-        data: demoRecommendations,
+        data: demoRecommendations as object,
       },
       {
         assessmentId: demoAssessment.id,
@@ -151,7 +165,7 @@ async function main() {
         provider: "demo",
         model: "seed",
         promptVersion: "bhf-demo-v1",
-        data: demoPlan,
+        data: demoPlan as object,
       },
     ],
   });

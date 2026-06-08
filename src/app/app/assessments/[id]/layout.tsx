@@ -17,12 +17,34 @@ export default async function AssessmentLayout({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const assessment = await getAssessment(id);
+  if (process.env.NODE_ENV === "development") {
+    console.log(`[layout] loading assessment id="${id}"`);
+  }
+  let assessment;
+  try {
+    assessment = await getAssessment(id);
+  } catch (err) {
+    console.error(`[layout] getAssessment("${id}") failed:`, err);
+    throw err;
+  }
   if (!assessment) notFound();
-  const [sources, cockpit] = await Promise.all([
-    getSources(id),
-    getCockpit(id),
-  ]);
+
+  let sources: Awaited<ReturnType<typeof getSources>> = [];
+  let cockpit: Awaited<ReturnType<typeof getCockpit>> = { metrics: [], topRisks: [], topOpportunities: [] };
+  try {
+    [sources, cockpit] = await Promise.all([
+      getSources(id),
+      getCockpit(id),
+    ]);
+  } catch (err) {
+    console.error(`[layout] data fetch for "${id}" failed:`, err);
+    throw err;
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    console.log(`[layout] assessment="${assessment.id}" sources=${sources.length} cockpitMetrics=${cockpit.metrics.length}`);
+  }
+
   const offTrack = cockpit.metrics.filter((m) => m.status === "off_track").length;
   const atRisk = cockpit.metrics.filter((m) => m.status === "at_risk").length;
   const headline =

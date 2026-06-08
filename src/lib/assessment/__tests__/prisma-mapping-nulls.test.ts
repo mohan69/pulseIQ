@@ -165,4 +165,68 @@ describe("prisma DTO mapping tolerates null optional file fields", () => {
     const output: any = { data: null };
     expect(prismaMapping.outputData(output)).toBeUndefined();
   });
+
+  it("safeCockpit returns defaults for null", () => {
+    const result = prismaMapping.safeCockpit(null);
+    expect(result.metrics).toEqual([]);
+    expect(result.topRisks).toEqual([]);
+    expect(result.topOpportunities).toEqual([]);
+  });
+
+  it("safeCockpit returns defaults for undefined", () => {
+    const result = prismaMapping.safeCockpit(undefined);
+    expect(result.metrics).toEqual([]);
+  });
+
+  it("safeCockpit returns defaults for non-object", () => {
+    const result = prismaMapping.safeCockpit("invalid");
+    expect(result.metrics).toEqual([]);
+  });
+
+  it("safeCockpit returns defaults when metrics is null", () => {
+    const result = prismaMapping.safeCockpit({ metrics: null, topRisks: [], topOpportunities: [] });
+    expect(result.metrics).toEqual([]);
+  });
+
+  it("safeCockpit preserves valid metrics", () => {
+    const cockpit = {
+      metrics: [{ key: "rev", label: "Revenue", value: 100, target: 150, unit: "₹" as const, status: "off_track" as const, note: "" }],
+      topRisks: [{ id: "r1", title: "Risk", description: "", likelihood: "high" as const, impact: "high" as const }],
+      topOpportunities: [{ id: "o1", title: "Opp", description: "", impactInr: 1000000, timeframeDays: 90 }],
+    };
+    const result = prismaMapping.safeCockpit(cockpit);
+    expect(result.metrics).toHaveLength(1);
+    expect(result.topRisks).toHaveLength(1);
+    expect(result.topOpportunities).toHaveLength(1);
+  });
+
+  it("safeArray returns empty for null", () => {
+    expect(prismaMapping.safeArray(null)).toEqual([]);
+  });
+
+  it("safeArray returns empty for non-array", () => {
+    expect(prismaMapping.safeArray("not-array")).toEqual([]);
+  });
+
+  it("safeArray preserves valid array", () => {
+    expect(prismaMapping.safeArray([1, 2, 3])).toEqual([1, 2, 3]);
+  });
+
+  it("safeTruthLayers returns empty layers for null", () => {
+    const result = prismaMapping.safeTruthLayers(null);
+    expect(result).toHaveLength(5);
+    expect(result[0].key).toBe("financial");
+  });
+
+  it("safeTruthLayers returns empty layers for non-array", () => {
+    const result = prismaMapping.safeTruthLayers({});
+    expect(result).toHaveLength(5);
+  });
+
+  it("safeTruthLayers preserves valid layers", () => {
+    const layers = [{ key: "financial" as const, title: "Financial", description: "", confidence: "high" as const, findings: [], evidence: [], gaps: [], contradictions: [] }];
+    const result = prismaMapping.safeTruthLayers(layers);
+    expect(result).toHaveLength(1);
+    expect(result[0].key).toBe("financial");
+  });
 });
