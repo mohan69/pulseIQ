@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getReport, getAssessment } from "@/lib/assessment/store";
 import { Badge } from "@/components/ui/badge";
-import { formatExecutiveCurrency } from "@/lib/utils";
+import { formatExecutiveCurrency, getGapLabel, isRiskMetric } from "@/lib/utils";
 import {
   FileText,
   CheckCircle2,
@@ -96,10 +96,10 @@ export default async function ReportPage({
                     {formatVal(m.value)}
                   </div>
                   <div className="text-[11px] text-muted mt-0.5">
-                    Target {formatVal(m.target)} ·{" "}
+                    Target {formatVal(m.target)} · {getGapLabel(m.key)}{" "}
                     <span
                       className={
-                        gap >= 0
+                        gap >= 0 !== isRiskMetric(m.key)
                           ? "text-success font-semibold"
                           : "text-error font-semibold"
                       }

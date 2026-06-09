@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatExecutiveCurrency } from "@/lib/utils";
+import { formatExecutiveCurrency, getGapLabel, isRiskMetric } from "@/lib/utils";
 
 describe("formatExecutiveCurrency", () => {
   it("formats crore values with negative prefix", () => {
@@ -58,5 +58,57 @@ describe("formatExecutiveCurrency", () => {
 
   it("formats small negative values", () => {
     expect(formatExecutiveCurrency(-50_000)).toBe("-₹50,000")
+  })
+})
+
+describe("getGapLabel", () => {
+  it("returns 'Variance' for revenue (target-positive)", () => {
+    expect(getGapLabel("revenue")).toBe("Variance")
+  })
+
+  it("returns 'Variance' for margin", () => {
+    expect(getGapLabel("margin")).toBe("Variance")
+  })
+
+  it("returns 'Variance' for rpe", () => {
+    expect(getGapLabel("rpe")).toBe("Variance")
+  })
+
+  it("returns 'Variance' for winrate", () => {
+    expect(getGapLabel("winrate")).toBe("Variance")
+  })
+
+  it("returns 'Variance' for pipeline", () => {
+    expect(getGapLabel("pipeline")).toBe("Variance")
+  })
+
+  it("returns 'Variance' for backlog", () => {
+    expect(getGapLabel("backlog")).toBe("Variance")
+  })
+
+  it("returns 'Risk gap' for cash (lower-is-better)", () => {
+    expect(getGapLabel("cash")).toBe("Risk gap")
+  })
+
+  it("returns 'Risk gap' for receivables (lower-is-better)", () => {
+    expect(getGapLabel("receivables")).toBe("Risk gap")
+  })
+})
+
+describe("isRiskMetric", () => {
+  it("returns false for revenue", () => {
+    expect(isRiskMetric("revenue")).toBe(false)
+  })
+
+  it("returns true for cash", () => {
+    expect(isRiskMetric("cash")).toBe(true)
+  })
+
+  it("returns true for receivables", () => {
+    expect(isRiskMetric("receivables")).toBe(true)
+  })
+
+  it("returns false for unknown key", () => {
+    expect(isRiskMetric("dsi")).toBe(false)
   })
 })

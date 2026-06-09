@@ -21,7 +21,7 @@ import {
   Lightbulb,
   Activity,
 } from "lucide-react";
-import { formatExecutiveCurrency } from "@/lib/utils";
+import { formatExecutiveCurrency, getGapLabel, isRiskMetric } from "@/lib/utils";
 import {
   CockpitStatusBoard,
   RevenueMarginChart,
@@ -140,12 +140,12 @@ export default async function CockpitPage({
         {formatVal(m.value)}
       </div>
       <div className="text-[11px] text-muted mt-1">
-        Target {formatVal(m.target)} · Variance{" "}
+        Target {formatVal(m.target)} · {getGapLabel(m.key)}{" "}
         <span
           className={
-            gapPositive
-              ? "text-success font-medium"
-              : "text-error font-medium"
+            gapPositive !== isRiskMetric(m.key)
+              ? "text-error font-medium"
+              : "text-success font-medium"
           }
         >
           {gapPositive ? "+" : ""}

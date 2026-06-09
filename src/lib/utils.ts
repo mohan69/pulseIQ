@@ -45,6 +45,16 @@ export function formatExecutiveCurrency(
   return `${sign}₹${abs.toLocaleString("en-IN")}${suffix}`
 }
 
+const riskMetricKeys = new Set(["cash", "receivables"])
+
+export function isRiskMetric(key: string): boolean {
+  return riskMetricKeys.has(key)
+}
+
+export function getGapLabel(key: string): string {
+  return isRiskMetric(key) ? "Risk gap" : "Variance"
+}
+
 export function generateId(): string {
   return Math.random().toString(36).substring(2, 15)
 }
