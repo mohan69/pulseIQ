@@ -102,7 +102,7 @@ describe("prisma DTO mapping tolerates null optional file fields", () => {
       updatedAt: new Date(),
     };
 
-    const statuses = ["draft", "intake", "ingestion", "analysis", "analyzing", "analysis_failed", "review", "delivered"];
+    const statuses = ["draft", "intake", "ingestion", "analysis", "analysis_ready", "analyzing", "analysis_failed", "review", "delivered"];
     for (const status of statuses) {
       const result = prismaMapping.mapAssessment({ ...base, status });
       expect(result.status).toBe(status);

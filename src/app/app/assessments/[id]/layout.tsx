@@ -123,7 +123,9 @@ export default async function AssessmentLayout({
 
 function assessmentStatusLabel(status: string): string {
   if (status === "analyzing") return "Analyzing";
-  if (status === "analysis") return "Analysis ready";
+  if (status === "analysis" || status === "analysis_ready") {
+    return "Analysis ready";
+  }
   if (status === "analysis_failed") return "Analysis failed";
   return status.replace(/_/g, " ");
 }

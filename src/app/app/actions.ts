@@ -239,8 +239,30 @@ export async function setAssessmentStatusAction(
   return { ok: true } as const;
 }
 
-export async function analyzeAssessmentAction(assessmentId: string) {
-  await runAssessmentAnalysis(assessmentId);
+export type AnalyzeAssessmentActionState = {
+  status: "idle" | "success" | "error";
+  message: string;
+};
+
+export async function analyzeAssessmentAction(
+  assessmentId: string,
+  previousState: AnalyzeAssessmentActionState,
+): Promise<AnalyzeAssessmentActionState> {
+  void previousState;
+  let result;
+  try {
+    result = await runAssessmentAnalysis(assessmentId);
+  } catch (error) {
+    console.error("[PulseIQ Analysis] action_failed", {
+      assessmentId,
+      error:
+        error instanceof Error ? error.message.slice(0, 240) : "Unknown error",
+    });
+    result = {
+      ok: false,
+      message: "Analysis could not be started. Check server logs and retry.",
+    };
+  }
   revalidatePath(`/app/assessments/${assessmentId}`);
   revalidatePath(`/app/assessments/${assessmentId}/sources`);
   revalidatePath(`/app/assessments/${assessmentId}/truth-map`);
@@ -250,6 +272,10 @@ export async function analyzeAssessmentAction(assessmentId: string) {
   revalidatePath(`/app/assessments/${assessmentId}/report`);
   revalidatePath("/app");
   revalidatePath("/app/assessments");
+  return {
+    status: result.ok ? "success" : "error",
+    message: result.message,
+  };
 }
 
 export async function deleteSourceAction(

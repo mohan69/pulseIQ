@@ -47,8 +47,10 @@ Each model output has a strict Zod contract:
 - recommendations
 - report snapshot
 
-Invalid or empty model output is rejected and the pipeline falls back to
-deterministic builders instead of crashing the app.
+Invalid JSON or schema-mismatched output is rejected. In production, a real
+provider failure marks the assessment `analysis_failed` and shows a safe error.
+Deterministic fallback is enabled by default only outside production, or when
+`PULSEIQ_ALLOW_AI_FALLBACK=true` is explicitly configured.
 
 ## Fallback Behavior
 
@@ -56,20 +58,27 @@ The pipeline:
 
 1. Loads the assessment, sources, and extracted source documents.
 2. Ignores sources still marked `extraction_pending` unless they have manual notes.
-3. Extracts new business facts and skips duplicates.
+3. Extracts new business facts from `SourceDocument` text and skips duplicates.
 4. Builds or updates truth map, cockpit, scenarios, recommendations, and plan.
 5. Builds the report snapshot through the existing report composer.
-6. Marks the assessment `analysis` on success or `analysis_failed` on hard failure.
+6. Marks the assessment `analysis_ready` on success or `analysis_failed` on failure.
+
+Provider requests default to a 20-second timeout. Override it with
+`PULSEIQ_AI_REQUEST_TIMEOUT_MS` between 1,000 and 60,000 milliseconds. Source
+fact extraction runs in parallel, followed by parallel output generation, to
+keep the synchronous server action inside a practical deployment window.
 
 ## Current Limitations
 
-- PDF, DOCX, PPTX, and XLSX content is not analyzed until extraction is added.
+- PPTX content is not analyzed until extraction is added.
 - There is no background job runner yet; the server action runs synchronously.
 - There is no auth or tenant enforcement yet.
 - Deterministic extraction is intentionally simple and should not be treated as
   financial-grade parsing.
 - OpenRouter output can improve synthesis quality, but every result still needs
   human review before customer use.
+- A deployment hard timeout can interrupt any synchronous request. An
+  interrupted legacy run without analysis-state metadata is shown as retryable.
 
 ## When To Trust Outputs
 

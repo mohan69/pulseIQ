@@ -15,6 +15,7 @@ import {
 } from "./seed";
 import type {
   ActionPhase,
+  AnalysisState,
   Assessment,
   AssessmentStatus,
   Cockpit,
@@ -46,6 +47,7 @@ type StoreState = {
   scenarios: Map<string, Scenario[]>;
   recommendations: Map<string, Recommendation[]>;
   plans: Map<string, ActionPhase[]>;
+  analysisStates: Map<string, AnalysisState>;
   auditEvents: AddAuditEventInput[];
 };
 
@@ -65,6 +67,7 @@ function getOrInitState(): StoreState {
     scenarios: new Map(),
     recommendations: new Map(),
     plans: new Map(),
+    analysisStates: new Map(),
     auditEvents: [],
   };
   state.assessments.set(demoAssessment.id, demoAssessment);
@@ -78,6 +81,12 @@ function getOrInitState(): StoreState {
   state.scenarios.set(demoAssessment.id, [...demoScenarios]);
   state.recommendations.set(demoAssessment.id, [...demoRecommendations]);
   state.plans.set(demoAssessment.id, [...demoPlan]);
+  state.analysisStates.set(demoAssessment.id, {
+    status: "analysis_ready",
+    provider: "mock",
+    model: "deterministic",
+    updatedAt: demoAssessment.updatedAt,
+  });
   globalThis.__pulseiqStore = state;
   return state;
 }
@@ -202,6 +211,10 @@ export const memoryAssessmentRepository: AssessmentRepository = {
     s.scenarios.set(id, []);
     s.recommendations.set(id, []);
     s.plans.set(id, []);
+    s.analysisStates.set(id, {
+      status: "not_analyzed",
+      updatedAt: now,
+    });
     return assessment;
   },
 
@@ -229,6 +242,7 @@ export const memoryAssessmentRepository: AssessmentRepository = {
     s.scenarios.delete(id);
     s.recommendations.delete(id);
     s.plans.delete(id);
+    s.analysisStates.delete(id);
     return true;
   },
 
@@ -451,12 +465,27 @@ export const memoryAssessmentRepository: AssessmentRepository = {
     };
   },
 
+  getAnalysisState(assessmentId: string) {
+    const state = getOrInitState().analysisStates.get(assessmentId);
+    if (state) return state;
+    const assessment = getOrInitState().assessments.get(assessmentId);
+    return analysisStateFromStatus(assessment?.status, assessment?.updatedAt);
+  },
+
+  setAnalysisState(assessmentId: string, state: AnalysisState) {
+    getOrInitState().analysisStates.set(assessmentId, state);
+    touch(assessmentId);
+  },
+
   markAssessmentAnalyzing(id: string) {
+    if (getOrInitState().assessments.get(id)?.status === "analyzing") {
+      return undefined;
+    }
     return this.updateAssessmentStatus(id, "analyzing");
   },
 
   markAssessmentAnalyzed(id: string) {
-    return this.updateAssessmentStatus(id, "analysis");
+    return this.updateAssessmentStatus(id, "analysis_ready");
   },
 
   markAssessmentAnalysisFailed(id: string) {
@@ -467,3 +496,27 @@ export const memoryAssessmentRepository: AssessmentRepository = {
     getOrInitState().auditEvents.push(input);
   },
 };
+
+function analysisStateFromStatus(
+  status?: AssessmentStatus,
+  updatedAt = nowIso(),
+): AnalysisState {
+  if (status === "analyzing") {
+    return {
+      status: "analysis_failed",
+      error: "The previous analysis was interrupted. You can retry safely.",
+      updatedAt,
+    };
+  }
+  if (status === "analysis" || status === "analysis_ready") {
+    return { status: "analysis_ready", updatedAt };
+  }
+  if (status === "analysis_failed") {
+    return {
+      status: "analysis_failed",
+      error: "The previous analysis did not complete.",
+      updatedAt,
+    };
+  }
+  return { status: "not_analyzed", updatedAt };
+}

@@ -26,9 +26,18 @@ export type AssessmentStatus =
   | "ingestion"
   | "analyzing"
   | "analysis"
+  | "analysis_ready"
   | "analysis_failed"
   | "review"
   | "delivered";
+
+export type AnalysisState = {
+  status: "not_analyzed" | "analyzing" | "analysis_ready" | "analysis_failed";
+  error?: string;
+  provider?: string;
+  model?: string;
+  updatedAt: string;
+};
 
 export type Assessment = {
   id: string;

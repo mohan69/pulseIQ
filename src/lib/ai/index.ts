@@ -230,6 +230,7 @@ export interface AIContext {
 
 export interface AIEngine {
   readonly provider: AIProviderName;
+  readonly model: string;
   classifySource(
     ctx: AIContext,
     source: Source,
@@ -261,6 +262,7 @@ export interface AIEngine {
 
 class MockEngine implements AIEngine {
   readonly provider: AIProviderName = "mock";
+  readonly model = "deterministic";
 
   async classifySource(
     ctx: AIContext,
@@ -358,7 +360,7 @@ class MockEngine implements AIEngine {
 // OpenAI-compatible providers — used only when explicitly configured.
 // ---------------------------------------------------------------------------
 
-type ProviderConfig = {
+export type ProviderConfig = {
   provider: AIProviderName;
   apiKey?: string;
   baseUrl?: string;
@@ -386,9 +388,9 @@ function safeJsonParse(raw: string): unknown {
 
 class OpenAICompatibleEngine implements AIEngine {
   readonly provider: AIProviderName;
+  readonly model: string;
   private apiKey: string;
   private baseUrl: string;
-  private model: string;
   private siteUrl?: string;
   private appName?: string;
 
@@ -415,25 +417,40 @@ class OpenAICompatibleEngine implements AIEngine {
   }
 
   private async callModel(prompt: string): Promise<string> {
-    const res = await fetch(joinUrl(this.baseUrl, "/chat/completions"), {
-      method: "POST",
-      headers: this.headers(),
-      body: JSON.stringify({
-        model: this.model,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: "Return strict JSON only." },
-          { role: "user", content: prompt },
-        ],
-      }),
-    });
+    const timeoutMs = aiRequestTimeoutMs();
+    let res: Response;
+    try {
+      res = await fetch(joinUrl(this.baseUrl, "/chat/completions"), {
+        method: "POST",
+        headers: this.headers(),
+        signal: AbortSignal.timeout(timeoutMs),
+        body: JSON.stringify({
+          model: this.model,
+          response_format: { type: "json_object" },
+          messages: [
+            { role: "system", content: "Return strict JSON only." },
+            { role: "user", content: prompt },
+          ],
+        }),
+      });
+    } catch (error) {
+      const timedOut =
+        error instanceof Error &&
+        (error.name === "TimeoutError" || error.name === "AbortError");
+      throw new AIProviderError(
+        this.provider,
+        timedOut
+          ? `request timed out after ${timeoutMs} ms`
+          : "request could not be completed",
+      );
+    }
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       const message =
         typeof data?.error?.message === "string"
           ? data.error.message
           : `HTTP ${res.status}`;
-      throw new Error(`${this.provider} request failed: ${message}`);
+      throw new AIProviderError(this.provider, message);
     }
     return data.choices?.[0]?.message?.content ?? "{}";
   }
@@ -441,17 +458,18 @@ class OpenAICompatibleEngine implements AIEngine {
   private async validated<T>(
     prompt: string,
     schema: z.ZodType<T>,
-    fallback: T,
   ): Promise<T> {
     try {
       const raw = await this.callModel(prompt);
       return schema.parse(safeJsonParse(raw));
     } catch (error) {
-      console.warn(
-        `[PulseIQ AI] ${this.provider} output rejected; using safe fallback.`,
-        error,
+      if (error instanceof AIProviderError) throw error;
+      throw new AIProviderError(
+        this.provider,
+        error instanceof z.ZodError
+          ? "returned JSON that did not match the required schema"
+          : "returned invalid JSON",
       );
-      return fallback;
     }
   }
 
@@ -467,11 +485,6 @@ class OpenAICompatibleEngine implements AIEngine {
         extractedText,
       }),
       SourceClassificationSchema,
-      {
-        sourceType: source.type,
-        confidence: source.confidence,
-        reason: "Provider fallback kept the registered source type.",
-      },
     );
   }
 
@@ -489,28 +502,19 @@ class OpenAICompatibleEngine implements AIEngine {
         extractedText,
       }),
       BusinessFactExtractionSchema,
-      { facts: [] },
     );
   }
 
   async generateTruthMap(ctx: AIContext): Promise<TruthMapResult> {
-    return this.validated(generateTruthMapPrompt(ctx), TruthMapOutputSchema, {
-      layers: [],
-    });
+    return this.validated(generateTruthMapPrompt(ctx), TruthMapOutputSchema);
   }
 
   async generateCockpitMetrics(ctx: AIContext): Promise<CockpitResult> {
-    return this.validated(generateCockpitPrompt(ctx), CockpitOutputSchema, {
-      metrics: [],
-      topRisks: [],
-      topOpportunities: [],
-    });
+    return this.validated(generateCockpitPrompt(ctx), CockpitOutputSchema);
   }
 
   async generateWhatIfScenarios(ctx: AIContext): Promise<ScenariosResult> {
-    return this.validated(generateWhatIfPrompt(ctx), WhatIfOutputSchema, {
-      scenarios: [],
-    });
+    return this.validated(generateWhatIfPrompt(ctx), WhatIfOutputSchema);
   }
 
   async generateRecommendations(
@@ -519,9 +523,6 @@ class OpenAICompatibleEngine implements AIEngine {
     return this.validated(
       generateRecommendationsPrompt(ctx),
       RecommendationOutputSchema,
-      {
-        recommendations: [],
-      },
     );
   }
 
@@ -531,11 +532,6 @@ class OpenAICompatibleEngine implements AIEngine {
     return this.validated(
       generateReportPrompt(ctx),
       ReportSnapshotOutputSchema,
-      {
-        executiveSummary: `Assessment of ${ctx.companyName} is ready for review.`,
-        dataGaps: [],
-        confidence: "medium",
-      },
     );
   }
 
@@ -566,8 +562,32 @@ class OpenAICompatibleEngine implements AIEngine {
     const prompt = `Build a 4-phase 90-day plan for ${ctx.companyName}.
 Facts: ${JSON.stringify(ctx.facts)}
 Return JSON matching: {"phases":[{"phase","windowLabel","title","description","deliverables"}]}`;
-    return this.validated(prompt, PlanResultSchema, { phases: [] });
+    return this.validated(prompt, PlanResultSchema);
   }
+}
+
+export class AIProviderError extends Error {
+  constructor(
+    readonly provider: AIProviderName,
+    detail: string,
+  ) {
+    super(`${providerLabel(provider)} analysis failed: ${detail}.`);
+    this.name = "AIProviderError";
+  }
+}
+
+function providerLabel(provider: AIProviderName): string {
+  if (provider === "openrouter") return "OpenRouter";
+  if (provider === "openai") return "OpenAI";
+  return "Mock";
+}
+
+function aiRequestTimeoutMs(): number {
+  const configured = Number(process.env.PULSEIQ_AI_REQUEST_TIMEOUT_MS);
+  if (Number.isFinite(configured) && configured >= 1_000) {
+    return Math.min(configured, 60_000);
+  }
+  return 20_000;
 }
 
 // ---------------------------------------------------------------------------

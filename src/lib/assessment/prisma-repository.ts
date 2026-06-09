@@ -10,6 +10,7 @@ import type {
 import { prisma } from "@/lib/db";
 import type {
   ActionPhase,
+  AnalysisState,
   Assessment,
   AssessmentStatus,
   Cockpit,
@@ -49,6 +50,7 @@ const OUTPUT_TYPES = {
   scenarios: "scenarios",
   recommendations: "recommendations",
   plan: "plan",
+  analysisState: "analysis_state",
 } as const;
 
 async function ensureDefaultOrganization() {
@@ -375,6 +377,10 @@ export const prismaAssessmentRepository: AssessmentRepository = {
       [] satisfies Recommendation[],
     );
     await setOutput(row.id, OUTPUT_TYPES.plan, [] satisfies ActionPhase[]);
+    await setOutput(row.id, OUTPUT_TYPES.analysisState, {
+      status: "not_analyzed",
+      updatedAt: row.updatedAt.toISOString(),
+    } satisfies AnalysisState);
     return mapAssessment(row);
   },
 
@@ -661,12 +667,65 @@ export const prismaAssessmentRepository: AssessmentRepository = {
     };
   },
 
+  async getAnalysisState(assessmentId: string) {
+    const state = await getOutput<AnalysisState>(
+      assessmentId,
+      OUTPUT_TYPES.analysisState,
+    );
+    if (state?.status && state.updatedAt) return state;
+    const assessment = await this.getAssessment(assessmentId);
+    return analysisStateFromAssessment(assessment);
+  },
+
+  async setAnalysisState(assessmentId: string, state: AnalysisState) {
+    await setOutput(assessmentId, OUTPUT_TYPES.analysisState, state);
+  },
+
   async markAssessmentAnalyzing(id: string) {
-    return this.updateAssessmentStatus(id, "analyzing");
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.assessment.updateMany({
+        where: {
+          id,
+          OR: [
+            { status: { not: "analyzing" } },
+            { outputs: { none: { type: OUTPUT_TYPES.analysisState } } },
+          ],
+        },
+        data: { status: "analyzing" },
+      });
+      if (updated.count === 0) return undefined;
+      const now = new Date();
+      await tx.assessmentOutput.upsert({
+        where: {
+          assessmentId_type: {
+            assessmentId: id,
+            type: OUTPUT_TYPES.analysisState,
+          },
+        },
+        update: {
+          data: {
+            status: "analyzing",
+            updatedAt: now.toISOString(),
+          },
+          provider: "internal",
+        },
+        create: {
+          assessmentId: id,
+          type: OUTPUT_TYPES.analysisState,
+          provider: "internal",
+          data: {
+            status: "analyzing",
+            updatedAt: now.toISOString(),
+          },
+        },
+      });
+      const row = await tx.assessment.findUnique({ where: { id } });
+      return row ? mapAssessment(row) : undefined;
+    });
   },
 
   async markAssessmentAnalyzed(id: string) {
-    return this.updateAssessmentStatus(id, "analysis");
+    return this.updateAssessmentStatus(id, "analysis_ready");
   },
 
   async markAssessmentAnalysisFailed(id: string) {
@@ -686,6 +745,33 @@ export const prismaAssessmentRepository: AssessmentRepository = {
     });
   },
 };
+
+function analysisStateFromAssessment(
+  assessment: Assessment | undefined,
+): AnalysisState {
+  const updatedAt = assessment?.updatedAt ?? new Date().toISOString();
+  if (assessment?.status === "analyzing") {
+    return {
+      status: "analysis_failed",
+      error: "The previous analysis was interrupted. You can retry safely.",
+      updatedAt,
+    };
+  }
+  if (
+    assessment?.status === "analysis" ||
+    assessment?.status === "analysis_ready"
+  ) {
+    return { status: "analysis_ready", updatedAt };
+  }
+  if (assessment?.status === "analysis_failed") {
+    return {
+      status: "analysis_failed",
+      error: "The previous analysis did not complete.",
+      updatedAt,
+    };
+  }
+  return { status: "not_analyzed", updatedAt };
+}
 
 // Exported for testing — mapping functions used by the public repository.
 // These are safe to call with mock Prisma row data (no DB required).

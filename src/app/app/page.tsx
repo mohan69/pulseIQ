@@ -291,6 +291,7 @@ function StatusPill({ status }: { status: string }) {
     ingestion: { label: "Ingestion", variant: "info" },
     analyzing: { label: "Analyzing", variant: "info" },
     analysis: { label: "Analysis ready", variant: "default" },
+    analysis_ready: { label: "Analysis ready", variant: "default" },
     analysis_failed: { label: "Analysis failed", variant: "warning" },
     review: { label: "Review", variant: "warning" },
     delivered: { label: "Delivered", variant: "success" },

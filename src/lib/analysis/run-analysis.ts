@@ -5,6 +5,8 @@ import {
   recDraftsToRecs,
   scenarioDraftsToScenarios,
   truthDraftsToLayers,
+  AIProviderError,
+  type AIEngine,
   type AIContext,
 } from "@/lib/ai";
 import {
@@ -18,6 +20,7 @@ import {
   markAssessmentAnalysisFailed,
   markAssessmentAnalyzing,
   saveExtractedFacts,
+  setAnalysisState,
   setCockpit,
   setPlan,
   setRecommendations,
@@ -51,6 +54,11 @@ export type AnalysisResult = {
   message: string;
 };
 
+type AnalysisOptions = {
+  engine?: AIEngine;
+  allowDeterministicFallback?: boolean;
+};
+
 type SourceCorpus = {
   source: Source;
   text: string;
@@ -58,20 +66,27 @@ type SourceCorpus = {
 
 export async function runAssessmentAnalysis(
   assessmentId: string,
+  options: AnalysisOptions = {},
 ): Promise<AnalysisResult> {
-  const engine = createAIEngine();
+  const engine = options.engine ?? createAIEngine();
   const assessment = await getAssessment(assessmentId);
   if (!assessment) {
     throw new Error("Assessment not found.");
   }
 
+  analysisLog("analysis_started", {
+    assessmentId,
+    provider: engine.provider,
+    model: engine.model,
+  });
+
   if (assessment.id === DEMO_ASSESSMENT_ID) {
-    await addAuditEvent({
+    await safeAuditEvent({
       action: "analysis_run_demo_skipped",
       entityType: "assessment",
       entityId: assessmentId,
       assessmentId,
-      metadata: { provider: engine.provider },
+      metadata: { provider: engine.provider, model: engine.model },
     });
     return {
       ok: true,
@@ -83,19 +98,55 @@ export async function runAssessmentAnalysis(
     };
   }
 
-  await addAuditEvent({
-    action: "analysis_run",
-    entityType: "assessment",
-    entityId: assessmentId,
-    assessmentId,
-    metadata: { provider: engine.provider },
-  });
-  await markAssessmentAnalyzing(assessmentId);
-
   try {
+    const analyzing = await markAssessmentAnalyzing(assessmentId);
+    if (!analyzing) {
+      analysisLog("analysis_already_running", {
+        assessmentId,
+        provider: engine.provider,
+        model: engine.model,
+      });
+      return {
+        ok: false,
+        assessmentId,
+        provider: engine.provider,
+        factsAdded: 0,
+        sourcesAnalyzed: 0,
+        message:
+          "Analysis is already running. Refresh the page before retrying.",
+      };
+    }
+    await setAnalysisState(assessmentId, {
+      status: "analyzing",
+      provider: engine.provider,
+      model: engine.model,
+      updatedAt: new Date().toISOString(),
+    });
+    await safeAuditEvent({
+      action: "analysis_run",
+      entityType: "assessment",
+      entityId: assessmentId,
+      assessmentId,
+      metadata: { provider: engine.provider, model: engine.model },
+    });
+
     const sources = await getSources(assessmentId);
     const existingFacts = await getFacts(assessmentId);
-    const corpus = await loadAnalyzableCorpus(sources);
+    const corpusResult = await loadAnalyzableCorpus(sources);
+    const corpus = corpusResult.rows;
+    analysisLog("analysis_inputs_loaded", {
+      assessmentId,
+      sourceCount: sources.length,
+      extractedDocumentCount: corpusResult.documentCount,
+      textCharacterCount: corpusResult.textCharacterCount,
+      existingFactCount: existingFacts.length,
+    });
+    if (corpus.length === 0) {
+      throw new AnalysisInputError(
+        "No extracted source text is available. Upload and parse at least one source before analysis.",
+      );
+    }
+
     const ctxBase: AIContext = {
       assessmentId,
       companyName: assessment.companyName,
@@ -107,14 +158,24 @@ export async function runAssessmentAnalysis(
 
     let currentFacts = [...existingFacts];
     let factsAdded = 0;
+    const allowFallback =
+      options.allowDeterministicFallback ??
+      deterministicFallbackAllowed(engine.provider);
 
-    for (const item of corpus) {
-      await engine.classifySource(ctxBase, item.source, item.text);
-      const aiDrafts = await engine.extractBusinessFacts(
-        { ...ctxBase, facts: currentFacts },
-        item.source,
-        item.text,
-      );
+    const extractedBySource = await Promise.all(
+      corpus.map(async (item) => {
+        const aiDrafts = await withProviderFallback(
+          "extract_business_facts",
+          engine,
+          allowFallback,
+          () =>
+            engine.extractBusinessFacts(
+              { ...ctxBase, facts: existingFacts },
+              item.source,
+              item.text,
+            ),
+          { facts: [] },
+        );
       const deterministicDrafts = deterministicFactsFromText(
         assessment,
         item.source,
@@ -124,6 +185,11 @@ export async function runAssessmentAnalysis(
         aiDrafts.facts.length > 0
           ? buildFacts(item.source, aiDrafts.facts)
           : deterministicDrafts;
+        return { item, drafts };
+      }),
+    );
+
+    for (const { item, drafts } of extractedBySource) {
       const fresh = dedupeFactDrafts(drafts, currentFacts, item.source.id);
       if (fresh.length === 0) continue;
       const created = await saveExtractedFacts(
@@ -134,44 +200,115 @@ export async function runAssessmentAnalysis(
       factsAdded += created.length;
       currentFacts = [...created, ...currentFacts];
     }
+    analysisLog("facts_extracted", {
+      assessmentId,
+      factsAdded,
+      totalFactCount: currentFacts.length,
+      sourcesAnalyzed: corpus.length,
+    });
 
     const ctx: AIContext = { ...ctxBase, facts: currentFacts };
-    const truthDraft = await engine.generateTruthMap(ctx);
+    const [
+      truthDraft,
+      cockpitDraft,
+      scenariosDraft,
+      recommendationsDraft,
+      planDraft,
+      reportSnapshot,
+    ] = await Promise.all([
+      withProviderFallback(
+        "generate_truth_map",
+        engine,
+        allowFallback,
+        () => engine.generateTruthMap(ctx),
+        { layers: [] },
+      ),
+      withProviderFallback(
+        "generate_cockpit",
+        engine,
+        allowFallback,
+        () => engine.generateCockpitMetrics(ctx),
+        { metrics: [], topRisks: [], topOpportunities: [] },
+      ),
+      withProviderFallback(
+        "generate_scenarios",
+        engine,
+        allowFallback,
+        () => engine.generateWhatIfScenarios(ctx),
+        { scenarios: [] },
+      ),
+      withProviderFallback(
+        "generate_recommendations",
+        engine,
+        allowFallback,
+        () => engine.generateRecommendations(ctx),
+        { recommendations: [] },
+      ),
+      withProviderFallback(
+        "generate_plan",
+        engine,
+        allowFallback,
+        () => engine.buildPlan(ctx),
+        { phases: [] },
+      ),
+      withProviderFallback(
+        "generate_report",
+        engine,
+        allowFallback,
+        () => engine.generateReportSnapshot(ctx),
+        {
+          executiveSummary: `Assessment of ${assessment.companyName} is ready for review.`,
+          dataGaps: [],
+          confidence: "medium" as const,
+        },
+      ),
+    ]);
+
     const truthLayers =
       truthDraft.layers.length === 5
         ? truthDraftsToLayers(truthDraft.layers)
         : buildTruthLayers(currentFacts, sources);
-    await setTruthLayers(assessmentId, truthLayers);
 
-    const cockpitDraft = await engine.generateCockpitMetrics(ctx);
     const cockpit =
       cockpitDraft.metrics.length > 0
         ? cockDraftToCockpit(cockpitDraft)
         : deterministicCockpit(assessment, currentFacts);
-    await setCockpit(assessmentId, cockpit);
 
-    const scenariosDraft = await engine.generateWhatIfScenarios(ctx);
     const scenarios =
       scenariosDraft.scenarios.length === 5
         ? scenarioDraftsToScenarios(scenariosDraft.scenarios)
         : deterministicScenarios(assessment, currentFacts);
-    await setScenarios(assessmentId, scenarios);
 
-    const recommendationsDraft = await engine.generateRecommendations(ctx);
     const recommendations =
       recommendationsDraft.recommendations.length > 0
         ? recDraftsToRecs(recommendationsDraft.recommendations)
         : deterministicRecommendations(assessment, currentFacts, cockpit);
-    await setRecommendations(assessmentId, recommendations);
 
-    const planDraft = await engine.buildPlan(ctx);
     const plan =
       planDraft.phases.length > 0
         ? planDraftToPhases(planDraft)
         : deterministicPlan(recommendations);
-    await setPlan(assessmentId, plan);
 
-    await engine.generateReportSnapshot(ctx);
+    await Promise.all([
+      setTruthLayers(assessmentId, truthLayers),
+      setCockpit(assessmentId, cockpit),
+      setScenarios(assessmentId, scenarios),
+      setRecommendations(assessmentId, recommendations),
+      setPlan(assessmentId, plan),
+    ]);
+    analysisLog("outputs_saved", {
+      assessmentId,
+      outputCount: 5,
+      outputTypes: [
+        "truth_layers",
+        "cockpit",
+        "scenarios",
+        "recommendations",
+        "plan",
+      ],
+    });
+
+    void reportSnapshot;
     buildReport({
       assessment,
       sources,
@@ -183,29 +320,43 @@ export async function runAssessmentAnalysis(
       plan,
     });
     await getReport(assessmentId);
-    await addAuditEvent({
+    await safeAuditEvent({
       action: "report_generated",
       entityType: "assessment",
       entityId: assessmentId,
       assessmentId,
       metadata: {
         provider: engine.provider,
+        model: engine.model,
         factCount: currentFacts.length,
         sourceCount: sources.length,
       },
     });
 
     await markAssessmentAnalyzed(assessmentId);
-    await addAuditEvent({
+    await setAnalysisState(assessmentId, {
+      status: "analysis_ready",
+      provider: engine.provider,
+      model: engine.model,
+      updatedAt: new Date().toISOString(),
+    });
+    await safeAuditEvent({
       action: "analysis_completed",
       entityType: "assessment",
       entityId: assessmentId,
       assessmentId,
       metadata: {
         provider: engine.provider,
+        model: engine.model,
         factsAdded,
         sourcesAnalyzed: corpus.length,
       },
+    });
+    analysisLog("analysis_finished", {
+      assessmentId,
+      finalStatus: "analysis_ready",
+      provider: engine.provider,
+      model: engine.model,
     });
     return {
       ok: true,
@@ -216,16 +367,34 @@ export async function runAssessmentAnalysis(
       message: "Analysis ready.",
     };
   } catch (error) {
-    await markAssessmentAnalysisFailed(assessmentId);
-    await addAuditEvent({
+    const safeMessage = safeAnalysisError(error);
+    await Promise.allSettled([
+      markAssessmentAnalysisFailed(assessmentId),
+      setAnalysisState(assessmentId, {
+        status: "analysis_failed",
+        error: safeMessage,
+        provider: engine.provider,
+        model: engine.model,
+        updatedAt: new Date().toISOString(),
+      }),
+    ]);
+    await safeAuditEvent({
       action: "analysis_failed",
       entityType: "assessment",
       entityId: assessmentId,
       assessmentId,
       metadata: {
         provider: engine.provider,
-        error: error instanceof Error ? error.message : "Unknown error",
+        model: engine.model,
+        error: safeMessage,
       },
+    });
+    analysisLog("analysis_failed", {
+      assessmentId,
+      provider: engine.provider,
+      model: engine.model,
+      finalStatus: "analysis_failed",
+      error: safeMessage,
     });
     return {
       ok: false,
@@ -233,18 +402,22 @@ export async function runAssessmentAnalysis(
       provider: engine.provider,
       factsAdded: 0,
       sourcesAnalyzed: 0,
-      message:
-        error instanceof Error
-          ? `Analysis failed: ${error.message}`
-          : "Analysis failed.",
+      message: safeMessage,
     };
   }
 }
 
-async function loadAnalyzableCorpus(sources: Source[]): Promise<SourceCorpus[]> {
+async function loadAnalyzableCorpus(sources: Source[]): Promise<{
+  rows: SourceCorpus[];
+  documentCount: number;
+  textCharacterCount: number;
+}> {
   const rows: SourceCorpus[] = [];
+  let documentCount = 0;
+  let textCharacterCount = 0;
   for (const source of sources) {
     const documents = await getSourceDocuments(source.id);
+    documentCount += documents.length;
     const extractedText = documents
       .map((doc) => doc.content)
       .filter((content): content is string => Boolean(content?.trim()))
@@ -257,9 +430,71 @@ async function loadAnalyzableCorpus(sources: Source[]): Promise<SourceCorpus[]> 
       .join("\n\n")
       .trim();
     if (!text) continue;
+    textCharacterCount += text.length;
     rows.push({ source, text });
   }
-  return rows;
+  return { rows, documentCount, textCharacterCount };
+}
+
+class AnalysisInputError extends Error {}
+
+function deterministicFallbackAllowed(provider: string): boolean {
+  if (provider === "mock") return true;
+  if (process.env.PULSEIQ_ALLOW_AI_FALLBACK === "true") return true;
+  if (process.env.PULSEIQ_ALLOW_AI_FALLBACK === "false") return false;
+  return process.env.NODE_ENV !== "production";
+}
+
+async function withProviderFallback<T>(
+  stage: string,
+  engine: AIEngine,
+  allowFallback: boolean,
+  run: () => Promise<T>,
+  fallback: T,
+): Promise<T> {
+  try {
+    return await run();
+  } catch (error) {
+    if (!allowFallback || engine.provider === "mock") throw error;
+    analysisLog("provider_fallback", {
+      provider: engine.provider,
+      model: engine.model,
+      stage,
+      error: safeAnalysisError(error),
+    });
+    return fallback;
+  }
+}
+
+async function safeAuditEvent(
+  input: Parameters<typeof addAuditEvent>[0],
+): Promise<void> {
+  try {
+    await addAuditEvent(input);
+  } catch (error) {
+    analysisLog("audit_write_failed", {
+      assessmentId: input.assessmentId,
+      action: input.action,
+      error:
+        error instanceof Error
+          ? error.message.slice(0, 240)
+          : "Unknown audit error",
+    });
+  }
+}
+
+function safeAnalysisError(error: unknown): string {
+  if (error instanceof AIProviderError || error instanceof AnalysisInputError) {
+    return error.message;
+  }
+  return "Analysis could not be completed. Check server logs and retry.";
+}
+
+function analysisLog(
+  event: string,
+  details: Record<string, unknown>,
+): void {
+  console.info(`[PulseIQ Analysis] ${event}`, details);
 }
 
 function dedupeFactDrafts(

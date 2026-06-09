@@ -1,5 +1,6 @@
 import type {
   ActionPhase,
+  AnalysisState,
   Assessment,
   AssessmentObjective,
   AssessmentStatus,
@@ -124,6 +125,11 @@ export interface AssessmentRepository {
   setPlan(assessmentId: string, plan: ActionPhase[]): Awaitable<void>;
 
   getReport(assessmentId: string): Awaitable<Report | undefined>;
+  getAnalysisState(assessmentId: string): Awaitable<AnalysisState>;
+  setAnalysisState(
+    assessmentId: string,
+    state: AnalysisState,
+  ): Awaitable<void>;
 
   markAssessmentAnalyzing(id: string): Awaitable<Assessment | undefined>;
   markAssessmentAnalyzed(id: string): Awaitable<Assessment | undefined>;

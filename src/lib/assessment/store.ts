@@ -14,6 +14,7 @@ import type {
 } from "./repository";
 import type {
   ActionPhase,
+  AnalysisState,
   AssessmentStatus,
   Cockpit,
   Recommendation,
@@ -194,6 +195,17 @@ export async function setPlan(assessmentId: string, plan: ActionPhase[]) {
 
 export async function getReport(assessmentId: string) {
   return (await getRepository()).getReport(assessmentId);
+}
+
+export async function getAnalysisState(assessmentId: string) {
+  return (await getRepository()).getAnalysisState(assessmentId);
+}
+
+export async function setAnalysisState(
+  assessmentId: string,
+  state: AnalysisState,
+) {
+  return (await getRepository()).setAnalysisState(assessmentId, state);
 }
 
 export async function markAssessmentAnalyzing(id: string) {
