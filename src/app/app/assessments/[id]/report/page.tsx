@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getReport, getAssessment } from "@/lib/assessment/store";
 import { Badge } from "@/components/ui/badge";
-import { formatCurrency } from "@/lib/utils";
+import { formatExecutiveCurrency } from "@/lib/utils";
 import {
   FileText,
   CheckCircle2,
@@ -76,13 +76,13 @@ export default async function ReportPage({
           <SectionTitle icon={BarChart3Icon}>Cockpit</SectionTitle>
           <div className="grid md:grid-cols-2 gap-3 print:grid-cols-2">
             {report.cockpit.metrics.map((m) => {
-              const gap = m.value - m.target;
+              const gap = m.target - m.value;
               const formatVal = (v: number) =>
                 m.unit === "%"
                   ? `${v.toFixed(0)}%`
-                  : m.unit === "₹/employee"
-                    ? formatCurrency(v)
-                    : formatCurrency(v);
+                  : formatExecutiveCurrency(v, {
+                      suffix: m.unit === "₹/employee" ? "/emp" : undefined,
+                    });
               return (
                 <div
                   key={m.key}
@@ -163,7 +163,7 @@ export default async function ReportPage({
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-bold text-success">
-                        {formatCurrency(o.impactInr)}
+                        {formatExecutiveCurrency(o.impactInr)}
                       </div>
                       <div className="text-[10px] text-muted">
                         {o.timeframeDays} days

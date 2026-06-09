@@ -28,6 +28,23 @@ export function formatDate(iso: string | null | undefined): string {
   }
 }
 
+export function formatExecutiveCurrency(
+  value: number | null | undefined,
+  options?: { suffix?: string },
+): string {
+  if (value == null || Number.isNaN(value)) return "—"
+  const abs = Math.abs(value)
+  const sign = value < 0 ? "-" : ""
+  const suffix = options?.suffix ?? ""
+  if (abs >= 10000000) {
+    return `${sign}₹${(abs / 10000000).toFixed(1).replace(/\.0$/, "")}Cr${suffix}`
+  }
+  if (abs >= 100000) {
+    return `${sign}₹${(abs / 100000).toFixed(1).replace(/\.0$/, "")}L${suffix}`
+  }
+  return `${sign}₹${abs.toLocaleString("en-IN")}${suffix}`
+}
+
 export function generateId(): string {
   return Math.random().toString(36).substring(2, 15)
 }

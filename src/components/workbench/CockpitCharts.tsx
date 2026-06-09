@@ -13,7 +13,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { formatCurrency } from "@/lib/utils";
+import { formatExecutiveCurrency } from "@/lib/utils";
 import type { Cockpit, CockpitMetric } from "@/lib/assessment/types";
 
 export function RevenueMarginChart({ metrics }: { metrics: CockpitMetric[] }) {
@@ -53,7 +53,7 @@ export function RevenueMarginChart({ metrics }: { metrics: CockpitMetric[] }) {
           tick={{ fontSize: 12, fill: "#475569" }}
           axisLine={false}
           tickLine={false}
-          tickFormatter={(v) => formatCurrency(Number(v))}
+          tickFormatter={(v) => formatExecutiveCurrency(Number(v))}
         />
         <Tooltip
           contentStyle={{
@@ -61,7 +61,7 @@ export function RevenueMarginChart({ metrics }: { metrics: CockpitMetric[] }) {
             border: "1px solid #d7e4f0",
             fontSize: 12,
           }}
-          formatter={(v) => formatCurrency(Number(v))}
+          formatter={(v) => formatExecutiveCurrency(Number(v))}
         />
         <Legend wrapperStyle={{ fontSize: 12 }} />
         <Bar dataKey="Revenue" fill="#2563eb" radius={[6, 6, 0, 0]} />
@@ -141,7 +141,7 @@ export function WorkingCapitalBars({ metrics }: { metrics: CockpitMetric[] }) {
           tick={{ fontSize: 12, fill: "#475569" }}
           axisLine={false}
           tickLine={false}
-          tickFormatter={(v) => formatCurrency(Number(v))}
+          tickFormatter={(v) => formatExecutiveCurrency(Number(v))}
         />
         <Tooltip
           contentStyle={{
@@ -149,7 +149,7 @@ export function WorkingCapitalBars({ metrics }: { metrics: CockpitMetric[] }) {
             border: "1px solid #d7e4f0",
             fontSize: 12,
           }}
-          formatter={(v) => formatCurrency(Number(v))}
+          formatter={(v) => formatExecutiveCurrency(Number(v))}
         />
         <Bar dataKey="value" radius={[6, 6, 0, 0]}>
           {data.map((d, i) => (

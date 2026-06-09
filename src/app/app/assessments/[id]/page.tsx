@@ -89,7 +89,7 @@ export default async function AssessmentOverviewPage({
                 Analysis status: {analysisStatusLabel(assessment.status)}
               </div>
               <div className="text-xs text-muted mt-0.5">
-                Runs on extracted TXT/CSV content and manual notes. Pending PDF/DOCX/PPTX/XLSX extraction is skipped for now.
+                Runs on extracted TXT, CSV, DOCX, XLSX content and manual notes. PDF extraction is attempted when supported by the runtime; otherwise it fails gracefully without affecting the workbench.
               </div>
             </div>
             <AnalyzeAssessmentForm assessment={assessment} />

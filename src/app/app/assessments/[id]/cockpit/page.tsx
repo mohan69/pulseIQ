@@ -21,7 +21,7 @@ import {
   Lightbulb,
   Activity,
 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { formatExecutiveCurrency } from "@/lib/utils";
 import {
   CockpitStatusBoard,
   RevenueMarginChart,
@@ -119,14 +119,14 @@ export default async function CockpitPage({
         <CardContent>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
             {cockpit.metrics.map((m) => {
-              const gap = m.value - m.target;
+              const gap = m.target - m.value;
               const gapPositive = gap > 0;
               const formatVal = (v: number) =>
                 m.unit === "%"
                   ? `${v.toFixed(0)}%`
-                  : m.unit === "₹/employee"
-                    ? formatCurrency(v)
-                    : formatCurrency(v);
+                  : formatExecutiveCurrency(v, {
+                      suffix: m.unit === "₹/employee" ? "/emp" : undefined,
+                    });
               return (
                 <div
                   key={m.key}
@@ -247,7 +247,7 @@ export default async function CockpitPage({
                   <div className="font-semibold text-foreground">{o.title}</div>
                   <div className="text-right">
                     <div className="text-sm font-bold text-success">
-                      {formatCurrency(o.impactInr)}
+                      {formatExecutiveCurrency(o.impactInr)}
                     </div>
                     <div className="text-[10px] text-muted">
                       {o.timeframeDays} days
