@@ -21,6 +21,12 @@ import type {
   Scenario,
   TruthLayer,
 } from "./types";
+import {
+  presentCockpit,
+  presentRecommendations,
+  presentReport,
+  presentScenarios,
+} from "./presentation";
 
 type DataMode = "memory" | "database";
 
@@ -156,7 +162,12 @@ export async function setTruthLayers(
 }
 
 export async function getCockpit(assessmentId: string) {
-  return (await getRepository()).getCockpit(assessmentId);
+  const repository = await getRepository();
+  const [assessment, cockpit] = await Promise.all([
+    repository.getAssessment(assessmentId),
+    repository.getCockpit(assessmentId),
+  ]);
+  return presentCockpit(assessment, cockpit);
 }
 
 export async function setCockpit(assessmentId: string, cockpit: Cockpit) {
@@ -164,7 +175,12 @@ export async function setCockpit(assessmentId: string, cockpit: Cockpit) {
 }
 
 export async function getScenarios(assessmentId: string) {
-  return (await getRepository()).getScenarios(assessmentId);
+  const repository = await getRepository();
+  const [assessment, scenarios] = await Promise.all([
+    repository.getAssessment(assessmentId),
+    repository.getScenarios(assessmentId),
+  ]);
+  return presentScenarios(assessment, scenarios);
 }
 
 export async function setScenarios(
@@ -175,7 +191,12 @@ export async function setScenarios(
 }
 
 export async function getRecommendations(assessmentId: string) {
-  return (await getRepository()).getRecommendations(assessmentId);
+  const repository = await getRepository();
+  const [assessment, recommendations] = await Promise.all([
+    repository.getAssessment(assessmentId),
+    repository.getRecommendations(assessmentId),
+  ]);
+  return presentRecommendations(assessment, recommendations);
 }
 
 export async function setRecommendations(
@@ -194,7 +215,12 @@ export async function setPlan(assessmentId: string, plan: ActionPhase[]) {
 }
 
 export async function getReport(assessmentId: string) {
-  return (await getRepository()).getReport(assessmentId);
+  const repository = await getRepository();
+  const [assessment, report] = await Promise.all([
+    repository.getAssessment(assessmentId),
+    repository.getReport(assessmentId),
+  ]);
+  return presentReport(assessment, report);
 }
 
 export async function getAnalysisState(assessmentId: string) {

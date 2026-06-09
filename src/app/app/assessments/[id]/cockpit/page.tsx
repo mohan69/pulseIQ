@@ -28,6 +28,10 @@ import {
   WinRateLineChart,
   WorkingCapitalBars,
 } from "@/components/workbench/CockpitCharts";
+import {
+  isMicrofinishPublicDomain,
+  metricRequiresInternalData,
+} from "@/lib/assessment/presentation";
 
 export default async function CockpitPage({
   params,
@@ -38,6 +42,7 @@ export default async function CockpitPage({
   const assessment = await getAssessment(id);
   if (!assessment) notFound();
   const cockpit = await getCockpit(id);
+  const isMicrofinishSample = isMicrofinishPublicDomain(assessment);
 
   return (
     <div className="space-y-6">
@@ -49,8 +54,9 @@ export default async function CockpitPage({
           )}
         </div>
         <p className="text-sm text-muted mt-1 max-w-2xl">
-          Headline metrics vs. board-approved targets, with working-capital and
-          win-rate views. Status is derived from each metric&apos;s gap to target.
+          {isMicrofinishSample
+            ? "Directional public signals and the internal data required to validate revenue, margin, working capital, and productivity."
+            : "Headline metrics vs. board-approved targets, with working-capital and win-rate views. Status is derived from each metric's gap to target."}
         </p>
       </div>
 
@@ -119,6 +125,10 @@ export default async function CockpitPage({
         <CardContent>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
             {cockpit.metrics.map((m) => {
+              const requiresInternalData = metricRequiresInternalData(
+                assessment,
+                m,
+              );
               const gap = m.value - m.target;
               const gapPositive = gap > 0;
               const formatVal = (v: number) =>
@@ -137,21 +147,24 @@ export default async function CockpitPage({
         <StatusDot status={m.status} />
       </div>
       <div className="text-xl font-bold text-foreground leading-none">
-        {formatVal(m.value)}
+        {requiresInternalData ? "Requires internal data" : formatVal(m.value)}
       </div>
-      <div className="text-[11px] text-muted mt-1">
-        Target {formatVal(m.target)} · {getGapLabel(m.key)}{" "}
-        <span
-          className={
-            gapPositive !== isRiskMetric(m.key)
-              ? "text-error font-medium"
-              : "text-success font-medium"
-          }
-        >
-          {gapPositive ? "+" : ""}
-          {formatVal(gap)}
-        </span>
-      </div>
+      {!requiresInternalData && (
+        <div className="text-[11px] text-muted mt-1">
+          {isMicrofinishSample ? "Illustrative target" : "Target"}{" "}
+          {formatVal(m.target)} · {getGapLabel(m.key)}{" "}
+          <span
+            className={
+              gapPositive !== isRiskMetric(m.key)
+                ? "text-error font-medium"
+                : "text-success font-medium"
+            }
+          >
+            {gapPositive ? "+" : ""}
+            {formatVal(gap)}
+          </span>
+        </div>
+      )}
                   <div className="text-[11px] text-foreground-secondary mt-2 line-clamp-2">
                     {m.note}
                   </div>

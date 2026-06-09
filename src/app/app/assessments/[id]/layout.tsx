@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Building2, IndianRupee, Target, Users } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { AssessmentTabs } from "@/components/workbench/AssessmentTabs";
+import { isMicrofinishPublicDomain } from "@/lib/assessment/presentation";
 
 export default async function AssessmentLayout({
   children,
@@ -53,6 +54,7 @@ export default async function AssessmentLayout({
       : atRisk > 0
         ? `${atRisk} at risk`
         : "broadly on plan";
+  const isMicrofinishSample = isMicrofinishPublicDomain(assessment);
 
   return (
     <div className="space-y-6">
@@ -88,28 +90,33 @@ export default async function AssessmentLayout({
             <div>
               <div className="text-[11px] text-muted flex items-center justify-end gap-1">
                 <IndianRupee className="h-3 w-3" />
-                Revenue target
+                {isMicrofinishSample ? "Revenue ambition" : "Revenue target"}
               </div>
               <div className="text-sm font-semibold text-foreground">
-                {formatCurrency(assessment.revenueTarget)}
+                {isMicrofinishSample
+                  ? `${formatCurrency(assessment.revenueTarget)} illustrative`
+                  : formatCurrency(assessment.revenueTarget)}
               </div>
             </div>
             <div>
               <div className="text-[11px] text-muted flex items-center justify-end gap-1">
                 <Target className="h-3 w-3" />
-                Margin target
+                {isMicrofinishSample ? "Margin scenario" : "Margin target"}
               </div>
               <div className="text-sm font-semibold text-foreground">
                 {assessment.marginTarget}%
+                {isMicrofinishSample ? " illustrative" : ""}
               </div>
             </div>
             <div>
               <div className="text-[11px] text-muted flex items-center justify-end gap-1">
                 <Users className="h-3 w-3" />
-                RPE target
+                {isMicrofinishSample ? "Productivity" : "RPE target"}
               </div>
               <div className="text-sm font-semibold text-foreground">
-                {formatCurrency(assessment.headcountProductivityTarget)}/emp
+                {isMicrofinishSample
+                  ? "Requires internal data"
+                  : `${formatCurrency(assessment.headcountProductivityTarget)}/emp`}
               </div>
             </div>
           </div>

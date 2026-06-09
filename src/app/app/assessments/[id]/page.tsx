@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DeleteAssessmentButton } from "@/components/workbench/DeleteAssessmentButton";
+import { isMicrofinishPublicDomain } from "@/lib/assessment/presentation";
 
 export default async function AssessmentOverviewPage({
   params,
@@ -61,6 +62,7 @@ export default async function AssessmentOverviewPage({
   const onTrack = cockpit.metrics.filter((m) => m.status === "on_track");
   const totalGaps = layers.reduce((acc, l) => acc + (Array.isArray(l.gaps) ? l.gaps.length : 0), 0);
   const isDemo = assessment.id === "asm-bharat-heavy-fabrications";
+  const isMicrofinishSample = isMicrofinishPublicDomain(assessment);
 
   return (
     <div className="space-y-6">
@@ -222,7 +224,11 @@ export default async function AssessmentOverviewPage({
               icon={GitBranch}
               label="What-if scenarios"
               value={scenarios.length.toString()}
-              detail="5 standard scenarios: revenue, margin, cost, headcount, cash."
+              detail={
+                isMicrofinishSample
+                  ? "Revenue, margin, proposal velocity, working capital, and productivity."
+                  : "5 standard scenarios: revenue, margin, cost, headcount, cash."
+              }
               href={`/app/assessments/${id}/what-if`}
             />
             <Highlight

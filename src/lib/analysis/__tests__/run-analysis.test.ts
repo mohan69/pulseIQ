@@ -269,11 +269,19 @@ describe("assessment analysis pipeline", () => {
     expect(layers.every((layer) => layer.description.includes("Public-domain"))).toBe(true);
     expect(cockpit.metrics[0]?.note).toContain("Public-domain");
     expect(scenarios).toHaveLength(5);
-    expect(scenarios.every((scenario) => scenario.description.includes("Public-domain"))).toBe(true);
+    expect(JSON.stringify(scenarios)).toMatch(/public[\s-]?domain/i);
+    expect(JSON.stringify(scenarios)).not.toContain("Reduce headcount by 15%");
+    expect(
+      scenarios.find((scenario) => scenario.key === "margin_plus_10")?.label,
+    ).toContain("2–3 percentage points");
     expect(recommendations[0]?.evidence).toContain("Public-domain");
     expect(plan).toHaveLength(4);
-    expect(plan.every((phase) => phase.description.includes("Public-domain"))).toBe(true);
-    expect(report?.executiveSummary).toContain("public-domain material");
+    expect(
+      plan.every((phase) => phase.description.includes("Public-domain")),
+    ).toBe(true);
+    expect(report?.executiveSummary).toContain(
+      "public-domain sample diagnostic",
+    );
   });
 
   it("keeps the Bharat Heavy Fabrications demo stable", async () => {

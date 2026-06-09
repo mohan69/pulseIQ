@@ -14,6 +14,11 @@ import {
   Calendar,
 } from "lucide-react";
 import { ReportPrintButton } from "@/components/workbench/ReportPrintButton";
+import {
+  isMicrofinishPublicDomain,
+  metricRequiresInternalData,
+  MICROFINISH_DISCLAIMER,
+} from "@/lib/assessment/presentation";
 
 const PRIORITY_LABEL: Record<string, string> = {
   P0: "Critical",
@@ -32,6 +37,7 @@ export default async function ReportPage({
   if (!report) notFound();
   const assessment = await getAssessment(id);
   const isDemo = assessment?.id === "asm-bharat-heavy-fabrications";
+  const isMicrofinishSample = isMicrofinishPublicDomain(assessment);
 
   return (
     <div className="space-y-6 print:space-y-4">
@@ -58,12 +64,31 @@ export default async function ReportPage({
             PulseIQ board report
           </div>
           <h1 className="text-2xl print:text-3xl font-bold text-foreground">
-            Operating truth &amp; 90-day plan
+            {isMicrofinishSample
+              ? "Microfinish public-domain operating diagnostic"
+              : "Operating truth & 90-day plan"}
           </h1>
+          {isMicrofinishSample && (
+            <div className="text-sm font-medium text-foreground-secondary mt-1">
+              Directional signals, internal validation priorities, and a
+              respectful 90-day evidence plan
+            </div>
+          )}
           <div className="text-sm text-muted mt-2">
             Generated {new Date(report.generatedAt).toLocaleString("en-IN", { dateStyle: "long", timeStyle: "short" })} · {report.sourceCount} sources · {report.factCount} facts
           </div>
         </header>
+
+        {isMicrofinishSample && (
+          <section className="rounded-xl border border-warning/30 bg-warning-muted/30 p-4">
+            <div className="text-xs font-semibold uppercase tracking-wider text-warning mb-1">
+              Public-domain sample disclaimer
+            </div>
+            <p className="text-sm leading-relaxed text-foreground-secondary">
+              {MICROFINISH_DISCLAIMER}
+            </p>
+          </section>
+        )}
 
         <section>
           <SectionTitle icon={Sparkles}>Executive summary</SectionTitle>
@@ -76,6 +101,10 @@ export default async function ReportPage({
           <SectionTitle icon={BarChart3Icon}>Cockpit</SectionTitle>
           <div className="grid md:grid-cols-2 gap-3 print:grid-cols-2">
             {report.cockpit.metrics.map((m) => {
+              const requiresInternalData = metricRequiresInternalData(
+                assessment,
+                m,
+              );
               const gap = m.value - m.target;
               const formatVal = (v: number) =>
                 m.unit === "%"
@@ -93,21 +122,26 @@ export default async function ReportPage({
                     <StatusPill status={m.status} />
                   </div>
                   <div className="text-xl font-bold text-foreground">
-                    {formatVal(m.value)}
+                    {requiresInternalData
+                      ? "Requires internal data"
+                      : formatVal(m.value)}
                   </div>
-                  <div className="text-[11px] text-muted mt-0.5">
-                    Target {formatVal(m.target)} · {getGapLabel(m.key)}{" "}
-                    <span
-                      className={
-                        gap >= 0 !== isRiskMetric(m.key)
-                          ? "text-success font-semibold"
-                          : "text-error font-semibold"
-                      }
-                    >
-                      {gap >= 0 ? "+" : ""}
-                      {formatVal(gap)}
-                    </span>
-                  </div>
+                  {!requiresInternalData && (
+                    <div className="text-[11px] text-muted mt-0.5">
+                      {isMicrofinishSample ? "Illustrative target" : "Target"}{" "}
+                      {formatVal(m.target)} · {getGapLabel(m.key)}{" "}
+                      <span
+                        className={
+                          gap >= 0 !== isRiskMetric(m.key)
+                            ? "text-success font-semibold"
+                            : "text-error font-semibold"
+                        }
+                      >
+                        {gap >= 0 ? "+" : ""}
+                        {formatVal(gap)}
+                      </span>
+                    </div>
+                  )}
                   <div className="text-xs text-foreground-secondary mt-2">
                     {m.note}
                   </div>
@@ -356,9 +390,9 @@ export default async function ReportPage({
         </section>
 
         <footer className="pt-6 border-t border-border text-[11px] text-muted print:mt-8">
-          PulseIQ Workbench MVP · Internal admin use only · Read-only by design.
-          This report is a synthesis of the sources registered for this
-          assessment and is meant to support — not replace — management review.
+          {isMicrofinishSample
+            ? MICROFINISH_DISCLAIMER
+            : "PulseIQ Workbench MVP · Internal admin use only · Read-only by design. This report is a synthesis of the sources registered for this assessment and is meant to support — not replace — management review."}
         </footer>
       </article>
     </div>

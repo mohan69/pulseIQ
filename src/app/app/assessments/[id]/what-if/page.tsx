@@ -17,6 +17,7 @@ import {
   Sparkles,
   Lightbulb,
 } from "lucide-react";
+import { isMicrofinishPublicDomain } from "@/lib/assessment/presentation";
 
 export default async function WhatIfPage({
   params,
@@ -27,6 +28,7 @@ export default async function WhatIfPage({
   const assessment = await getAssessment(id);
   if (!assessment) notFound();
   const scenarios = await getScenarios(id);
+  const isMicrofinishSample = isMicrofinishPublicDomain(assessment);
 
   return (
     <div className="space-y-6">
@@ -38,9 +40,9 @@ export default async function WhatIfPage({
           )}
         </div>
         <p className="text-sm text-muted mt-1 max-w-2xl">
-          Five canonical scenarios — revenue, margin, cost, headcount, and cash —
-          each with the levers, the trade-offs, and a recommendation. Designed
-          to be reviewed in the board pre-read.
+          {isMicrofinishSample
+            ? "Five respectful sample scenarios covering revenue, margin, proposal velocity, working-capital visibility, and productivity without assuming headcount reduction."
+            : "Five canonical scenarios — revenue, margin, cost, headcount, and cash — each with the levers, the trade-offs, and a recommendation. Designed to be reviewed in the board pre-read."}
         </p>
       </div>
 
