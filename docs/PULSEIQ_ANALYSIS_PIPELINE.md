@@ -35,6 +35,11 @@ OpenRouter is used only when `AI_PROVIDER=openrouter` and
 API with JSON response format plus optional `HTTP-Referer` and `X-Title`
 headers.
 
+OpenRouter requests use strict JSON Schema structured output, parameter-aware
+routing, and response healing. PulseIQ also removes Markdown fences or
+surrounding prose before parsing. Every section is Zod-validated before it can
+be persisted.
+
 ## Zod Validation
 
 Each model output has a strict Zod contract:
@@ -51,6 +56,22 @@ Invalid JSON or schema-mismatched output is rejected. In production, a real
 provider failure marks the assessment `analysis_failed` and shows a safe error.
 Deterministic fallback is enabled by default only outside production, or when
 `PULSEIQ_ALLOW_AI_FALLBACK=true` is explicitly configured.
+
+When a section fails validation, PulseIQ logs only safe field diagnostics
+(section, field path, expected type, and received type), then retries that
+section once with the original business context and validation summary. A
+second failure is visible to the user and is not stored as a final output.
+
+Complex multi-item outputs are generated as independently validated items:
+
+- five truth layers
+- four cockpit metrics
+- five what-if scenarios
+- five ranked recommendations
+- four implementation phases
+
+This avoids losing a complete section when a provider returns an incomplete
+aggregate array.
 
 ## Fallback Behavior
 

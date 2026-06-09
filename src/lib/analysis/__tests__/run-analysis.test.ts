@@ -25,6 +25,7 @@ import {
 describe("assessment analysis pipeline", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
     resetAIEngine();
   });
 
@@ -218,6 +219,63 @@ describe("assessment analysis pipeline", () => {
     expect(state.error).toContain("Upload and parse");
   });
 
+  it("produces public-domain framed outputs from five uploaded sources", async () => {
+    vi.stubEnv("PULSEIQ_DATA_MODE", "memory");
+    vi.stubEnv("AI_PROVIDER", "openrouter");
+    vi.stubEnv("OPENROUTER_API_KEY", "test-key");
+    vi.stubEnv("OPENROUTER_MODEL", "test/model");
+    vi.stubEnv("PULSEIQ_ALLOW_AI_FALLBACK", "false");
+    vi.stubGlobal("fetch", vi.fn(openRouterSectionResponse));
+
+    const assessment = await createAssessment({
+      companyName: "Microfinish Public-Domain Sample Diagnostic",
+      industry: "industrial_manufacturing",
+      objective: "board_review",
+      revenueTarget: 100_000_000,
+      marginTarget: 20,
+      cashTarget: 10_000_000,
+      headcountProductivityTarget: 1_000_000,
+    });
+    for (let index = 1; index <= 5; index += 1) {
+      const source = await addSource(assessment.id, {
+        name: `Public-domain source ${index}`,
+        type: "operations_report",
+        notes: "Public-domain material; assumptions require validation.",
+        fileName: `source-${index}.txt`,
+        extractionStatus: "extracted",
+      });
+      await updateSource(source!.id, { status: "parsed" });
+      await addSourceDocument(source!.id, {
+        kind: "text",
+        content: `Revenue observation ${index}: public-domain evidence only.`,
+      });
+    }
+
+    const result = await runAssessmentAnalysis(assessment.id, {
+      allowDeterministicFallback: false,
+    });
+    const [layers, cockpit, scenarios, recommendations, plan, report] =
+      await Promise.all([
+        getTruthLayers(assessment.id),
+        getCockpit(assessment.id),
+        getScenarios(assessment.id),
+        getRecommendations(assessment.id),
+        getPlan(assessment.id),
+        getReport(assessment.id),
+      ]);
+
+    expect(result.ok).toBe(true);
+    expect(layers).toHaveLength(5);
+    expect(layers.every((layer) => layer.description.includes("Public-domain"))).toBe(true);
+    expect(cockpit.metrics[0]?.note).toContain("Public-domain");
+    expect(scenarios).toHaveLength(5);
+    expect(scenarios.every((scenario) => scenario.description.includes("Public-domain"))).toBe(true);
+    expect(recommendations[0]?.evidence).toContain("Public-domain");
+    expect(plan).toHaveLength(4);
+    expect(plan.every((phase) => phase.description.includes("Public-domain"))).toBe(true);
+    expect(report?.executiveSummary).toContain("public-domain material");
+  });
+
   it("keeps the Bharat Heavy Fabrications demo stable", async () => {
     vi.stubEnv("PULSEIQ_DATA_MODE", "memory");
     vi.stubEnv("AI_PROVIDER", "mock");
@@ -234,3 +292,197 @@ describe("assessment analysis pipeline", () => {
     expect(report?.recommendations).toHaveLength(10);
   });
 });
+
+function openRouterSectionResponse(
+  _input: string | URL | Request,
+  init?: RequestInit,
+): Promise<Response> {
+  const body = JSON.parse(String(init?.body)) as {
+    response_format: { json_schema: { name: string } };
+  };
+  const section = body.response_format.json_schema.name;
+  const publicDomain =
+    "Public-domain assumption; validate against approved customer evidence.";
+  if (section.startsWith("pulseiq_truth_layer_")) {
+    const key = section.replace("pulseiq_truth_layer_", "");
+    return Promise.resolve(
+      providerJsonResponse({
+        layer: {
+          key,
+          title: `${key} truth`,
+          description: publicDomain,
+          findings: [{ text: `Assumption: ${publicDomain}`, impact: "low" }],
+          gaps: ["Customer validation required."],
+          contradictions: [],
+          confidence: "low",
+        },
+      }),
+    );
+  }
+  if (section.startsWith("pulseiq_recommendation_")) {
+    const rank = Number(section.replace("pulseiq_recommendation_", ""));
+    return Promise.resolve(
+      providerJsonResponse({
+        recommendation: {
+          rank,
+          title: `Validate public-domain assumption ${rank}`,
+          description: publicDomain,
+          priority: rank === 1 ? "P0" : "P1",
+          businessImpact: "Improves evidence quality",
+          effort: "low",
+          timeframeDays: 14,
+          ownerRole: "Leadership team",
+          evidence: publicDomain,
+          confidence: "low",
+        },
+      }),
+    );
+  }
+  if (section.startsWith("pulseiq_cockpit_metric_")) {
+    const key = section.replace("pulseiq_cockpit_metric_", "");
+    return Promise.resolve(
+      providerJsonResponse({
+        metric: {
+          key,
+          label: `${key} evidence`,
+          value: 5,
+          target: 5,
+          unit: "count",
+          status: "at_risk",
+          note: publicDomain,
+        },
+      }),
+    );
+  }
+  if (section.startsWith("pulseiq_plan_phase_")) {
+    const phase = Number(section.replace("pulseiq_plan_phase_", ""));
+    return Promise.resolve(
+      providerJsonResponse({
+        phase: {
+          phase: `0${phase}`,
+          windowLabel: `Phase ${phase}`,
+          title: "Validate evidence",
+          description: publicDomain,
+          deliverables: ["Evidence validation"],
+        },
+      }),
+    );
+  }
+  if (section.startsWith("pulseiq_scenarios_")) {
+    const key = section.replace("pulseiq_scenarios_", "");
+    return Promise.resolve(
+      providerJsonResponse({
+        scenario: {
+          key,
+          label: key,
+          description: publicDomain,
+          currentBaseline: "Not verified",
+          target: "Requires customer validation",
+          options: [],
+          pros: [],
+          shortfalls: ["Public-domain evidence only."],
+          expectedImpact: "Not quantified",
+          risks: ["Assumption risk"],
+          recommendation: "Validate source evidence first.",
+          confidence: "low",
+        },
+      }),
+    );
+  }
+  const contentBySection: Record<string, unknown> = {
+    pulseiq_business_facts: {
+      facts: [
+        {
+          kind: "risk",
+          label: "Public-domain evidence limitation",
+          value: publicDomain,
+          numericValue: null,
+          unit: null,
+          evidence: `Assumption: ${publicDomain}`,
+          confidence: "low",
+        },
+      ],
+    },
+    pulseiq_truth_layers: {
+      layers: [
+        "financial",
+        "strategic",
+        "operational",
+        "process",
+        "collaboration",
+      ].map((key) => ({
+        key,
+        title: `${key} truth`,
+        description: publicDomain,
+        findings: [{ text: `Assumption: ${publicDomain}`, impact: "low" }],
+        gaps: ["Customer validation required."],
+        contradictions: [],
+        confidence: "low",
+      })),
+    },
+    pulseiq_cockpit: {
+      metrics: [
+        {
+          key: "evidence",
+          label: "Evidence coverage",
+          value: 5,
+          target: 5,
+          unit: "count",
+          status: "at_risk",
+          note: publicDomain,
+        },
+      ],
+      topRisks: [
+        {
+          title: "Evidence limitation",
+          description: publicDomain,
+          likelihood: "high",
+          impact: "medium",
+        },
+      ],
+      topOpportunities: [],
+    },
+    pulseiq_recommendations: {
+      recommendations: [
+        {
+          rank: 1,
+          title: "Validate public-domain assumptions",
+          description: publicDomain,
+          priority: "P0",
+          businessImpact: "Improves evidence quality",
+          effort: "low",
+          timeframeDays: 14,
+          ownerRole: "Leadership team",
+          evidence: publicDomain,
+          confidence: "low",
+        },
+      ],
+    },
+    pulseiq_plan: {
+      phases: Array.from({ length: 4 }, (_, index) => ({
+        phase: `0${index + 1}`,
+        windowLabel: `Phase ${index + 1}`,
+        title: "Validate evidence",
+        description: publicDomain,
+        deliverables: ["Evidence validation"],
+      })),
+    },
+    pulseiq_report: {
+      executiveSummary: publicDomain,
+      dataGaps: ["Approved customer evidence."],
+      confidence: "low",
+    },
+  };
+  return Promise.resolve(
+    providerJsonResponse(contentBySection[section]),
+  );
+}
+
+function providerJsonResponse(content: unknown): Response {
+  return new Response(
+    JSON.stringify({
+      choices: [{ message: { content: JSON.stringify(content) } }],
+    }),
+    { status: 200, headers: { "Content-Type": "application/json" } },
+  );
+}

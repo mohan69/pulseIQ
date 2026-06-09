@@ -10,17 +10,30 @@ import type {
   ExtractedFact,
   Recommendation,
   Scenario,
+  ScenarioKey,
   Source,
   TopOpportunity,
   TruthLayer,
+  TruthLayerKey,
 } from "@/lib/assessment/types";
 import { classifySourcePrompt } from "./prompts/classify-source";
 import { extractBusinessFactsPrompt } from "./prompts/extract-business-facts";
-import { generateCockpitPrompt } from "./prompts/generate-cockpit";
-import { generateRecommendationsPrompt } from "./prompts/generate-recommendations";
+import {
+  generateSingleCockpitMetricPrompt,
+} from "./prompts/generate-cockpit";
+import {
+  generateSinglePlanPhasePrompt,
+} from "./prompts/generate-plan";
+import {
+  generateSingleRecommendationPrompt,
+} from "./prompts/generate-recommendations";
 import { generateReportPrompt } from "./prompts/generate-report";
-import { generateTruthMapPrompt } from "./prompts/generate-truth-map";
-import { generateWhatIfPrompt } from "./prompts/generate-what-if";
+import {
+  generateSingleTruthLayerPrompt,
+} from "./prompts/generate-truth-map";
+import {
+  generateSingleWhatIfPrompt,
+} from "./prompts/generate-what-if";
 
 // ---------------------------------------------------------------------------
 // Output schemas — these are the *contracts* the workbench UI consumes.
@@ -110,7 +123,10 @@ export const TruthLayerDraftSchema = z.object({
 export type TruthLayerDraft = z.infer<typeof TruthLayerDraftSchema>;
 
 export const TruthMapResultSchema = z.object({
-  layers: z.array(TruthLayerDraftSchema),
+  layers: z.array(TruthLayerDraftSchema).length(5),
+}).strict();
+export const SingleTruthLayerResultSchema = z.object({
+  layer: TruthLayerDraftSchema,
 }).strict();
 export type TruthMapResult = z.infer<typeof TruthMapResultSchema>;
 export const TruthMapOutputSchema = TruthMapResultSchema;
@@ -125,7 +141,7 @@ export const CockpitMetricSchema = z.object({
   note: z.string(),
 }).strict();
 export const CockpitResultSchema = z.object({
-  metrics: z.array(CockpitMetricSchema),
+  metrics: z.array(CockpitMetricSchema).min(1),
   topRisks: z.array(
     z.object({
       title: z.string(),
@@ -142,6 +158,9 @@ export const CockpitResultSchema = z.object({
       timeframeDays: z.number(),
     }).strict(),
   ),
+}).strict();
+export const SingleCockpitMetricResultSchema = z.object({
+  metric: CockpitMetricSchema,
 }).strict();
 export type CockpitResult = z.infer<typeof CockpitResultSchema>;
 export const CockpitOutputSchema = CockpitResultSchema;
@@ -169,7 +188,10 @@ export const ScenarioDraftSchema = z.object({
   confidence: z.enum(["high", "medium", "low"]),
 }).strict();
 export const ScenariosResultSchema = z.object({
-  scenarios: z.array(ScenarioDraftSchema),
+  scenarios: z.array(ScenarioDraftSchema).length(5),
+}).strict();
+export const SingleScenarioResultSchema = z.object({
+  scenario: ScenarioDraftSchema,
 }).strict();
 export type ScenariosResult = z.infer<typeof ScenariosResultSchema>;
 export const WhatIfOutputSchema = ScenariosResultSchema;
@@ -189,7 +211,10 @@ export const RecommendationDraftSchema = z.object({
   confidence: z.enum(["high", "medium", "low"]),
 }).strict();
 export const RecommendationsResultSchema = z.object({
-  recommendations: z.array(RecommendationDraftSchema),
+  recommendations: z.array(RecommendationDraftSchema).min(1).max(10),
+}).strict();
+export const SingleRecommendationResultSchema = z.object({
+  recommendation: RecommendationDraftSchema,
 }).strict();
 export type RecommendationsResult = z.infer<typeof RecommendationsResultSchema>;
 export const RecommendationOutputSchema = RecommendationsResultSchema;
@@ -202,7 +227,10 @@ export const PlanPhaseSchema = z.object({
   deliverables: z.array(z.string()),
 }).strict();
 export const PlanResultSchema = z.object({
-  phases: z.array(PlanPhaseSchema),
+  phases: z.array(PlanPhaseSchema).length(4),
+}).strict();
+export const SinglePlanPhaseResultSchema = z.object({
+  phase: PlanPhaseSchema,
 }).strict();
 export type PlanResult = z.infer<typeof PlanResultSchema>;
 
@@ -378,12 +406,334 @@ function joinUrl(baseUrl: string, path: string): string {
   return `${baseUrl.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;
 }
 
-function safeJsonParse(raw: string): unknown {
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return {};
+export type AIAnalysisSection =
+  | "source_classification"
+  | "business_facts"
+  | "truth_layers"
+  | "cockpit"
+  | "scenarios"
+  | "recommendations"
+  | "plan"
+  | "report";
+
+export function parseAIJsonObject(raw: string): Record<string, unknown> {
+  const trimmed = raw.trim();
+  const candidates = [
+    trimmed.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, ""),
+    ...Array.from(trimmed.matchAll(/```(?:json)?\s*([\s\S]*?)```/gi)).map(
+      (match) => match[1].trim(),
+    ),
+  ];
+  for (const candidate of candidates) {
+    const parsed = tryParseObject(candidate);
+    if (parsed) return parsed;
   }
+  for (let start = 0; start < trimmed.length; start += 1) {
+    if (trimmed[start] !== "{") continue;
+    const candidate = balancedJsonObject(trimmed, start);
+    if (!candidate) continue;
+    const parsed = tryParseObject(candidate);
+    if (parsed) return parsed;
+  }
+  throw new Error("Provider returned invalid JSON.");
+}
+
+function tryParseObject(value: string): Record<string, unknown> | undefined {
+  try {
+    const parsed = JSON.parse(value);
+    return isRecord(parsed) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function balancedJsonObject(value: string, start: number): string | undefined {
+  let depth = 0;
+  let quoted = false;
+  let escaped = false;
+  for (let index = start; index < value.length; index += 1) {
+    const char = value[index];
+    if (quoted) {
+      if (escaped) escaped = false;
+      else if (char === "\\") escaped = true;
+      else if (char === '"') quoted = false;
+      continue;
+    }
+    if (char === '"') quoted = true;
+    else if (char === "{") depth += 1;
+    else if (char === "}") {
+      depth -= 1;
+      if (depth === 0) return value.slice(start, index + 1);
+    }
+  }
+  return undefined;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function arrayOrEmpty(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function stringOrEmpty(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : fallback;
+}
+
+function confidenceOrMedium(value: unknown): "high" | "medium" | "low" {
+  const normalized =
+    typeof value === "string" ? value.trim().toLowerCase() : "";
+  return normalized === "high" || normalized === "low" ? normalized : "medium";
+}
+
+function lowerString(value: unknown): unknown {
+  return typeof value === "string" ? value.toLowerCase() : value;
+}
+
+export function normalizeAIOutput(
+  section: AIAnalysisSection,
+  value: Record<string, unknown>,
+  schemaName: string = section,
+): Record<string, unknown> {
+  if (section === "source_classification") {
+    return {
+      ...value,
+      reason: stringOrEmpty(value.reason),
+      confidence: confidenceOrMedium(value.confidence),
+    };
+  }
+  if (section === "business_facts") {
+    return {
+      ...value,
+      facts: arrayOrEmpty(value.facts).map((entry) => {
+        if (!isRecord(entry)) return entry;
+        const next: Record<string, unknown> = {
+          ...entry,
+          label: stringOrEmpty(entry.label),
+          value: stringOrEmpty(entry.value),
+          evidence: stringOrEmpty(entry.evidence),
+          confidence: confidenceOrMedium(entry.confidence),
+        };
+        if (next.numericValue === null) delete next.numericValue;
+        if (next.unit === null) delete next.unit;
+        return next;
+      }),
+    };
+  }
+  if (section === "truth_layers") {
+    if (schemaName.startsWith("truth_layer_")) {
+      const requestedKey = schemaName.replace("truth_layer_", "");
+      const layer = isRecord(value.layer)
+        ? value.layer
+        : arrayOrEmpty(value.layers).find(
+            (entry) => isRecord(entry) && entry.key === requestedKey,
+          ) ??
+          (value.key === requestedKey ? value : undefined);
+      return {
+        layer: isRecord(layer) ? normalizeTruthLayer(layer) : layer,
+      };
+    }
+    return {
+      ...value,
+      layers: arrayOrEmpty(value.layers).map((entry) => {
+        return isRecord(entry) ? normalizeTruthLayer(entry) : entry;
+      }),
+    };
+  }
+  if (section === "cockpit") {
+    if (schemaName.startsWith("cockpit_metric_")) {
+      const requestedKey = schemaName.replace("cockpit_metric_", "");
+      const metric = isRecord(value.metric)
+        ? value.metric
+        : arrayOrEmpty(value.metrics).find(
+            (entry) => isRecord(entry) && entry.key === requestedKey,
+          ) ??
+          (value.key === requestedKey ? value : undefined);
+      return {
+        metric: isRecord(metric) ? normalizeCockpitMetric(metric) : metric,
+      };
+    }
+    return {
+      ...value,
+      metrics: arrayOrEmpty(value.metrics).map((entry) =>
+        isRecord(entry) ? normalizeCockpitMetric(entry) : entry,
+      ),
+      topRisks: arrayOrEmpty(value.topRisks).map((entry) =>
+        isRecord(entry)
+          ? {
+              ...entry,
+              title: stringOrEmpty(entry.title),
+              description: stringOrEmpty(entry.description),
+              likelihood: lowerString(entry.likelihood),
+              impact: lowerString(entry.impact),
+            }
+          : entry,
+      ),
+      topOpportunities: arrayOrEmpty(value.topOpportunities).map((entry) =>
+        isRecord(entry)
+          ? {
+              ...entry,
+              title: stringOrEmpty(entry.title),
+              description: stringOrEmpty(entry.description),
+            }
+          : entry,
+      ),
+    };
+  }
+  if (section === "scenarios") {
+    if (schemaName.startsWith("scenarios_")) {
+      const requestedKey = schemaName.replace("scenarios_", "");
+      const scenario = isRecord(value.scenario)
+        ? value.scenario
+        : arrayOrEmpty(value.scenarios).find(
+            (entry) => isRecord(entry) && entry.key === requestedKey,
+          ) ??
+          (value.key === requestedKey ? value : undefined);
+      return {
+        scenario: isRecord(scenario) ? normalizeScenario(scenario) : scenario,
+      };
+    }
+    return {
+      ...value,
+      scenarios: arrayOrEmpty(value.scenarios).map((entry) =>
+        isRecord(entry) ? normalizeScenario(entry) : entry,
+      ),
+    };
+  }
+  if (section === "recommendations") {
+    if (schemaName.startsWith("recommendation_")) {
+      const requestedRank = Number(schemaName.replace("recommendation_", ""));
+      const recommendation = isRecord(value.recommendation)
+        ? value.recommendation
+        : arrayOrEmpty(value.recommendations).find(
+            (entry) => isRecord(entry) && entry.rank === requestedRank,
+          ) ??
+          (value.rank === requestedRank ? value : undefined);
+      return {
+        recommendation: isRecord(recommendation)
+          ? normalizeRecommendation(recommendation)
+          : recommendation,
+      };
+    }
+    return {
+      ...value,
+      recommendations: arrayOrEmpty(value.recommendations).map((entry) =>
+        isRecord(entry) ? normalizeRecommendation(entry) : entry,
+      ),
+    };
+  }
+  if (section === "plan") {
+    if (schemaName.startsWith("plan_phase_")) {
+      const requestedPhase = schemaName.replace("plan_phase_", "");
+      const phase = isRecord(value.phase)
+        ? value.phase
+        : arrayOrEmpty(value.phases).find(
+            (entry) =>
+              isRecord(entry) &&
+              String(entry.phase).replace(/^0/, "") === requestedPhase,
+          ) ??
+          (String(value.phase).replace(/^0/, "") === requestedPhase
+            ? value
+            : undefined);
+      return {
+        phase: isRecord(phase) ? normalizePlanPhase(phase) : phase,
+      };
+    }
+    return {
+      ...value,
+      phases: arrayOrEmpty(value.phases).map((entry) =>
+        isRecord(entry) ? normalizePlanPhase(entry) : entry,
+      ),
+    };
+  }
+  return {
+    ...value,
+    executiveSummary: stringOrEmpty(value.executiveSummary),
+    dataGaps: arrayOrEmpty(value.dataGaps),
+    confidence: confidenceOrMedium(value.confidence),
+  };
+}
+
+function normalizeCockpitMetric(
+  entry: Record<string, unknown>,
+): Record<string, unknown> {
+  return {
+    ...entry,
+    key: stringOrEmpty(entry.key),
+    label: stringOrEmpty(entry.label),
+    note: stringOrEmpty(entry.note),
+    status: lowerString(entry.status),
+  };
+}
+
+function normalizeTruthLayer(
+  entry: Record<string, unknown>,
+): Record<string, unknown> {
+  return {
+    ...entry,
+    title: stringOrEmpty(entry.title),
+    description: stringOrEmpty(entry.description),
+    findings: arrayOrEmpty(entry.findings).map((finding) =>
+      isRecord(finding)
+        ? {
+            ...finding,
+            text: stringOrEmpty(finding.text),
+            impact: lowerString(finding.impact),
+          }
+        : finding,
+    ),
+    gaps: arrayOrEmpty(entry.gaps),
+    contradictions: arrayOrEmpty(entry.contradictions),
+    confidence: confidenceOrMedium(entry.confidence),
+  };
+}
+
+function normalizeScenario(
+  entry: Record<string, unknown>,
+): Record<string, unknown> {
+  return {
+    ...entry,
+    label: stringOrEmpty(entry.label),
+    description: stringOrEmpty(entry.description),
+    currentBaseline: stringOrEmpty(entry.currentBaseline),
+    target: stringOrEmpty(entry.target),
+    options: arrayOrEmpty(entry.options),
+    pros: arrayOrEmpty(entry.pros),
+    shortfalls: arrayOrEmpty(entry.shortfalls),
+    expectedImpact: stringOrEmpty(entry.expectedImpact),
+    risks: arrayOrEmpty(entry.risks),
+    recommendation: stringOrEmpty(entry.recommendation),
+    confidence: confidenceOrMedium(entry.confidence),
+  };
+}
+
+function normalizeRecommendation(
+  entry: Record<string, unknown>,
+): Record<string, unknown> {
+  return {
+    ...entry,
+    title: stringOrEmpty(entry.title),
+    description: stringOrEmpty(entry.description),
+    businessImpact: stringOrEmpty(entry.businessImpact),
+    ownerRole: stringOrEmpty(entry.ownerRole, "Leadership team"),
+    evidence: stringOrEmpty(entry.evidence),
+    effort: lowerString(entry.effort),
+    confidence: confidenceOrMedium(entry.confidence),
+  };
+}
+
+function normalizePlanPhase(
+  entry: Record<string, unknown>,
+): Record<string, unknown> {
+  return {
+    ...entry,
+    phase: stringOrEmpty(entry.phase),
+    windowLabel: stringOrEmpty(entry.windowLabel),
+    title: stringOrEmpty(entry.title),
+    description: stringOrEmpty(entry.description),
+    deliverables: arrayOrEmpty(entry.deliverables),
+  };
 }
 
 class OpenAICompatibleEngine implements AIEngine {
@@ -416,7 +766,12 @@ class OpenAICompatibleEngine implements AIEngine {
     return headers;
   }
 
-  private async callModel(prompt: string): Promise<string> {
+  private async callModel(
+    prompt: string,
+    section: AIAnalysisSection,
+    schema: z.ZodType,
+    schemaName: string = section,
+  ): Promise<string> {
     const timeoutMs = aiRequestTimeoutMs();
     let res: Response;
     try {
@@ -426,9 +781,26 @@ class OpenAICompatibleEngine implements AIEngine {
         signal: AbortSignal.timeout(timeoutMs),
         body: JSON.stringify({
           model: this.model,
-          response_format: { type: "json_object" },
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: `pulseiq_${schemaName}`,
+              strict: true,
+              schema: providerJsonSchema(schema),
+            },
+          },
+          ...(this.provider === "openrouter"
+            ? {
+                provider: { require_parameters: true },
+                plugins: [{ id: "response-healing" }],
+              }
+            : {}),
           messages: [
-            { role: "system", content: "Return strict JSON only." },
+            {
+              role: "system",
+              content:
+                "Return one JSON object only. No Markdown, prose, code fences, null arrays, or unknown fields. Match the supplied schema exactly.",
+            },
             { role: "user", content: prompt },
           ],
         }),
@@ -456,21 +828,57 @@ class OpenAICompatibleEngine implements AIEngine {
   }
 
   private async validated<T>(
+    section: AIAnalysisSection,
     prompt: string,
     schema: z.ZodType<T>,
+    schemaName: string = section,
   ): Promise<T> {
-    try {
-      const raw = await this.callModel(prompt);
-      return schema.parse(safeJsonParse(raw));
-    } catch (error) {
-      if (error instanceof AIProviderError) throw error;
-      throw new AIProviderError(
-        this.provider,
-        error instanceof z.ZodError
-          ? "returned JSON that did not match the required schema"
-          : "returned invalid JSON",
-      );
-    }
+    const raw = await this.callModel(prompt, section, schema, schemaName);
+    const first = validateProviderOutput(section, raw, schema, schemaName);
+    if (first.success) return first.data;
+
+    logSchemaDiagnostics(this.provider, this.model, section, first.diagnostics, 1);
+    const repairPrompt = buildRepairPrompt(
+      section,
+      prompt,
+      raw,
+      schema,
+      first.diagnostics,
+    );
+    const repairedRaw = await this.callModel(
+      repairPrompt,
+      section,
+      schema,
+      schemaName,
+    );
+    const repaired = validateProviderOutput(
+      section,
+      repairedRaw,
+      schema,
+      schemaName,
+    );
+    if (repaired.success) return repaired.data;
+
+    logSchemaDiagnostics(
+      this.provider,
+      this.model,
+      section,
+      repaired.diagnostics,
+      2,
+    );
+    throw new AIProviderError(
+      this.provider,
+      "output did not match required schema after repair attempt",
+    );
+  }
+
+  private validatedSection<T>(
+    section: AIAnalysisSection,
+    prompt: string,
+    schema: z.ZodType<T>,
+    schemaName: string = section,
+  ): Promise<T> {
+    return this.validated(section, prompt, schema, schemaName);
   }
 
   async classifySource(
@@ -478,7 +886,8 @@ class OpenAICompatibleEngine implements AIEngine {
     source: Source,
     extractedText: string,
   ): Promise<SourceClassification> {
-    return this.validated(
+    return this.validatedSection(
+      "source_classification",
       classifySourcePrompt({
         companyName: ctx.companyName,
         source,
@@ -493,7 +902,8 @@ class OpenAICompatibleEngine implements AIEngine {
     source: Source,
     extractedText: string,
   ): Promise<ExtractionResult> {
-    return this.validated(
+    return this.validatedSection(
+      "business_facts",
       extractBusinessFactsPrompt({
         companyName: ctx.companyName,
         industry: ctx.industry,
@@ -506,30 +916,91 @@ class OpenAICompatibleEngine implements AIEngine {
   }
 
   async generateTruthMap(ctx: AIContext): Promise<TruthMapResult> {
-    return this.validated(generateTruthMapPrompt(ctx), TruthMapOutputSchema);
+    const keys: TruthLayerKey[] = [
+      "financial",
+      "strategic",
+      "operational",
+      "process",
+      "collaboration",
+    ];
+    const layers = await Promise.all(
+      keys.map(async (key) => {
+        const result = await this.validatedSection(
+          "truth_layers",
+          generateSingleTruthLayerPrompt(ctx, key),
+          SingleTruthLayerResultSchema,
+          `truth_layer_${key}`,
+        );
+        return result.layer;
+      }),
+    );
+    return TruthMapOutputSchema.parse({ layers });
   }
 
   async generateCockpitMetrics(ctx: AIContext): Promise<CockpitResult> {
-    return this.validated(generateCockpitPrompt(ctx), CockpitOutputSchema);
+    const keys = ["revenue", "margin", "cash", "productivity"] as const;
+    const metrics = await Promise.all(
+      keys.map(async (key) => {
+        const result = await this.validatedSection(
+          "cockpit",
+          generateSingleCockpitMetricPrompt(ctx, key),
+          SingleCockpitMetricResultSchema,
+          `cockpit_metric_${key}`,
+        );
+        return result.metric;
+      }),
+    );
+    return CockpitOutputSchema.parse({
+      metrics,
+      topRisks: [],
+      topOpportunities: [],
+    });
   }
 
   async generateWhatIfScenarios(ctx: AIContext): Promise<ScenariosResult> {
-    return this.validated(generateWhatIfPrompt(ctx), WhatIfOutputSchema);
+    const keys: ScenarioKey[] = [
+      "revenue_plus_10",
+      "margin_plus_10",
+      "cost_minus_10",
+      "headcount_minus_15",
+      "cash_improvement",
+    ];
+    const scenarios = await Promise.all(
+      keys.map(async (key) => {
+        const result = await this.validatedSection(
+          "scenarios",
+          generateSingleWhatIfPrompt(ctx, key),
+          SingleScenarioResultSchema,
+          `scenarios_${key}`,
+        );
+        return result.scenario;
+      }),
+    );
+    return WhatIfOutputSchema.parse({ scenarios });
   }
 
   async generateRecommendations(
     ctx: AIContext,
   ): Promise<RecommendationsResult> {
-    return this.validated(
-      generateRecommendationsPrompt(ctx),
-      RecommendationOutputSchema,
+    const recommendations = await Promise.all(
+      [1, 2, 3, 4, 5].map(async (rank) => {
+        const result = await this.validatedSection(
+          "recommendations",
+          generateSingleRecommendationPrompt(ctx, rank),
+          SingleRecommendationResultSchema,
+          `recommendation_${rank}`,
+        );
+        return result.recommendation;
+      }),
     );
+    return RecommendationOutputSchema.parse({ recommendations });
   }
 
   async generateReportSnapshot(
     ctx: AIContext,
   ): Promise<ReportSnapshotOutput> {
-    return this.validated(
+    return this.validatedSection(
+      "report",
       generateReportPrompt(ctx),
       ReportSnapshotOutputSchema,
     );
@@ -559,11 +1030,208 @@ class OpenAICompatibleEngine implements AIEngine {
   }
 
   async buildPlan(ctx: AIContext): Promise<PlanResult> {
-    const prompt = `Build a 4-phase 90-day plan for ${ctx.companyName}.
-Facts: ${JSON.stringify(ctx.facts)}
-Return JSON matching: {"phases":[{"phase","windowLabel","title","description","deliverables"}]}`;
-    return this.validated(prompt, PlanResultSchema);
+    const phases = await Promise.all(
+      [1, 2, 3, 4].map(async (phase) => {
+        const result = await this.validatedSection(
+          "plan",
+          generateSinglePlanPhasePrompt(ctx, phase),
+          SinglePlanPhaseResultSchema,
+          `plan_phase_${phase}`,
+        );
+        return result.phase;
+      }),
+    );
+    return PlanResultSchema.parse({ phases });
   }
+}
+
+type ValidationDiagnostic = {
+  path: string;
+  expected: string;
+  received: string;
+};
+
+type ProviderValidation<T> =
+  | { success: true; data: T }
+  | { success: false; diagnostics: ValidationDiagnostic[] };
+
+function validateProviderOutput<T>(
+  section: AIAnalysisSection,
+  raw: string,
+  schema: z.ZodType<T>,
+  schemaName: string = section,
+): ProviderValidation<T> {
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = parseAIJsonObject(raw);
+  } catch {
+    return {
+      success: false,
+      diagnostics: [{ path: "$", expected: "JSON object", received: "string" }],
+    };
+  }
+  const normalized = normalizeAIOutput(section, parsed, schemaName);
+  const result = schema.safeParse(normalized);
+  if (result.success) return { success: true, data: result.data };
+  return {
+    success: false,
+    diagnostics: summarizeZodIssues(result.error, normalized),
+  };
+}
+
+export function summarizeZodIssues(
+  error: z.ZodError,
+  value: unknown,
+): ValidationDiagnostic[] {
+  return error.issues.slice(0, 12).map((issue) => ({
+    path:
+      issue.path.length > 0
+        ? `$.${issue.path.map(String).join(".")}`
+        : "$",
+    expected: expectedIssueType(issue),
+    received: valueTypeAtPath(value, issue.path),
+  }));
+}
+
+function expectedIssueType(issue: z.core.$ZodIssue): string {
+  if ("expected" in issue && typeof issue.expected === "string") {
+    return issue.expected;
+  }
+  if (
+    issue.code === "too_small" &&
+    "minimum" in issue &&
+    typeof issue.minimum === "number"
+  ) {
+    const origin =
+      "origin" in issue && typeof issue.origin === "string"
+        ? issue.origin
+        : "value";
+    return `${origin}(min ${issue.minimum})`;
+  }
+  if (
+    issue.code === "too_big" &&
+    "maximum" in issue &&
+    typeof issue.maximum === "number"
+  ) {
+    const origin =
+      "origin" in issue && typeof issue.origin === "string"
+        ? issue.origin
+        : "value";
+    return `${origin}(max ${issue.maximum})`;
+  }
+  return issue.code;
+}
+
+function valueTypeAtPath(
+  value: unknown,
+  path: PropertyKey[],
+): string {
+  let current = value;
+  for (const segment of path) {
+    if (current == null || typeof current !== "object") return typeof current;
+    current = (current as Record<PropertyKey, unknown>)[segment];
+  }
+  if (current === null) return "null";
+  if (Array.isArray(current)) return "array";
+  return typeof current;
+}
+
+function logSchemaDiagnostics(
+  provider: AIProviderName,
+  model: string,
+  section: AIAnalysisSection,
+  diagnostics: ValidationDiagnostic[],
+  attempt: number,
+): void {
+  console.warn("[PulseIQ AI] schema_validation_failed", {
+    provider,
+    model,
+    section,
+    attempt,
+    issues: diagnostics,
+  });
+}
+
+function buildRepairPrompt(
+  section: AIAnalysisSection,
+  originalPrompt: string,
+  raw: string,
+  schema: z.ZodType,
+  diagnostics: ValidationDiagnostic[],
+): string {
+  return `Repair this JSON to match the schema. Return JSON only.
+No Markdown, commentary, or code fences. Use [] instead of null arrays and ""
+instead of null required strings. Omit unavailable optional numbers. Do not
+invent financial values. Preserve evidence and clearly label assumptions.
+
+Section: ${section}
+Validation errors:
+${JSON.stringify(diagnostics)}
+
+Original task and evidence context:
+${originalPrompt.slice(0, 30000)}
+
+Required JSON Schema:
+${JSON.stringify(providerJsonSchema(schema))}
+
+JSON to repair:
+${raw.slice(0, 50000)}`;
+}
+
+export function providerJsonSchema(schema: z.ZodType): Record<string, unknown> {
+  const jsonSchema = z.toJSONSchema(schema) as Record<string, unknown>;
+  delete jsonSchema.$schema;
+  return makeStrictProviderSchema(jsonSchema);
+}
+
+function makeStrictProviderSchema(
+  value: Record<string, unknown>,
+): Record<string, unknown> {
+  const next: Record<string, unknown> = { ...value };
+  if (isRecord(next.properties)) {
+    const properties = Object.fromEntries(
+      Object.entries(next.properties).map(([key, property]) => [
+        key,
+        isRecord(property) ? makeStrictProviderSchema(property) : property,
+      ]),
+    );
+    const required = new Set(
+      Array.isArray(next.required)
+        ? next.required.filter((item): item is string => typeof item === "string")
+        : [],
+    );
+    for (const [key, property] of Object.entries(properties)) {
+      if (required.has(key) || !isRecord(property)) continue;
+      properties[key] = nullableJsonSchema(property);
+      required.add(key);
+    }
+    next.properties = properties;
+    next.required = Array.from(required);
+    next.additionalProperties = false;
+  }
+  if (isRecord(next.items)) {
+    next.items = makeStrictProviderSchema(next.items);
+  }
+  if (Array.isArray(next.anyOf)) {
+    next.anyOf = next.anyOf.map((item) =>
+      isRecord(item) ? makeStrictProviderSchema(item) : item,
+    );
+  }
+  return next;
+}
+
+function nullableJsonSchema(
+  schema: Record<string, unknown>,
+): Record<string, unknown> {
+  if (Array.isArray(schema.anyOf)) {
+    return {
+      ...schema,
+      anyOf: [...schema.anyOf, { type: "null" }],
+    };
+  }
+  return {
+    anyOf: [schema, { type: "null" }],
+  };
 }
 
 export class AIProviderError extends Error {

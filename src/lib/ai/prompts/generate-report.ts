@@ -1,4 +1,6 @@
 import type { AIContext } from "@/lib/ai";
+import { factsPromptJson } from "./context";
+import { strictJsonContract } from "./json-contract";
 
 export function generateReportPrompt(ctx: AIContext): string {
   return `Generate a PulseIQ report snapshot for ${ctx.companyName}.
@@ -6,10 +8,13 @@ export function generateReportPrompt(ctx: AIContext): string {
 Industry: ${ctx.industry}
 Objective: ${ctx.objective}
 Facts:
-${JSON.stringify(ctx.facts).slice(0, 12000)}
+${factsPromptJson(ctx, 50)}
 
-Return a cautious executive summary and data gaps. Do not invent unavailable evidence.
+Return a cautious executive summary and data gaps. Do not invent unavailable
+evidence. State when the assessment uses public-domain sources and distinguish
+verified findings from assumptions.
 
-Return strict JSON only:
-{"executiveSummary":"string","dataGaps":["string"],"confidence":"high|medium|low"}`;
+${strictJsonContract(
+  '{"executiveSummary":"string","dataGaps":["string"],"confidence":"high|medium|low"}',
+)}`;
 }

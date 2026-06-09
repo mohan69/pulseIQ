@@ -1,4 +1,5 @@
 import type { Source } from "@/lib/assessment/types";
+import { strictJsonContract } from "./json-contract";
 
 export function classifySourcePrompt(input: {
   companyName: string;
@@ -14,6 +15,7 @@ Notes: ${input.source.notes || "None"}
 Extracted text:
 ${input.extractedText.slice(0, 6000)}
 
-Return strict JSON only:
-{"sourceType":"financial_filing|strategy_deck|sop|excel_tracker|erp_export|crm_export|hrms_export|operations_report|proposal_report|email_summary|meeting_summary","confidence":"high|medium|low","reason":"short reason"}`;
+${strictJsonContract(
+  '{"sourceType":"financial_filing|strategy_deck|sop|excel_tracker|erp_export|crm_export|hrms_export|operations_report|proposal_report|email_summary|meeting_summary","confidence":"high|medium|low","reason":"short reason"}',
+)}`;
 }

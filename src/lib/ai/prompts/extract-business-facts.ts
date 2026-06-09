@@ -1,4 +1,5 @@
 import type { Source } from "@/lib/assessment/types";
+import { strictJsonContract } from "./json-contract";
 
 export function extractBusinessFactsPrompt(input: {
   companyName: string;
@@ -23,7 +24,10 @@ Rules:
 - Include numericValue when a number is clear.
 - Use INR absolute rupees for currency numericValue.
 - Evidence must be a short excerpt from the source.
+- If a statement is inferred from public-domain context rather than directly
+  supported by the source, prefix the evidence with "Assumption:".
 
-Return strict JSON only:
-{"facts":[{"kind":"revenue|cost|margin|cash|receivables|payables|pipeline|orders|backlog|headcount|customer|product|supplier|risk|opportunity|action_item|commitment|target|sop_rule","label":"short label","value":"human-readable value","numericValue":123,"unit":"₹|%|people|count|₹/employee","evidence":"source excerpt","confidence":"high|medium|low"}]}`;
+${strictJsonContract(
+  '{"facts":[{"kind":"revenue|cost|margin|cash|receivables|payables|pipeline|orders|backlog|headcount|customer|product|supplier|risk|opportunity|action_item|commitment|target|sop_rule","label":"short label","value":"human-readable value","numericValue":123,"unit":"₹|%|people|count|₹/employee","evidence":"source excerpt or Assumption: ...","confidence":"high|medium|low"}]}',
+)}`;
 }

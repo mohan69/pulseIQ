@@ -171,7 +171,18 @@ function buildExecutiveSummary(
       : atRisk > 0
         ? `${atRisk} metric${atRisk === 1 ? "" : "s"} at risk`
         : "operating broadly on plan";
-  return `Assessment of ${assessment.companyName} synthesised from ${sources.length} source${sources.length === 1 ? "" : "s"} and ${facts.length} extracted fact${facts.length === 1 ? "" : "s"}. Current operating posture: ${headline}.`;
+  const publicDomainNote = isPublicDomainAssessment(assessment, sources)
+    ? " This diagnostic uses public-domain material; assumptions require validation against approved customer evidence."
+    : "";
+  return `Assessment of ${assessment.companyName} synthesised from ${sources.length} source${sources.length === 1 ? "" : "s"} and ${facts.length} extracted fact${facts.length === 1 ? "" : "s"}. Current operating posture: ${headline}.${publicDomainNote}`;
+}
+
+function isPublicDomainAssessment(
+  assessment: Assessment,
+  sources: Source[],
+): boolean {
+  return [assessment.companyName, ...sources.flatMap((source) => [source.name, source.notes])]
+    .some((value) => /public[\s-]?domain/i.test(value));
 }
 
 export const memoryAssessmentRepository: AssessmentRepository = {
