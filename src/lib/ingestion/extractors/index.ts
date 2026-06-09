@@ -3,7 +3,6 @@ import type { SupportedUploadExtension } from "@/lib/storage";
 import { extractCsv } from "./csv";
 import { extractDocx } from "./docx";
 import { capExtractedText } from "./limits";
-import { extractPdf } from "./pdf";
 import { extractTxt } from "./txt";
 import { extractXlsx } from "./xlsx";
 
@@ -38,7 +37,8 @@ export async function extractUploadedFile(
     };
   }
   if (extension === ".pdf") {
-    const result = await extractPdf(buffer);
+    const { extractPdf: extractPdfFn } = await import("./pdf");
+    const result = await extractPdfFn(buffer);
     if (!result.text) {
       return {
         status: "failed",
