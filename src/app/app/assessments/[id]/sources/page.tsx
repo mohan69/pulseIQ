@@ -59,7 +59,7 @@ export default async function SourcesPage({
               Analysis status: {analysisStatusLabel(assessment.status)}
             </div>
             <div className="text-xs text-muted mt-0.5">
-              Analyze after TXT, CSV, DOCX, XLSX extraction completes. PDF extraction is attempted when supported; PPTX sources are stored and marked pending.
+              Analyze after TXT, CSV, DOCX, or XLSX extraction completes. PDF extraction is attempted when supported by the runtime; PPTX is stored but not parsed yet.
             </div>
           </div>
         </CardContent>

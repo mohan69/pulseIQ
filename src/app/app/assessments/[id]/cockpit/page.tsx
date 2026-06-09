@@ -119,7 +119,7 @@ export default async function CockpitPage({
         <CardContent>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
             {cockpit.metrics.map((m) => {
-              const gap = m.target - m.value;
+              const gap = m.value - m.target;
               const gapPositive = gap > 0;
               const formatVal = (v: number) =>
                 m.unit === "%"

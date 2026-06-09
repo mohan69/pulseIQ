@@ -76,7 +76,7 @@ export default async function ReportPage({
           <SectionTitle icon={BarChart3Icon}>Cockpit</SectionTitle>
           <div className="grid md:grid-cols-2 gap-3 print:grid-cols-2">
             {report.cockpit.metrics.map((m) => {
-              const gap = m.target - m.value;
+              const gap = m.value - m.target;
               const formatVal = (v: number) =>
                 m.unit === "%"
                   ? `${v.toFixed(0)}%`
