@@ -34,10 +34,9 @@ import {
   Activity,
   Building2,
   Clock,
-  Trash2,
 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { deleteAssessmentAction } from "@/app/app/actions";
+import { DeleteAssessmentButton } from "@/components/workbench/DeleteAssessmentButton";
 
 export default async function AssessmentOverviewPage({
   params,
@@ -266,22 +265,11 @@ export default async function AssessmentOverviewPage({
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <form action={deleteAssessmentAction.bind(null, id)}>
-            <Button
-              type="submit"
-              variant="outline"
-              className="px-4"
-              disabled={isDemo}
-              title={
-                isDemo
-                  ? "The golden demo assessment cannot be deleted."
-                  : "Delete this assessment and its database records."
-              }
-            >
-              <Trash2 className="h-4 w-4" />
-              Delete assessment
-            </Button>
-          </form>
+          <DeleteAssessmentButton
+            assessmentId={id}
+            assessmentName={assessment.companyName}
+            protected={isDemo}
+          />
           <Link href={`/app/assessments/${id}/report`}>
             <Button variant="outline" className="px-5">
               View board report

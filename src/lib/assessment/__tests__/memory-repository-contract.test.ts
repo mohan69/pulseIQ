@@ -51,4 +51,87 @@ describe("memory assessment repository contract", () => {
     expect(source?.status).toBe("registered");
     expect(updated?.status).toBe("analysis");
   });
+
+  it("deletes a user assessment and all related records", async () => {
+    const assessment = await memoryAssessmentRepository.createAssessment({
+      companyName: "Deletion Contract Test",
+      industry: "industrial_manufacturing",
+      objective: "board_review",
+      revenueTarget: 20_000_000,
+      marginTarget: 22,
+      cashTarget: 3_000_000,
+      headcountProductivityTarget: 800_000,
+    });
+    const source = await memoryAssessmentRepository.addSource(assessment.id, {
+      name: "Deletion source",
+      type: "operations_report",
+      extractionStatus: "extracted",
+      fileName: "deletion.txt",
+    });
+    await memoryAssessmentRepository.addSourceDocument(source!.id, {
+      kind: "text",
+      content: "Revenue: ₹2 Cr",
+    });
+    await memoryAssessmentRepository.addFacts(assessment.id, source!.id, [
+      {
+        kind: "revenue",
+        label: "Revenue",
+        value: "₹2 Cr",
+        numericValue: 20_000_000,
+        unit: "₹",
+        evidence: "Revenue: ₹2 Cr",
+        confidence: "high",
+      },
+    ]);
+    await memoryAssessmentRepository.setRecommendations(assessment.id, [
+      {
+        id: "rec-delete-test",
+        rank: 1,
+        title: "Deletion test",
+        description: "Temporary output",
+        priority: "P2",
+        businessImpact: "Test only",
+        effort: "low",
+        timeframeDays: 1,
+        ownerRole: "Tester",
+        evidence: "Test",
+        confidence: "high",
+      },
+    ]);
+
+    expect(await memoryAssessmentRepository.deleteAssessment(assessment.id)).toBe(
+      true,
+    );
+    expect(await memoryAssessmentRepository.getAssessment(assessment.id)).toBe(
+      undefined,
+    );
+    expect(await memoryAssessmentRepository.getSources(assessment.id)).toEqual(
+      [],
+    );
+    expect(
+      await memoryAssessmentRepository.getSourceDocuments(source!.id),
+    ).toEqual([]);
+    expect(await memoryAssessmentRepository.getFacts(assessment.id)).toEqual([]);
+    expect(
+      await memoryAssessmentRepository.getRecommendations(assessment.id),
+    ).toEqual([]);
+    expect(
+      (await memoryAssessmentRepository.listAssessments()).some(
+        (item) => item.id === assessment.id,
+      ),
+    ).toBe(false);
+  });
+
+  it("protects the Bharat Heavy Fabrications demo from deletion", async () => {
+    expect(
+      await memoryAssessmentRepository.deleteAssessment(
+        "asm-bharat-heavy-fabrications",
+      ),
+    ).toBe(false);
+    expect(
+      await memoryAssessmentRepository.getAssessment(
+        "asm-bharat-heavy-fabrications",
+      ),
+    ).toBeTruthy();
+  });
 });

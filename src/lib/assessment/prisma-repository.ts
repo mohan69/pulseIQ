@@ -398,7 +398,39 @@ export const prismaAssessmentRepository: AssessmentRepository = {
 
   async deleteAssessment(id: string) {
     try {
-      await prisma.assessment.delete({ where: { id } });
+      const deleted = await prisma.$transaction(async (tx) => {
+        const assessment = await tx.assessment.findUnique({
+          where: { id },
+          select: { id: true, isDemo: true },
+        });
+        if (!assessment || assessment.isDemo || id === "asm-bharat-heavy-fabrications") {
+          return false;
+        }
+        const sources = await tx.dataSource.findMany({
+          where: { assessmentId: id },
+          select: { id: true },
+        });
+        const sourceIds = sources.map((source) => source.id);
+        await tx.auditEvent.deleteMany({
+          where: {
+            OR: [
+              { entityType: "assessment", entityId: id },
+              ...(sourceIds.length > 0
+                ? [{ entityType: "source", entityId: { in: sourceIds } }]
+                : []),
+            ],
+          },
+        });
+        await tx.assessmentOutput.deleteMany({ where: { assessmentId: id } });
+        await tx.businessFact.deleteMany({ where: { assessmentId: id } });
+        await tx.sourceDocument.deleteMany({
+          where: { source: { assessmentId: id } },
+        });
+        await tx.dataSource.deleteMany({ where: { assessmentId: id } });
+        await tx.assessment.delete({ where: { id } });
+        return true;
+      });
+      if (!deleted) return false;
       return true;
     } catch {
       return false;

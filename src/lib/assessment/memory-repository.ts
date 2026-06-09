@@ -228,13 +228,20 @@ export const memoryAssessmentRepository: AssessmentRepository = {
   },
 
   deleteAssessment(id: string) {
+    if (id === demoAssessment.id) return false;
     const s = getOrInitState();
-    const existed = s.assessments.delete(id);
-    if (!existed) return false;
+    if (!s.assessments.has(id)) return false;
     const sources = s.sources.get(id) ?? [];
+    const sourceIds = new Set(sources.map((source) => source.id));
     for (const source of sources) {
       s.sourceDocuments.delete(source.id);
     }
+    s.auditEvents = s.auditEvents.filter(
+      (event) =>
+        event.assessmentId !== id &&
+        !(event.entityType === "assessment" && event.entityId === id) &&
+        !(event.entityType === "source" && sourceIds.has(event.entityId)),
+    );
     s.sources.delete(id);
     s.facts.delete(id);
     s.truthLayers.delete(id);
@@ -243,6 +250,7 @@ export const memoryAssessmentRepository: AssessmentRepository = {
     s.recommendations.delete(id);
     s.plans.delete(id);
     s.analysisStates.delete(id);
+    s.assessments.delete(id);
     return true;
   },
 

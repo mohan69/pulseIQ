@@ -19,6 +19,9 @@ import {
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import type { AssessmentStatus } from "@/lib/assessment/types";
+import { DeleteAssessmentButton } from "@/components/workbench/DeleteAssessmentButton";
+
+const DEMO_ASSESSMENT_ID = "asm-bharat-heavy-fabrications";
 
 export const dynamic = "force-dynamic";
 
@@ -67,26 +70,32 @@ export default async function AssessmentsListPage() {
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
           {assessments.map((a) => (
-            <Link key={a.id} href={`/app/assessments/${a.id}`} className="block group">
-              <Card className="h-full hover:shadow-md hover:border-accent/30 transition-all">
+            <Card
+              key={a.id}
+              className="h-full hover:shadow-md hover:border-accent/30 transition-all"
+            >
+              <Link
+                href={`/app/assessments/${a.id}`}
+                className="block group"
+              >
                 <CardHeader>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <CardTitle className="group-hover:text-accent transition-colors">
-                        {a.companyName}
-                      </CardTitle>
-                      <CardDescription className="mt-1 flex items-center gap-2 flex-wrap">
-                        <span className="capitalize">
-                          {a.industry.replace(/_/g, " ")}
-                        </span>
-                        <span className="w-1 h-1 rounded-full bg-border" />
-                        <span className="capitalize">
-                          {a.objective.replace(/_/g, " ")}
-                        </span>
-                      </CardDescription>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <CardTitle className="group-hover:text-accent transition-colors">
+                          {a.companyName}
+                        </CardTitle>
+                        <CardDescription className="mt-1 flex items-center gap-2 flex-wrap">
+                          <span className="capitalize">
+                            {a.industry.replace(/_/g, " ")}
+                          </span>
+                          <span className="w-1 h-1 rounded-full bg-border" />
+                          <span className="capitalize">
+                            {a.objective.replace(/_/g, " ")}
+                          </span>
+                        </CardDescription>
+                      </div>
+                      <StatusPill status={a.status} />
                     </div>
-                    <StatusPill status={a.status} />
-                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-3 gap-3 mb-4">
@@ -116,8 +125,15 @@ export default async function AssessmentsListPage() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
-            </Link>
+              </Link>
+              <div className="flex justify-end border-t border-border-subtle px-6 py-3">
+                <DeleteAssessmentButton
+                  assessmentId={a.id}
+                  assessmentName={a.companyName}
+                  protected={a.id === DEMO_ASSESSMENT_ID}
+                />
+              </div>
+            </Card>
           ))}
         </div>
       )}

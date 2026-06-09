@@ -300,30 +300,52 @@ export async function deleteSourceAction(
   revalidatePath("/app/sources");
 }
 
+export type DeleteAssessmentActionResult = {
+  ok: boolean;
+  message: string;
+};
+
 export async function deleteAssessmentAction(
   assessmentId: string,
-  formData: FormData,
-) {
-  void formData;
+): Promise<DeleteAssessmentActionResult> {
   if (assessmentId === DEMO_ASSESSMENT_ID) {
-    throw new Error("The golden demo assessment cannot be deleted.");
+    return {
+      ok: false,
+      message: "Protected demo assessment cannot be deleted.",
+    };
   }
   const assessment = await getAssessment(assessmentId);
-  if (!assessment) throw new Error("Assessment not found.");
+  if (!assessment) {
+    return { ok: false, message: "Assessment was not found." };
+  }
 
-  await addAuditEvent({
-    action: "assessment_deleted",
-    entityType: "assessment",
-    entityId: assessmentId,
-    assessmentId,
-    metadata: {
-      companyName: assessment.companyName,
-    },
-  });
-  await deleteAssessment(assessmentId);
+  const deleted = await deleteAssessment(assessmentId);
+  if (!deleted) {
+    return {
+      ok: false,
+      message: "Assessment could not be deleted. Refresh and try again.",
+    };
+  }
+  try {
+    await addAuditEvent({
+      action: "assessment_deleted",
+      entityType: "assessment",
+      entityId: assessmentId,
+      metadata: {
+        companyName: assessment.companyName,
+      },
+    });
+  } catch (error) {
+    console.warn("[PulseIQ Assessment] deletion audit failed", {
+      assessmentId,
+      error:
+        error instanceof Error ? error.message.slice(0, 240) : "Unknown error",
+    });
+  }
   revalidatePath("/app");
   revalidatePath("/app/assessments");
-  redirect("/app/assessments");
+  revalidatePath("/app/sources");
+  return { ok: true, message: "Assessment deleted." };
 }
 
 export async function reportPrintedAction(assessmentId: string) {
