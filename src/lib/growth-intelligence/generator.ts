@@ -225,13 +225,17 @@ export function generateGrowthIntelligence(
     : "Hello,";
   const accountReference = input.companyName || "your organization";
   const reviewLabel = "DRAFT - HUMAN REVIEW REQUIRED\n\n";
+  const signature =
+    input.mode === "rightsense"
+      ? "Regards,\nMohan Babu\nFounder, RightSense Technologies"
+      : "Regards,\nGrowth Team";
   const outreachDrafts: GrowthOutreachDrafts = {
-    cxoEmail: `${reviewLabel}${greeting}\n\nWe are seeing industrial growth teams focus on ${persona.priority}. Based on the public account context for ${accountReference}, there may be a practical opportunity to improve ${dominantSignal} with ${targetProduct}.\n\nWould a 20-minute working conversation be useful to compare priorities and identify one measurable pilot outcome?\n\nRegards,\nGrowth Team`,
-    functionalLeaderEmail: `${reviewLabel}${greeting}\n\nI wanted to share a focused idea for ${accountReference}: use ${targetProduct} to strengthen ${dominantSignal} while keeping ownership and next actions visible to the team.\n\nWe would first map the current process, quantify the friction, and only then suggest a small next step. Would a short discovery discussion be relevant?\n\nRegards,\nGrowth Team`,
-    linkedInNote: `${reviewLabel}Hello${input.contactName ? ` ${input.contactName.split(" ")[0]}` : ""} - I work with B2B industrial teams on ${dominantSignal}. I would value connecting and exchanging notes on how ${accountReference} is approaching ${persona.priority}.`,
-    whatsappMessage: `${reviewLabel}${greeting} I have prepared a brief idea on how ${targetProduct} could support ${persona.priority} at ${accountReference}. May I share a short discovery note?`,
-    followUpMessage: `${reviewLabel}${greeting}\n\nFollowing up on the note about ${persona.priority}. I can share a one-page view of the likely opportunity, assumptions, and a low-risk discovery path for ${accountReference}. No automated outreach or commitment is involved.`,
-    discoveryCallBrief: `${reviewLabel}Objective: validate whether ${dominantSignal} is a priority.\n\nAsk:\n1. What growth or execution outcome matters most this quarter?\n2. Where does the current workflow slow down or lose visibility?\n3. Which teams and systems are involved today?\n4. What would make a pilot worth approving?\n\nDo not present assumptions as facts. Confirm data-use approval before requesting sensitive information.`,
+    cxoEmail: `${reviewLabel}${greeting}\n\nWe are seeing industrial growth teams focus on ${persona.priority}. Based on the public account context for ${accountReference}, there may be a practical opportunity to improve ${dominantSignal} with ${targetProduct}.\n\nWould a 20-minute working conversation be useful to compare priorities and identify one measurable pilot outcome?\n\n${signature}`,
+    functionalLeaderEmail: `${reviewLabel}${greeting}\n\nI wanted to share a focused idea for ${accountReference}: use ${targetProduct} to strengthen ${dominantSignal} while keeping ownership and next actions visible to the team.\n\nWe would first map the current process, quantify the friction, and only then suggest a small next step. Would a short discovery discussion be relevant?\n\n${signature}`,
+    linkedInNote: `${reviewLabel}Hello${input.contactName ? ` ${input.contactName.split(" ")[0]}` : ""} - I work with B2B industrial teams on ${dominantSignal}. I would value connecting and exchanging notes on how ${accountReference} is approaching ${persona.priority}.\n\n${signature}`,
+    whatsappMessage: `${reviewLabel}${greeting} I have prepared a brief idea on how ${targetProduct} could support ${persona.priority} at ${accountReference}. May I share a short discovery note?\n\n${signature}`,
+    followUpMessage: `${reviewLabel}${greeting}\n\nFollowing up on the note about ${persona.priority}. I can share a one-page view of the likely opportunity, assumptions, and a low-risk discovery path for ${accountReference}. No automated outreach or commitment is involved.\n\n${signature}`,
+    discoveryCallBrief: `${reviewLabel}Objective: validate whether ${dominantSignal} is a priority.\n\nAsk:\n1. What growth or execution outcome matters most this quarter?\n2. Where does the current workflow slow down or lose visibility?\n3. Which teams and systems are involved today?\n4. What would make a pilot worth approving?\n\nDo not present assumptions as facts. Confirm data-use approval before requesting sensitive information.\n\n${signature}`,
   };
 
   return {

@@ -296,49 +296,6 @@ export function GrowthIntelligenceWorkspace({
     });
   };
 
-  const updatePipelineStatus = (
-    accountId: string,
-    status: GrowthPipelineStatus,
-  ) => {
-    const now = new Date().toISOString();
-    const account = accounts.find((item) => item.id === accountId);
-    if (!account) return;
-    setAccounts((current) =>
-      current.map((item) =>
-        item.id === accountId
-          ? {
-              ...item,
-              updatedAt: now,
-              outcome: {
-                ...item.outcome,
-                status,
-                outcome:
-                  status === "Outreach Sent"
-                    ? "Manually recorded as sent outside PulseIQ"
-                    : item.outcome.outcome,
-                updatedAt: now,
-              },
-            }
-          : item,
-      ),
-    );
-    setAuditLogs((current) =>
-      [
-        {
-          id: `audit-${accountId}-${now}`,
-          orgId: DEMO_ORG_ID,
-          createdBy: DEMO_USER_ID,
-          createdAt: now,
-          updatedAt: now,
-          accountId,
-          event: "Outcome updated" as const,
-          summary: `${account.companyName} moved to ${status}.`,
-        },
-        ...current,
-      ].slice(0, 8),
-    );
-  };
-
   if (!selectedAccount) {
     return <Card className="text-sm text-muted">No demo accounts available.</Card>;
   }
@@ -876,21 +833,7 @@ export function GrowthIntelligenceWorkspace({
                       <ScoreBadge score={getCompositeFitScore(account.fitScores)} />
                     </td>
                     <td className="px-4 py-3">
-                      <select
-                        value={account.outcome.status}
-                        onChange={(event) =>
-                          updatePipelineStatus(
-                            account.id,
-                            event.target.value as GrowthPipelineStatus,
-                          )
-                        }
-                        className="rounded-lg border border-border bg-white px-2 py-1.5 text-xs text-foreground"
-                        aria-label={`Pipeline status for ${account.companyName}`}
-                      >
-                        {PIPELINE_STATUSES.map((status) => (
-                          <option key={status}>{status}</option>
-                        ))}
-                      </select>
+                      <PipelineStatusBadge status={account.outcome.status} />
                     </td>
                     <td className="max-w-56 px-4 py-3 text-foreground-secondary">
                       {account.outcome.nextAction}
@@ -1212,6 +1155,21 @@ function ScoreBadge({ score }: { score: number }) {
       {score}
     </Badge>
   );
+}
+
+function PipelineStatusBadge({ status }: { status: GrowthPipelineStatus }) {
+  const variant =
+    status === "Pilot / Deal Won"
+      ? "success"
+      : status === "Nurture / Lost"
+        ? "outline"
+        : ["Replied", "Discovery Scheduled", "Demo Completed"].includes(status)
+          ? "info"
+          : ["Proposal Shared", "Outreach Drafted"].includes(status)
+            ? "warning"
+            : "default";
+
+  return <Badge variant={variant}>{status}</Badge>;
 }
 
 function SectionHeading({
