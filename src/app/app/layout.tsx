@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { AppBreadcrumbs } from "@/components/layout/AppBreadcrumbs";
-import { Bell, Search, ShieldCheck, User } from "lucide-react";
+import { AppContextNotice } from "@/components/layout/AppContextNotice";
+import { AppSearchHint } from "@/components/layout/AppSearchHint";
+import { Bell, User } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Workbench | PulseIQ",
@@ -22,13 +24,7 @@ export default function WorkbenchLayout({
           <div className="flex items-center justify-between px-6 lg:px-8 h-14">
             <AppBreadcrumbs />
             <div className="flex items-center gap-2">
-              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-white text-sm text-muted">
-                <Search className="h-3.5 w-3.5" />
-                <span>Search assessments, sources…</span>
-                <kbd className="text-[10px] text-muted border border-border rounded px-1 py-0.5">
-                  ⌘K
-                </kbd>
-              </div>
+              <AppSearchHint />
               <button
                 type="button"
                 className="h-9 w-9 rounded-lg border border-border bg-white flex items-center justify-center text-muted hover:text-foreground hover:bg-surface-hover"
@@ -42,19 +38,8 @@ export default function WorkbenchLayout({
             </div>
           </div>
         </header>
-        <main className="flex-1 min-w-0 px-6 lg:px-8 py-8 max-w-[1280px] w-full mx-auto">
-          <div className="mb-6 rounded-xl border border-warning/30 bg-warning-muted px-4 py-3 text-sm text-foreground-secondary">
-            <div className="flex items-start gap-2">
-              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
-              <p>
-                <span className="font-semibold text-foreground">
-                  Internal RightSense Assessment Workbench.
-                </span>{" "}
-                Do not upload customer data unless the engagement is approved,
-                protected, and covered by NDA/confidentiality terms.
-              </p>
-            </div>
-          </div>
+        <main className="flex-1 min-w-0 px-6 lg:px-8 py-8 max-w-[1280px] has-[.growth-intelligence-workspace]:max-w-[1440px] w-full mx-auto">
+          <AppContextNotice />
           {children}
         </main>
       </div>
