@@ -23,13 +23,13 @@ type GrowthActionResult =
 
 const PIPELINE_STATUSES: GrowthPipelineStatus[] = [
   "Target Identified",
-  "Researched",
-  "Outreach Drafted",
-  "Outreach Sent",
-  "Replied",
+  "Diagnostic Angle Researched",
+  "Diagnostic Draft Prepared",
+  "Human Outreach Approved",
   "Discovery Scheduled",
-  "Demo Completed",
-  "Proposal Shared",
+  "Diagnostic Completed",
+  "Product Route Recommended",
+  "Pilot Proposed",
   "Pilot / Deal Won",
   "Nurture / Lost",
 ];

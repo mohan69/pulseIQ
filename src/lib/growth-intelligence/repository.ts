@@ -51,7 +51,7 @@ const LEGACY_STATUS_MAP: Record<string, GrowthPipelineStatus> = {
   Researched: "Diagnostic Angle Researched",
   "Outreach Drafted": "Diagnostic Draft Prepared",
   "Outreach Sent": "Human Outreach Approved",
-  Replied: "Human Outreach Approved",
+  Replied: "Discovery Scheduled",
   "Discovery Scheduled": "Discovery Scheduled",
   "Demo Completed": "Diagnostic Completed",
   "Proposal Shared": "Pilot Proposed",

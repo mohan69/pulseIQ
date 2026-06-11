@@ -101,6 +101,9 @@ describe("growth persistence", () => {
       growthRepositoryInternals.normalizePipelineStatus("Proposal Shared"),
     ).toBe("Pilot Proposed");
     expect(
+      growthRepositoryInternals.normalizePipelineStatus("Replied"),
+    ).toBe("Discovery Scheduled");
+    expect(
       growthRepositoryInternals.normalizePipelineStatus("unknown-status"),
     ).toBe("Target Identified");
   });
