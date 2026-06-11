@@ -59,8 +59,10 @@ export type GrowthAccount = {
   id: string;
   orgId: string;
   createdBy: string;
+  updatedBy: string;
   createdAt: string;
   updatedAt: string;
+  deletedAt?: string;
   companyName: string;
   website: string;
   industry: string;
@@ -84,15 +86,35 @@ export type GrowthAuditLog = {
   id: string;
   orgId: string;
   createdBy: string;
+  updatedBy: string;
   createdAt: string;
   updatedAt: string;
   accountId: string;
   event:
-    | "Account created"
-    | "Intelligence generated"
-    | "Outreach drafted"
-    | "Outcome updated";
+    | "ACCOUNT_CREATED"
+    | "ACCOUNT_UPDATED"
+    | "INTELLIGENCE_GENERATED"
+    | "OUTREACH_DRAFTED"
+    | "OUTCOME_UPDATED";
   summary: string;
+};
+
+export type GrowthLearningInsight = {
+  bestPerformingSegment: string;
+  bestPersona: string;
+  bestPainAngle: string;
+  bestChannel: string;
+  highestConvertingOffer: string;
+  weakSegment: string;
+  recommendedNextCampaign: string;
+  recommendedMessageChange: string;
+  confidenceScore: number;
+};
+
+export type GrowthWorkspaceSnapshot = {
+  accounts: GrowthAccount[];
+  auditLogs: GrowthAuditLog[];
+  learning: GrowthLearningInsight;
 };
 
 export type GrowthAccountInput = Pick<
@@ -110,4 +132,3 @@ export type GrowthAccountInput = Pick<
   | "notes"
   | "mode"
 >;
-

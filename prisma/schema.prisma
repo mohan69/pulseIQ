@@ -147,6 +147,78 @@ model AuditEvent {
   @@index([createdAt])
 }
 
+model GrowthAccount {
+  id                     String            @id @default(cuid())
+  orgId                  String
+  createdBy              String
+  updatedBy              String
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  deletedAt              DateTime?
+  seedKey                String?
+  mode                   String
+  companyName            String
+  website                String            @default("")
+  industry               String            @default("")
+  location               String            @default("")
+  segment                String            @default("")
+  targetProductOrService String            @default("")
+  targetPersona          String            @default("")
+  contactName            String            @default("")
+  contactRole            String            @default("")
+  linkedInUrl            String            @default("")
+  notes                  String            @default("")
+  status                 String
+  intelligence           Json
+  fitScores              Json
+  rightSenseFitScores    Json?
+  outreach               Json
+  outcome                Json
+  experiment             Json?
+  outcomes               GrowthOutcome[]
+  auditLogs              GrowthAuditLog[]
+
+  @@unique([orgId, seedKey])
+  @@index([orgId, deletedAt])
+  @@index([orgId, status])
+  @@index([orgId, updatedAt])
+}
+
+model GrowthOutcome {
+  id        String        @id @default(cuid())
+  accountId String
+  orgId     String
+  createdBy String
+  updatedBy String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  deletedAt DateTime?
+  status    String
+  data      Json
+  account   GrowthAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, deletedAt])
+  @@index([accountId, createdAt])
+}
+
+model GrowthAuditLog {
+  id        String        @id @default(cuid())
+  accountId String
+  orgId     String
+  createdBy String
+  updatedBy String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  deletedAt DateTime?
+  event     String
+  summary   String
+  metadata  Json?
+  account   GrowthAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, deletedAt, createdAt])
+  @@index([accountId, createdAt])
+}
+
 enum UserRole {
   ADMIN
   ANALYST

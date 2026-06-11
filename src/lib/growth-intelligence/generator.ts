@@ -227,7 +227,7 @@ export function generateGrowthIntelligence(
   const reviewLabel = "DRAFT - HUMAN REVIEW REQUIRED\n\n";
   const signature =
     input.mode === "rightsense"
-      ? "Regards,\nMohan Babu\nFounder, RightSense Technologies"
+      ? "Regards,\nMohan Babu\nCo-Founder, RightSense Technologies"
       : "Regards,\nGrowth Team";
   const outreachDrafts: GrowthOutreachDrafts = {
     cxoEmail: `${reviewLabel}${greeting}\n\nWe are seeing industrial growth teams focus on ${persona.priority}. Based on the public account context for ${accountReference}, there may be a practical opportunity to improve ${dominantSignal} with ${targetProduct}.\n\nWould a 20-minute working conversation be useful to compare priorities and identify one measurable pilot outcome?\n\n${signature}`,

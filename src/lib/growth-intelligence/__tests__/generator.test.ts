@@ -105,16 +105,19 @@ describe("growth intelligence generator", () => {
     ).toBe(true);
   });
 
-  it("uses the RightSense founder signature in RightSense mode", () => {
+  it("uses the RightSense Co-Founder signature in RightSense mode", () => {
     const result = generateGrowthIntelligence(baseInput);
 
     expect(
       Object.values(result.outreachDrafts).every((draft) =>
         draft.endsWith(
-          "Regards,\nMohan Babu\nFounder, RightSense Technologies",
+          "Regards,\nMohan Babu\nCo-Founder, RightSense Technologies",
         ),
       ),
     ).toBe(true);
+    expect(Object.values(result.outreachDrafts).join("\n")).not.toMatch(
+      /\nFounder, RightSense Technologies/,
+    );
   });
 
   it("seeds eight tenant-scoped demo accounts", () => {

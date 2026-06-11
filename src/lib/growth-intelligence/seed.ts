@@ -7,9 +7,12 @@ import type {
   GrowthAuditLog,
   GrowthPipelineStatus,
 } from "@/lib/growth-intelligence/types";
+import {
+  DEMO_GROWTH_ORG_ID,
+  DEMO_GROWTH_USER_ID,
+} from "@/lib/growth-intelligence/context";
 
-export const DEMO_GROWTH_ORG_ID = "demo-rightsense-org";
-export const DEMO_GROWTH_USER_ID = "demo-admin-user";
+export { DEMO_GROWTH_ORG_ID, DEMO_GROWTH_USER_ID };
 
 const CREATED_AT = "2026-06-02T09:30:00.000Z";
 
@@ -176,6 +179,7 @@ export const demoGrowthAccounts: GrowthAccount[] = seedInputs.map(
       ...generated,
       orgId: DEMO_GROWTH_ORG_ID,
       createdBy: DEMO_GROWTH_USER_ID,
+      updatedBy: DEMO_GROWTH_USER_ID,
       createdAt: CREATED_AT,
       updatedAt,
       outcome: {
@@ -193,40 +197,44 @@ export const demoGrowthAuditLogs: GrowthAuditLog[] = [
     id: "audit-growth-004",
     orgId: DEMO_GROWTH_ORG_ID,
     createdBy: DEMO_GROWTH_USER_ID,
+    updatedBy: DEMO_GROWTH_USER_ID,
     createdAt: "2026-06-10T08:45:00.000Z",
     updatedAt: "2026-06-10T08:45:00.000Z",
     accountId: "growth-general-manufacturing",
-    event: "Account created",
+    event: "ACCOUNT_CREATED",
     summary: "General Manufacturing Company added to the tenant account list.",
   },
   {
     id: "audit-growth-003",
     orgId: DEMO_GROWTH_ORG_ID,
     createdBy: DEMO_GROWTH_USER_ID,
+    updatedBy: DEMO_GROWTH_USER_ID,
     createdAt: "2026-06-10T08:46:00.000Z",
     updatedAt: "2026-06-10T08:46:00.000Z",
     accountId: "growth-general-manufacturing",
-    event: "Intelligence generated",
+    event: "INTELLIGENCE_GENERATED",
     summary: "Deterministic account brief and fit scores generated.",
   },
   {
     id: "audit-growth-002",
     orgId: DEMO_GROWTH_ORG_ID,
     createdBy: DEMO_GROWTH_USER_ID,
+    updatedBy: DEMO_GROWTH_USER_ID,
     createdAt: "2026-06-10T08:47:00.000Z",
     updatedAt: "2026-06-10T08:47:00.000Z",
     accountId: "growth-generic-epc",
-    event: "Outreach drafted",
+    event: "OUTREACH_DRAFTED",
     summary: "Review-only outreach drafts prepared; no message was sent.",
   },
   {
     id: "audit-growth-001",
     orgId: DEMO_GROWTH_ORG_ID,
     createdBy: DEMO_GROWTH_USER_ID,
+    updatedBy: DEMO_GROWTH_USER_ID,
     createdAt: "2026-06-10T08:48:00.000Z",
     updatedAt: "2026-06-10T08:48:00.000Z",
     accountId: "growth-recruitment-services",
-    event: "Outcome updated",
+    event: "OUTCOME_UPDATED",
     summary: "Pipeline outcome updated to Pilot / Deal Won.",
   },
 ];
@@ -238,4 +246,3 @@ export function getDemoGrowthAccounts(orgId: string): GrowthAccount[] {
 export function getDemoGrowthAuditLogs(orgId: string): GrowthAuditLog[] {
   return demoGrowthAuditLogs.filter((event) => event.orgId === orgId);
 }
-

@@ -36,21 +36,25 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  generateGrowthIntelligence,
   getCompositeFitScore,
 } from "@/lib/growth-intelligence/generator";
+import {
+  createGrowthAccountAction,
+  regenerateGrowthAccountAction,
+  updateGrowthOutcomeAction,
+  updateGrowthStatusAction,
+} from "@/app/app/growth-intelligence/actions";
 import type {
   GrowthAccount,
   GrowthAccountInput,
   GrowthAuditLog,
   GrowthFitScores,
+  GrowthLearningInsight,
   GrowthMode,
   GrowthPipelineStatus,
   RightSenseFitScores,
+  GrowthWorkspaceSnapshot,
 } from "@/lib/growth-intelligence/types";
-
-const DEMO_ORG_ID = "demo-rightsense-org";
-const DEMO_USER_ID = "demo-admin-user";
 
 const PIPELINE_STATUSES: GrowthPipelineStatus[] = [
   "Target Identified",
@@ -91,11 +95,17 @@ type DraftKey =
 type Props = {
   initialAccounts: GrowthAccount[];
   initialAuditLogs: GrowthAuditLog[];
+  initialLearning: GrowthLearningInsight;
+  persistenceAvailable: boolean;
+  persistenceMessage: string;
 };
 
 export function GrowthIntelligenceWorkspace({
   initialAccounts,
   initialAuditLogs,
+  initialLearning,
+  persistenceAvailable,
+  persistenceMessage,
 }: Props) {
   const [accounts, setAccounts] = useState(initialAccounts);
   const [selectedId, setSelectedId] = useState(
@@ -104,17 +114,28 @@ export function GrowthIntelligenceWorkspace({
   );
   const [form, setForm] = useState<GrowthAccountInput>(EMPTY_FORM);
   const [auditLogs, setAuditLogs] = useState(initialAuditLogs);
+  const [learning, setLearning] = useState(initialLearning);
   const [approvedDrafts, setApprovedDrafts] = useState<
     Record<string, DraftKey[]>
   >({});
   const [formMessage, setFormMessage] = useState("");
   const [isIntakeOpen, setIsIntakeOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [outcomeDrafts, setOutcomeDrafts] = useState<
+    Record<string, { nextAction: string; outcome: string }>
+  >({});
 
   const selectedAccount =
     accounts.find((account) => account.id === selectedId) ?? accounts[0];
   const selectedApprovedDrafts = selectedAccount
     ? approvedDrafts[selectedAccount.id] ?? []
     : [];
+  const outcomeDraft = selectedAccount
+    ? outcomeDrafts[selectedAccount.id] ?? {
+        nextAction: selectedAccount.outcome.nextAction,
+        outcome: selectedAccount.outcome.outcome,
+      }
+    : { nextAction: "", outcome: "" };
 
   const kpis = useMemo(() => {
     const scored = accounts.map((account) => ({
@@ -202,87 +223,66 @@ export function GrowthIntelligenceWorkspace({
     value: GrowthAccountInput[K],
   ) => setForm((current) => ({ ...current, [key]: value }));
 
-  const createAccount = () => {
+  const applySnapshot = (snapshot: GrowthWorkspaceSnapshot) => {
+    setAccounts(snapshot.accounts);
+    setAuditLogs(snapshot.auditLogs);
+    setLearning(snapshot.learning);
+  };
+
+  const createAccount = async () => {
     if (!form.companyName.trim()) {
       setFormMessage("Company Name is required.");
       return;
     }
-    const now = new Date().toISOString();
-    const generated = generateGrowthIntelligence(form);
-    const account: GrowthAccount = {
-      id: `growth-${form.companyName
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "")}-${accounts.length + 1}`,
-      orgId: DEMO_ORG_ID,
-      createdBy: DEMO_USER_ID,
-      createdAt: now,
-      updatedAt: now,
-      ...form,
-      ...generated,
-      outcome: {
-        status: "Outreach Drafted",
-        nextAction: "Review intelligence and approve a draft",
-        outcome: "Drafts generated; no outreach sent",
-        updatedAt: now,
-      },
-    };
-    const newAuditEvents: GrowthAuditLog[] = [
-      {
-        id: `audit-${account.id}-created`,
-        orgId: DEMO_ORG_ID,
-        createdBy: DEMO_USER_ID,
-        createdAt: now,
-        updatedAt: now,
-        accountId: account.id,
-        event: "Account created",
-        summary: `${account.companyName} added to the tenant account list.`,
-      },
-      {
-        id: `audit-${account.id}-intelligence`,
-        orgId: DEMO_ORG_ID,
-        createdBy: DEMO_USER_ID,
-        createdAt: now,
-        updatedAt: now,
-        accountId: account.id,
-        event: "Intelligence generated",
-        summary: "Deterministic brief, fit scores, and review-only drafts generated.",
-      },
-    ];
-    setAccounts((current) => [account, ...current]);
-    setAuditLogs((current) => [...newAuditEvents, ...current].slice(0, 8));
-    setSelectedId(account.id);
+    setIsSaving(true);
+    const result = await createGrowthAccountAction(form);
+    setIsSaving(false);
+    setFormMessage(result.message);
+    if (!result.ok) return;
+    applySnapshot(result.snapshot);
+    setSelectedId(result.snapshot.accounts[0]?.id);
     setForm(EMPTY_FORM);
-    setFormMessage("Account created and intelligence generated in memory.");
     setIsIntakeOpen(false);
   };
 
-  const regenerateSelectedAccount = () => {
+  const regenerateSelectedAccount = async () => {
     if (!selectedAccount) return;
-    const generated = generateGrowthIntelligence(selectedAccount);
-    const now = new Date().toISOString();
-    setAccounts((current) =>
-      current.map((account) =>
-        account.id === selectedAccount.id
-          ? { ...account, ...generated, updatedAt: now }
-          : account,
-      ),
-    );
-    setAuditLogs((current) =>
-      [
-        {
-          id: `audit-${selectedAccount.id}-${now}`,
-          orgId: DEMO_ORG_ID,
-          createdBy: DEMO_USER_ID,
-          createdAt: now,
-          updatedAt: now,
-          accountId: selectedAccount.id,
-          event: "Intelligence generated" as const,
-          summary: "Account intelligence regenerated from the current safe fields.",
-        },
-        ...current,
-      ].slice(0, 8),
-    );
+    setIsSaving(true);
+    const result = await regenerateGrowthAccountAction(selectedAccount.id);
+    setIsSaving(false);
+    setFormMessage(result.message);
+    if (result.ok) applySnapshot(result.snapshot);
+  };
+
+  const updatePipelineStatus = async (
+    accountId: string,
+    status: GrowthPipelineStatus,
+  ) => {
+    setIsSaving(true);
+    const result = await updateGrowthStatusAction(accountId, status);
+    setIsSaving(false);
+    setFormMessage(result.message);
+    if (result.ok) applySnapshot(result.snapshot);
+  };
+
+  const saveOutcome = async () => {
+    if (!selectedAccount) return;
+    setIsSaving(true);
+    const result = await updateGrowthOutcomeAction(selectedAccount.id, {
+      status: selectedAccount.outcome.status,
+      nextAction: outcomeDraft.nextAction,
+      outcome: outcomeDraft.outcome,
+    });
+    setIsSaving(false);
+    setFormMessage(result.message);
+    if (result.ok) {
+      applySnapshot(result.snapshot);
+      setOutcomeDrafts((current) => {
+        const next = { ...current };
+        delete next[selectedAccount.id];
+        return next;
+      });
+    }
   };
 
   const toggleDraftApproval = (draftKey: DraftKey) => {
@@ -299,15 +299,6 @@ export function GrowthIntelligenceWorkspace({
   if (!selectedAccount) {
     return <Card className="text-sm text-muted">No demo accounts available.</Card>;
   }
-
-  const learning = {
-    segment: kpis[5].value,
-    persona: "Proposal Head",
-    pain: "Proposal speed and execution visibility",
-    channel: "Human-approved email",
-    campaign: "Industrial OEM bid-readiness campaign",
-    confidence: "82%",
-  };
 
   return (
     <div className="growth-intelligence-workspace space-y-8">
@@ -336,10 +327,25 @@ export function GrowthIntelligenceWorkspace({
               <div className="mt-1 text-xs text-white/70">
                 Demo org · deterministic data · no outbound sending
               </div>
+              <div className="mt-2 flex items-center gap-1.5 text-xs text-white/80">
+                <BadgeCheck className="h-3.5 w-3.5 text-cyan" />
+                {persistenceAvailable
+                  ? "Persistent workspace enabled"
+                  : "Read-only fallback mode"}
+              </div>
             </div>
           </div>
         </div>
       </section>
+
+      {!persistenceAvailable && (
+        <div
+          className="rounded-xl border border-warning/30 bg-warning-muted px-4 py-3 text-sm text-foreground-secondary"
+          role="status"
+        >
+          {persistenceMessage}
+        </div>
+      )}
 
       <section className="grid gap-3 lg:grid-cols-3">
         <SafetyNote
@@ -385,7 +391,7 @@ export function GrowthIntelligenceWorkspace({
             <div className="flex items-center gap-2 font-semibold text-foreground">
               <Plus className="h-4 w-4 text-accent" />
               Account intake
-              <Badge variant="info">Demo only</Badge>
+              <Badge variant="info">Persistent</Badge>
             </div>
             <p className="mt-1 text-sm text-muted">
               {isIntakeOpen
@@ -437,11 +443,11 @@ export function GrowthIntelligenceWorkspace({
                   Account intake
                 </CardTitle>
                 <CardDescription className="mt-1">
-                  Create a safe, in-memory account record and generate its first
-                  brief.
+                  Create a tenant-scoped account record and generate its first
+                  persisted brief.
                 </CardDescription>
               </div>
-              <Badge variant="info">Demo only</Badge>
+              <Badge variant="info">Persistent</Badge>
             </div>
           </CardHeader>
           <CardContent className="mt-5 space-y-4">
@@ -587,7 +593,12 @@ export function GrowthIntelligenceWorkspace({
                 {formMessage}
               </div>
             )}
-            <Button type="button" onClick={createAccount} className="w-full">
+            <Button
+              type="button"
+              onClick={createAccount}
+              className="w-full"
+              disabled={!persistenceAvailable || isSaving}
+            >
               <Sparkles className="h-4 w-4" />
               Generate Growth Intelligence Brief
             </Button>
@@ -613,6 +624,7 @@ export function GrowthIntelligenceWorkspace({
                   variant="outline"
                   size="sm"
                   onClick={regenerateSelectedAccount}
+                  disabled={!persistenceAvailable || isSaving}
                 >
                   <RefreshCw className="h-3.5 w-3.5" />
                   Regenerate
@@ -780,7 +792,7 @@ export function GrowthIntelligenceWorkspace({
         <SectionHeading
           icon={Activity}
           title="Pipeline Tracker"
-          description="In-memory GTM status tracking. Outreach Sent is a manually recorded outcome, not an action in PulseIQ."
+          description="Persisted GTM status tracking. Outreach Sent is a manually recorded outcome, not an action in PulseIQ."
         />
         <Card className="mt-4 overflow-hidden p-0">
           <div className="overflow-x-auto">
@@ -833,7 +845,24 @@ export function GrowthIntelligenceWorkspace({
                       <ScoreBadge score={getCompositeFitScore(account.fitScores)} />
                     </td>
                     <td className="px-4 py-3">
-                      <PipelineStatusBadge status={account.outcome.status} />
+                      <select
+                        className="growth-input min-w-44"
+                        value={account.outcome.status}
+                        disabled={!persistenceAvailable || isSaving}
+                        onChange={(event) =>
+                          updatePipelineStatus(
+                            account.id,
+                            event.target.value as GrowthPipelineStatus,
+                          )
+                        }
+                        aria-label={`Pipeline status for ${account.companyName}`}
+                      >
+                        {PIPELINE_STATUSES.map((status) => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
+                      </select>
                     </td>
                     <td className="max-w-56 px-4 py-3 text-foreground-secondary">
                       {account.outcome.nextAction}
@@ -846,6 +875,62 @@ export function GrowthIntelligenceWorkspace({
               </tbody>
             </table>
           </div>
+        </Card>
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle className="text-base">Update selected outcome</CardTitle>
+            <CardDescription>
+              Capture safe next steps and results for the learning engine.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="mt-4 grid gap-4 md:grid-cols-2">
+            <Field label="Next Action">
+              <input
+                className="growth-input"
+                value={outcomeDraft.nextAction}
+                onChange={(event) =>
+                  setOutcomeDrafts((current) => ({
+                    ...current,
+                    [selectedAccount.id]: {
+                      ...outcomeDraft,
+                      nextAction: event.target.value,
+                    },
+                  }))
+                }
+                maxLength={500}
+              />
+            </Field>
+            <Field label="Outcome">
+              <input
+                className="growth-input"
+                value={outcomeDraft.outcome}
+                onChange={(event) =>
+                  setOutcomeDrafts((current) => ({
+                    ...current,
+                    [selectedAccount.id]: {
+                      ...outcomeDraft,
+                      outcome: event.target.value,
+                    },
+                  }))
+                }
+                maxLength={500}
+              />
+            </Field>
+            <div className="flex items-center justify-between gap-3 md:col-span-2">
+              <p className="text-xs text-muted">
+                Private account notes are never included in aggregated learning
+                output.
+              </p>
+              <Button
+                type="button"
+                size="sm"
+                onClick={saveOutcome}
+                disabled={!persistenceAvailable || isSaving}
+              >
+                Save outcome
+              </Button>
+            </div>
+          </CardContent>
         </Card>
       </section>
 
@@ -860,22 +945,41 @@ export function GrowthIntelligenceWorkspace({
                   patterns
                 </CardTitle>
                 <CardDescription className="mt-1">
-                  Phase 1 placeholder using deterministic demo outcomes only.
+                  Aggregated from persisted account outcomes without private
+                  notes.
                 </CardDescription>
               </div>
-              <Badge variant="info">82% confidence</Badge>
+              <Badge variant="info">{learning.confidenceScore}% confidence</Badge>
             </div>
           </CardHeader>
           <CardContent className="mt-5 grid gap-3 sm:grid-cols-2">
-            <LearningMetric label="Best Performing Segment" value={learning.segment} />
-            <LearningMetric label="Best Persona" value={learning.persona} />
-            <LearningMetric label="Best Pain Angle" value={learning.pain} />
-            <LearningMetric label="Best Channel" value={learning.channel} />
+            <LearningMetric
+              label="Best Performing Segment"
+              value={learning.bestPerformingSegment}
+            />
+            <LearningMetric label="Best Persona" value={learning.bestPersona} />
+            <LearningMetric
+              label="Best Pain Angle"
+              value={learning.bestPainAngle}
+            />
+            <LearningMetric label="Best Channel" value={learning.bestChannel} />
+            <LearningMetric
+              label="Highest Converting Offer"
+              value={learning.highestConvertingOffer}
+            />
+            <LearningMetric label="Weak Segment" value={learning.weakSegment} />
             <LearningMetric
               label="Recommended Next Campaign"
-              value={learning.campaign}
+              value={learning.recommendedNextCampaign}
             />
-            <LearningMetric label="Confidence Score" value={learning.confidence} />
+            <LearningMetric
+              label="Recommended Message Change"
+              value={learning.recommendedMessageChange}
+            />
+            <LearningMetric
+              label="Confidence Score"
+              value={`${learning.confidenceScore}%`}
+            />
           </CardContent>
         </Card>
 
@@ -886,7 +990,7 @@ export function GrowthIntelligenceWorkspace({
               Security & Governance
             </CardTitle>
             <CardDescription>
-              Product controls applied to this Phase 1 workspace.
+              Product controls applied to this persistent workspace.
             </CardDescription>
           </CardHeader>
           <CardContent className="mt-5 space-y-3">
@@ -937,7 +1041,7 @@ export function GrowthIntelligenceWorkspace({
                     </div>
                     <div>
                       <div className="text-sm font-medium text-foreground">
-                        {event.event}
+                        {auditEventLabel(event.event)}
                         {account ? ` · ${account.companyName}` : ""}
                       </div>
                       <div className="mt-0.5 text-xs text-muted">
@@ -962,7 +1066,7 @@ export function GrowthIntelligenceWorkspace({
 
       <div className="rounded-xl border border-border bg-white px-4 py-3 text-xs leading-relaxed text-muted">
         <SendHorizontal className="mr-2 inline h-3.5 w-3.5 text-muted" />
-        This Phase 1 module prepares and records GTM work only. It contains no
+        This module prepares and records GTM work only. It contains no
         email, LinkedIn, WhatsApp, or other outbound sending capability.
       </div>
 
@@ -1157,21 +1261,6 @@ function ScoreBadge({ score }: { score: number }) {
   );
 }
 
-function PipelineStatusBadge({ status }: { status: GrowthPipelineStatus }) {
-  const variant =
-    status === "Pilot / Deal Won"
-      ? "success"
-      : status === "Nurture / Lost"
-        ? "outline"
-        : ["Replied", "Discovery Scheduled", "Demo Completed"].includes(status)
-          ? "info"
-          : ["Proposal Shared", "Outreach Drafted"].includes(status)
-            ? "warning"
-            : "default";
-
-  return <Badge variant={variant}>{status}</Badge>;
-}
-
 function SectionHeading({
   icon: Icon,
   title,
@@ -1201,6 +1290,16 @@ function LearningMetric({ label, value }: { label: string; value: string }) {
       <div className="mt-2 text-sm font-semibold text-foreground">{value}</div>
     </div>
   );
+}
+
+function auditEventLabel(event: GrowthAuditLog["event"]): string {
+  return {
+    ACCOUNT_CREATED: "Account created",
+    ACCOUNT_UPDATED: "Account updated",
+    INTELLIGENCE_GENERATED: "Intelligence generated",
+    OUTREACH_DRAFTED: "Outreach drafted",
+    OUTCOME_UPDATED: "Outcome updated",
+  }[event];
 }
 
 function getToneClasses(tone: string): {
