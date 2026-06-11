@@ -71,7 +71,7 @@ export default function Home() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-4 py-1.5 text-sm text-white/90 font-medium mb-6 backdrop-blur-sm">
             <Zap className="h-3.5 w-3.5" />
-            AI-native enterprise operating intelligence platform
+            Powered by RightSense — enterprise intelligence engine
           </div>
 
           {/* Headline */}
@@ -81,7 +81,7 @@ export default function Home() {
 
           {/* Subtitle */}
           <p className="text-lg text-white/80 leading-relaxed max-w-[760px] mx-auto mb-10">
-            Map current systems, departments, processes, bottlenecks and AI opportunities into a CXO-ready 90-day execution roadmap.
+            PulseIQ powers the RightSense 48-Hour Enterprise Intelligence, Compliance &amp; Standards Diagnostic — transforming disconnected systems, processes, and bottlenecks into a CXO-ready 90-day execution roadmap.
           </p>
 
           {/* CTA Buttons */}
@@ -198,7 +198,36 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. Before / With PulseIQ */}
+      {/* 4. From Diagnostic to Operating Cockpit */}
+      <section className="bg-background">
+        <div className="max-w-[1200px] mx-auto px-6 py-16">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground">From Diagnostic to Operating Cockpit</h2>
+            <p className="mt-3 text-foreground-secondary max-w-2xl mx-auto">
+              The RightSense 48-Hour Diagnostic kick-starts the intelligence cycle. PulseIQ sustains it.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { num: "01", title: "48-Hour Diagnostic", desc: "Rapid discovery of systems, processes, risks, and readiness gaps across the enterprise." },
+              { num: "02", title: "Enterprise Truth Map", desc: "Single source of operating truth connecting departments, systems, handoffs, and bottlenecks." },
+              { num: "03", title: "Compliance & Standards Readiness", desc: "Readiness view for ISO, customer qualification, statutory documents, and technical standards." },
+              { num: "04", title: "CXO Cockpit", desc: "Executive dashboard with headline metrics, variance, risk gap, and transformation score." },
+              { num: "05", title: "What-If Scenarios", desc: "Simulate revenue, margin, or cost changes and see the ripple effects across your operating model." },
+              { num: "06", title: "Recommendations", desc: "AI-ranked opportunities with impact estimates, priority tier, and timeframe." },
+              { num: "07", title: "30/60/90 Execution Plan", desc: "Phased milestones with owners, KPIs, and expected business outcomes." },
+            ].map((item) => (
+              <div key={item.num} className="rounded-xl border border-border bg-white p-5 hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5">
+                <div className="text-xs font-bold text-accent mb-2">{item.num}</div>
+                <h3 className="font-semibold text-foreground mb-1.5 text-sm">{item.title}</h3>
+                <p className="text-xs text-muted leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Before / With PulseIQ */}
       <section className="bg-background-alt">
         <div className="max-w-[1200px] mx-auto px-6 py-16">
           <div className="text-center mb-12">
@@ -336,7 +365,55 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 7. Results / Outcomes */}
+      {/* 7. Trust & Governance */}
+      <section className="bg-white border-y border-border">
+        <div className="max-w-[1200px] mx-auto px-6 py-16">
+          <div className="grid md:grid-cols-2 gap-10">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground mb-6">Trust &amp; Governance by Design</h2>
+              <div className="space-y-4">
+                {[
+                  { title: "Read-only data intake", desc: "PulseIQ never writes to your ERP, CRM, HRMS, or production systems. All data is ingested via exports, extracts, or manual input." },
+                  { title: "Human-in-the-loop validation", desc: "Every AI output — facts, gaps, recommendations — must be reviewed and confirmed before appearing in reports or cockpits." },
+                  { title: "Source traceability", desc: "Every finding links back to its source document or input. No black-box recommendations." },
+                  { title: "AI-output validation", desc: "All AI-generated analysis is flagged for review. The workbench shows what is AI-derived vs. human-confirmed." },
+                  { title: "No ERP replacement", desc: "PulseIQ does not replace ERP, CRM, HRMS, BI, or any existing system. It layers intelligence on top of what you already run." },
+                  { title: "Executive review before action", desc: "No recommendation reaches the dashboard or report without an executive review checkpoint." },
+                ].map((item) => (
+                  <div key={item.title} className="flex items-start gap-3">
+                    <CheckCircle2 className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                    <div>
+                      <div className="text-sm font-semibold text-foreground">{item.title}</div>
+                      <div className="text-xs text-muted mt-0.5">{item.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-background-alt rounded-2xl border border-border p-6">
+              <h2 className="text-2xl font-bold text-foreground mb-4">Standards &amp; Compliance Readiness</h2>
+              <p className="text-sm text-muted leading-relaxed mb-4">
+                PulseIQ helps organize readiness gaps related to ISO, customer qualification, statutory documents, technical standards, audit evidence, supplier qualification, and AI governance.
+              </p>
+              <div className="flex flex-wrap gap-2 mb-6">
+                {["ISO 9001", "ISO 14001", "ISO 45001", "IATF 16949", "Customer Audits", "Statutory Registers", "Technical Specs", "AI Governance"].map((tag) => (
+                  <span key={tag} className="text-xs bg-background rounded-lg px-2.5 py-1 text-muted font-medium border border-border">{tag}</span>
+                ))}
+              </div>
+              <div className="rounded-xl border border-warning/20 bg-warning-muted/50 p-4">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+                  <p className="text-xs text-muted leading-relaxed">
+                    PulseIQ and RightSense identify readiness gaps and workflow risks. They do not replace formal certification, legal review, statutory audit, regulatory approval, or customer approval.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 8. Results / Outcomes */}
       <section id="results" className="bg-background">
         <div className="max-w-[1200px] mx-auto px-6 py-16">
           <div className="text-center mb-12">
@@ -364,27 +441,27 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 8. Final CTA Band */}
+      {/* 9. Final CTA Band */}
       <section className="bg-hero-bg hero-grid">
         <div className="hero-glow absolute inset-0" />
         <div className="max-w-[1200px] mx-auto px-6 py-16 relative z-10">
-          <div className="max-w-2xl">
+          <div className="max-w-3xl">
             <h2 className="text-3xl font-bold text-white mb-4">
               Turn Enterprise Complexity Into a 90-Day AI Transformation Roadmap
             </h2>
             <p className="text-white/70 text-lg leading-relaxed mb-6">
-              Explore the demo assessment and see how PulseIQ can support a 2-week CXO operating intelligence sprint.
+              Powered by PulseIQ and delivered by RightSense Technologies. Start with a 48-Hour Diagnostic or explore the demo.
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
-              <Link href="/assessment/bharat-heavy-fabrications/intake">
+              <a href="https://www.rightsense.in/48-hour-diagnostic" target="_blank" rel="noopener noreferrer">
                 <Button size="lg" className="text-base px-8 bg-green hover:bg-green/90 text-white shadow-lg font-semibold">
-                  Explore Demo Assessment
+                  Book Diagnostic via RightSense
                   <ArrowRight className="h-5 w-5" />
                 </Button>
-              </Link>
-              <Link href="/dashboard">
-                <Button variant="outline" size="lg" className="text-base px-8 border-white/20 text-white hover:bg-white/10 backdrop-blur-sm">
-                  Open Dashboard
+              </a>
+              <Link href="/assessment/bharat-heavy-fabrications/intake">
+                <Button variant="outline" size="lg" className="text-base px-8 border-white/20 text-white hover:bg-white/10 backdrop-blur-sm font-semibold">
+                  Explore Demo Assessment
                 </Button>
               </Link>
             </div>
@@ -394,19 +471,26 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t border-border bg-white">
-        <div className="max-w-[1200px] mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-accent to-cyan flex items-center justify-center">
-              <Brain className="h-4 w-4 text-white" />
+        <div className="max-w-[1200px] mx-auto px-6 py-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-accent to-cyan flex items-center justify-center">
+                <Brain className="h-4 w-4 text-white" />
+              </div>
+              <div className="flex items-baseline gap-1.5">
+                <span className="font-semibold text-foreground">PulseIQ</span>
+                <span className="text-muted">operating intelligence engine by</span>
+                <a href="https://www.rightsense.in" target="_blank" rel="noopener noreferrer" className="font-semibold text-accent hover:text-accent-hover">RightSense Technologies</a>
+              </div>
             </div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="font-semibold text-foreground">PulseIQ</span>
-              <span className="text-muted">by RightSense Technologies</span>
+            <div className="flex items-center gap-4">
+              <span className="text-xs text-muted">Co-Founder: Mohan Babu</span>
+              <span className="hidden sm:inline text-muted">·</span>
+              <span className="flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5" />
+                <span>Enterprise Intelligence Platform</span>
+              </span>
             </div>
-          </div>
-          <div className="flex items-center gap-1">
-            <Clock className="h-3.5 w-3.5" />
-            <span>Enterprise Intelligence Platform</span>
           </div>
         </div>
       </footer>

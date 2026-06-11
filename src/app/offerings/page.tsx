@@ -8,6 +8,7 @@ import {
   Trophy,
   Activity,
   Circle,
+  AlertTriangle,
 } from "lucide-react";
 
 export default function OfferingsPage() {
@@ -43,7 +44,7 @@ export default function OfferingsPage() {
         <div className="text-center">
           <h1 className="text-4xl font-bold text-foreground mb-4">PulseIQ Offerings</h1>
           <p className="text-lg text-foreground-secondary max-w-2xl mx-auto">
-            Structured pathways to intelligence-driven transformation, from rapid assessment to sustained advantage.
+            Powered by PulseIQ, the operating intelligence engine behind the RightSense 48-Hour Enterprise Intelligence, Compliance &amp; Standards Diagnostic.
           </p>
         </div>
 
@@ -53,10 +54,10 @@ export default function OfferingsPage() {
             <div className="h-10 w-10 rounded-xl bg-accent-muted flex items-center justify-center">
               <Zap className="h-5 w-5 text-accent" />
             </div>
-            <h2 className="text-2xl font-bold text-foreground">2-Week Readiness Sprint</h2>
+            <h2 className="text-2xl font-bold text-foreground">48-Hour Enterprise Diagnostic</h2>
           </div>
           <p className="text-sm text-muted mb-4">
-            Rapid assessment and roadmap to identify your highest-impact AI transformation opportunities in just two weeks.
+            The RightSense 48-Hour Enterprise Intelligence, Compliance &amp; Standards Diagnostic — a rapid assessment delivering your enterprise truth map, CXO cockpit, and 30/60/90 execution plan.
           </p>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-3">
@@ -271,11 +272,16 @@ export default function OfferingsPage() {
         <div className="text-center">
           <h2 className="text-3xl font-bold text-foreground mb-6">Start Your Transformation Journey</h2>
           <p className="text-lg text-foreground-secondary max-w-3xl mx-auto mb-8">
-            Select the offering that matches your current ambition and readiness for AI-driven transformation.
+            Powered by PulseIQ and delivered by RightSense Technologies. Book a 48-Hour Diagnostic or explore the platform.
           </p>
           <div className="flex flex-col sm:flex-row sm:justify-center gap-4">
-            <Link href="/demo">
+            <a href="https://www.rightsense.in/48-hour-diagnostic" target="_blank" rel="noopener noreferrer">
               <Button size="lg" className="bg-accent hover:bg-accent-hover text-white shadow-md">
+                Book Diagnostic via RightSense
+              </Button>
+            </a>
+            <Link href="/demo">
+              <Button size="lg" className="border-border text-foreground hover:bg-background-alt">
                 Explore Demo Assessment
               </Button>
             </Link>
@@ -284,6 +290,16 @@ export default function OfferingsPage() {
                 Open PulseIQ Dashboard
               </Button>
             </Link>
+          </div>
+        </div>
+
+        {/* Disclaimer */}
+        <div className="rounded-xl border border-warning/20 bg-warning-muted/50 p-4 mx-auto max-w-3xl">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+            <p className="text-xs text-muted leading-relaxed">
+              PulseIQ and RightSense identify readiness gaps and workflow risks. They do not replace formal certification, legal review, statutory audit, regulatory approval, or customer approval.
+            </p>
           </div>
         </div>
       </main>
