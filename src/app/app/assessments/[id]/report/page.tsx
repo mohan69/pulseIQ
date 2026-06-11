@@ -19,6 +19,12 @@ import {
   metricRequiresInternalData,
   MICROFINISH_DISCLAIMER,
 } from "@/lib/assessment/presentation";
+import {
+  DIAGNOSTIC_DISCLAIMER,
+  DIAGNOSTIC_PILLARS,
+  DIAGNOSTIC_POSITIONING,
+  READINESS_AREAS,
+} from "@/lib/diagnostic-positioning";
 
 const PRIORITY_LABEL: Record<string, string> = {
   P0: "Critical",
@@ -61,12 +67,12 @@ export default async function ReportPage({
         <header className="border-b border-border pb-6 print:pb-4">
           <div className="text-[11px] uppercase tracking-wider text-muted font-semibold mb-2 flex items-center gap-1.5">
             <FileText className="h-3 w-3" />
-            PulseIQ board report
+            RightSense diagnostic report · powered by PulseIQ
           </div>
           <h1 className="text-2xl print:text-3xl font-bold text-foreground">
             {isMicrofinishSample
               ? "Microfinish public-domain operating diagnostic"
-              : "Operating truth & 90-day plan"}
+              : "Enterprise intelligence, compliance & standards diagnostic"}
           </h1>
           {isMicrofinishSample && (
             <div className="text-sm font-medium text-foreground-secondary mt-1">
@@ -96,6 +102,39 @@ export default async function ReportPage({
             {report.executiveSummary}
           </p>
         </section>
+
+        <section>
+          <SectionTitle icon={Shield}>Diagnostic scope</SectionTitle>
+          <p className="text-sm text-foreground-secondary">
+            {DIAGNOSTIC_POSITIONING} RightSense owns and delivers the
+            diagnostic; PulseIQ powers the truth map, cockpit, scenarios,
+            recommendations, readiness views, and 30/60/90 execution plan.
+          </p>
+          <div className="mt-3 grid gap-2 md:grid-cols-2 print:grid-cols-2">
+            {DIAGNOSTIC_PILLARS.map((pillar) => (
+              <div
+                key={pillar}
+                className="rounded-lg border border-border bg-background-alt px-3 py-2 text-xs font-medium text-foreground"
+              >
+                {pillar}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {READINESS_AREAS.map((area) => (
+          <section key={area.title}>
+            <SectionTitle icon={CheckCircle2}>{area.title}</SectionTitle>
+            <ul className="space-y-1.5 text-sm text-foreground-secondary">
+              {area.items.map((item) => (
+                <li key={item} className="flex items-start gap-2">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-accent shrink-0 mt-0.5" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
 
         <section>
           <SectionTitle icon={BarChart3Icon}>Cockpit</SectionTitle>
@@ -355,7 +394,7 @@ export default async function ReportPage({
         </section>
 
         <section>
-          <SectionTitle icon={Calendar}>90-day execution plan</SectionTitle>
+          <SectionTitle icon={Calendar}>30/60/90 execution plan</SectionTitle>
           <div className="space-y-3">
             {report.plan.map((p) => (
               <div
@@ -390,9 +429,14 @@ export default async function ReportPage({
         </section>
 
         <footer className="pt-6 border-t border-border text-[11px] text-muted print:mt-8">
-          {isMicrofinishSample
-            ? MICROFINISH_DISCLAIMER
-            : "PulseIQ Workbench MVP · Internal admin use only · Read-only by design. This report is a synthesis of the sources registered for this assessment and is meant to support — not replace — management review."}
+          <p>
+            {isMicrofinishSample ? `${MICROFINISH_DISCLAIMER} ` : ""}
+            {DIAGNOSTIC_DISCLAIMER}
+          </p>
+          <p className="mt-2">
+            Internal admin use only · Read-only by design · Human review
+            required before action.
+          </p>
         </footer>
       </article>
     </div>

@@ -68,7 +68,7 @@ export default function CockpitPage() {
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-foreground">{cockpit.opportunityValue}</div>
-                  <div className="text-sm text-muted">Opportunity Value</div>
+                  <div className="text-sm text-muted">Sample Opportunity Value</div>
                 </div>
               </div>
             </div>
@@ -105,6 +105,37 @@ export default function CockpitPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div>
+          <h2 className="text-lg font-bold text-foreground">
+            Compliance, ecosystem & AI governance readiness
+          </h2>
+          <p className="mt-1 text-sm text-muted">
+            Demo evidence-status cards. They indicate gap-review coverage, not
+            certification or approval.
+          </p>
+          <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            {[
+              ["Standards readiness gaps", "Gap review"],
+              ["Audit evidence completeness", "Evidence status"],
+              ["Vendor qualification gaps", "Gap review"],
+              ["Customer prequalification readiness", "Documentation review"],
+              ["AI output validation coverage", "Human review"],
+              ["Source traceability coverage", "Evidence mapping"],
+              ["Approval workflow coverage", "Control review"],
+            ].map(([label, value]) => (
+              <div
+                key={label}
+                className="rounded-xl border border-border bg-white p-4 shadow-sm"
+              >
+                <div className="text-xs text-muted">{label}</div>
+                <div className="mt-1 text-base font-bold text-foreground">
+                  {value}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

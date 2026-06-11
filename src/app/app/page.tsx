@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { resolveAIEngineConfig } from "@/lib/ai";
+import { DiagnosticScope } from "@/components/workbench/DiagnosticScope";
 
 export const dynamic = "force-dynamic";
 
@@ -60,7 +61,7 @@ export default async function WorkbenchDashboardPage() {
       key: "truth",
       label: "Truth layers",
       value: demoTruthLayers.toString(),
-      hint: demo ? "financial → collaboration" : "no demo assessment",
+      hint: demo ? "finance → AI governance" : "no demo assessment",
       icon: Layers,
       color: "success",
     },
@@ -84,9 +85,10 @@ export default async function WorkbenchDashboardPage() {
           </div>
           <h1 className="text-3xl font-bold text-foreground">Workbench dashboard</h1>
           <p className="text-foreground-secondary mt-1.5 max-w-2xl">
-            Convert enterprise complexity into a board-ready operating truth map,
-            what-if scenarios, recommendations, and a 90-day plan. Read-only by
-            design — no customer access in the MVP.
+            PulseIQ powers the RightSense 48-Hour Enterprise Intelligence,
+            Compliance &amp; Standards Diagnostic, producing a board-ready truth
+            map, cockpit, scenarios, recommendations, and 30/60/90 execution
+            plan. Read-only by design — no customer access in the MVP.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -98,6 +100,8 @@ export default async function WorkbenchDashboardPage() {
           </Link>
         </div>
       </section>
+
+      <DiagnosticScope />
 
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((s) => {
@@ -121,6 +125,40 @@ export default async function WorkbenchDashboardPage() {
             </Card>
           );
         })}
+      </section>
+
+      <section>
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold text-foreground">
+            Demo readiness indicators
+          </h2>
+          <p className="text-sm text-muted">
+            Sample evidence-status measures for the Bharat Heavy Fabrications
+            diagnostic. These are readiness indicators, not certification or
+            approval outcomes.
+          </p>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+          {[
+            ["Standards readiness gaps", "7 gaps"],
+            ["Audit evidence completeness", "42%"],
+            ["Vendor qualification gaps", "5 gaps"],
+            ["Customer prequalification readiness", "48%"],
+            ["AI output validation coverage", "35%"],
+            ["Source traceability coverage", "70%"],
+            ["Approval workflow coverage", "40%"],
+          ].map(([label, value]) => (
+            <Card key={label} className="p-4">
+              <div className="text-xs text-muted">{label}</div>
+              <div className="mt-1 text-lg font-bold text-foreground">
+                {value}
+              </div>
+              <div className="mt-1 text-[11px] text-foreground-secondary">
+                Sample / demo evidence status
+              </div>
+            </Card>
+          ))}
+        </div>
       </section>
 
       <section>
@@ -258,6 +296,7 @@ export default async function WorkbenchDashboardPage() {
               "Read-only philosophy: summarise, never surveil.",
               "Email and meeting sources are optional and summarised only.",
               "Every fact in the UI traces back to a source and confidence level.",
+              "AI outputs require human review; no autonomous irreversible action is permitted without approval.",
               "Data is persisted through the configured repository. Database mode is enabled for real diagnostic work, while memory mode remains available for local demo/testing.",
             ].map((line) => (
               <div

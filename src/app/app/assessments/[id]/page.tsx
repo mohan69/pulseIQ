@@ -38,6 +38,7 @@ import {
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DeleteAssessmentButton } from "@/components/workbench/DeleteAssessmentButton";
 import { isMicrofinishPublicDomain } from "@/lib/assessment/presentation";
+import { DiagnosticScope } from "@/components/workbench/DiagnosticScope";
 
 export default async function AssessmentOverviewPage({
   params,
@@ -66,6 +67,7 @@ export default async function AssessmentOverviewPage({
 
   return (
     <div className="space-y-6">
+      <DiagnosticScope compact />
       <Card>
         <CardHeader>
           <div className="flex items-start justify-between gap-3">
@@ -144,7 +146,7 @@ export default async function AssessmentOverviewPage({
                 <ArrowRight className="h-4 w-4 text-muted group-hover:text-accent transition-colors" />
               </div>
               <CardDescription>
-                {layers.filter((l) => Array.isArray(l.findings) && l.findings.length > 0).length} of 5 layers populated
+                {layers.filter((l) => Array.isArray(l.findings) && l.findings.length > 0).length} of {layers.length} stored layers populated
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -235,14 +237,14 @@ export default async function AssessmentOverviewPage({
               icon={ListChecks}
               label="Recommendations"
               value={recs.length.toString()}
-              detail="Top 10 ranked actions, each with impact, owner, and evidence."
+              detail="Ranked commercial, standards, supplier, statutory, and AI governance actions with owners and evidence."
               href={`/app/assessments/${id}/recommendations`}
             />
             <Highlight
               icon={FileText}
               label="Board-ready report"
               value="Ready"
-              detail="Print-friendly report with executive summary and 90-day plan."
+              detail="Print-friendly diagnostic report with readiness sections, disclaimer, and 30/60/90 plan."
               href={`/app/assessments/${id}/report`}
             />
             <Highlight

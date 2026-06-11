@@ -161,7 +161,7 @@ function emptyTruthLayers(): TruthLayer[] {
   return [
     {
       key: "financial",
-      title: "Official Financial Truth",
+      title: "Financial Truth",
       description: "",
       confidence: "low",
       findings: [],
@@ -171,7 +171,7 @@ function emptyTruthLayers(): TruthLayer[] {
     },
     {
       key: "strategic",
-      title: "Strategic Management Intent",
+      title: "Proposal and Revenue Truth",
       description: "",
       confidence: "low",
       findings: [],
@@ -181,7 +181,7 @@ function emptyTruthLayers(): TruthLayer[] {
     },
     {
       key: "operational",
-      title: "Operational Reality",
+      title: "Operational, Vendor, and Capacity Truth",
       description: "",
       confidence: "low",
       findings: [],
@@ -191,7 +191,7 @@ function emptyTruthLayers(): TruthLayer[] {
     },
     {
       key: "process",
-      title: "Process and SOP Truth",
+      title: "Compliance and Standards Truth",
       description: "",
       confidence: "low",
       findings: [],
@@ -201,7 +201,7 @@ function emptyTruthLayers(): TruthLayer[] {
     },
     {
       key: "collaboration",
-      title: "Collaboration Truth",
+      title: "AI Governance and Accountability Truth",
       description: "",
       confidence: "low",
       findings: [],

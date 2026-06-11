@@ -16,6 +16,11 @@ const SOURCE_TYPES: { value: SourceType; label: string }[] = [
   { value: "hrms_export", label: "HRMS export" },
   { value: "operations_report", label: "Operations / plant report" },
   { value: "proposal_report", label: "Proposal submission log" },
+  { value: "compliance_register", label: "Compliance / ISO readiness register" },
+  { value: "standards_mapping", label: "Technical or customer standards mapping" },
+  { value: "vendor_qualification", label: "Supplier / vendor qualification tracker" },
+  { value: "statutory_document", label: "Statutory document / audit evidence index" },
+  { value: "ai_governance", label: "AI governance / validation / approval evidence" },
   { value: "email_summary", label: "Email summary (consented, summarised only)" },
   { value: "meeting_summary", label: "Meeting summary (consented, summarised only)" },
 ];
@@ -79,7 +84,7 @@ export function AddSourceForm({ assessmentId }: { assessmentId: string }) {
           </div>
           <input
             name="name"
-            placeholder="e.g. FY25 Audited Financials"
+            placeholder="e.g. ISO & Customer Standards Readiness Register"
             className="form-input"
             autoFocus
           />

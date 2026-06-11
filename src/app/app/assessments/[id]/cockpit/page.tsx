@@ -56,7 +56,7 @@ export default async function CockpitPage({
         <p className="text-sm text-muted mt-1 max-w-2xl">
           {isMicrofinishSample
             ? "Directional public signals and the internal data required to validate revenue, margin, working capital, and productivity."
-            : "Headline metrics vs. board-approved targets, with working-capital and win-rate views. Status is derived from each metric's gap to target."}
+            : "Headline commercial and operating metrics plus standards, audit evidence, supplier, prequalification, source traceability, and approval workflow readiness indicators."}
         </p>
       </div>
 
@@ -119,7 +119,9 @@ export default async function CockpitPage({
         <CardHeader>
           <CardTitle className="text-base">All headline metrics</CardTitle>
           <CardDescription>
-            Each metric shows actual vs. board-approved target with a status flag.
+            Each metric shows an evidence-backed value or sample readiness
+            status against its target. Readiness does not imply certification
+            or approval.
           </CardDescription>
         </CardHeader>
         <CardContent>

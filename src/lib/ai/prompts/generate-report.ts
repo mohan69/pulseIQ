@@ -12,7 +12,11 @@ ${factsPromptJson(ctx, 50)}
 
 Return a cautious executive summary and data gaps. Do not invent unavailable
 evidence. State when the assessment uses public-domain sources and distinguish
-verified findings from assumptions.
+verified findings from assumptions. Cover compliance and standards readiness,
+vendor/supplier ecosystem readiness, and AI governance readiness. Use readiness,
+gap review, mapping, evidence status, and documentation readiness language.
+Never claim certification, statutory approval, regulatory approval, or customer
+approval.
 
 ${strictJsonContract(
   '{"executiveSummary":"string","dataGaps":["string"],"confidence":"high|medium|low"}',

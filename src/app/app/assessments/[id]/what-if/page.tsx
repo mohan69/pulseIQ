@@ -46,6 +46,35 @@ export default async function WhatIfPage({
         </p>
       </div>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">
+            Readiness checks across every scenario
+          </CardTitle>
+          <CardDescription>
+            Commercial or operating changes should also be tested against
+            documentation, ecosystem, and trusted-agent controls.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-2 md:grid-cols-2">
+          {[
+            "ISO and customer technical standards mapping impact",
+            "Statutory document and audit evidence impact",
+            "Supplier qualification, subcontractor, and vendor registration impact",
+            "Customer prequalification documentation impact",
+            "Source traceability and approval workflow impact",
+            "Human validation before any AI-assisted irreversible action",
+          ].map((check) => (
+            <div
+              key={check}
+              className="rounded-lg border border-border-subtle bg-background-alt px-3 py-2 text-sm text-foreground-secondary"
+            >
+              {check}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
       <div className="space-y-4">
         {scenarios.map((s) => (
           <Card key={s.key}>

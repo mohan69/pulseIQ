@@ -81,11 +81,11 @@ export function AppSidebar() {
         <div className="text-[11px] text-muted leading-relaxed">
           {isGrowthIntelligence
             ? "PulseIQ Workbench"
-            : "Workbench MVP · internal admin only."}
+            : "RightSense diagnostic · powered by PulseIQ."}
           <br />
           {isGrowthIntelligence
             ? "Secure enterprise intelligence workspace"
-            : "Read-only by design."}
+            : "Readiness gaps, evidence, and human review."}
         </div>
       </div>
     </aside>

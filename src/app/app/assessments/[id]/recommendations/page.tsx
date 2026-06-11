@@ -79,8 +79,10 @@ export default async function RecommendationsPage({
         </div>
         <p className="text-sm text-muted mt-1 max-w-2xl">
           Ranked by priority, business impact, and confidence. Each item lists
-          its owner, timeframe, and the evidence that supports it. Designed to
-          be sliced directly into the management review.
+          its owner, timeframe, and supporting evidence, including ISO and
+          technical standards mapping, statutory documentation, supplier
+          qualification, customer prequalification, source traceability, and
+          AI approval workflow gaps.
         </p>
       </div>
 

@@ -15,21 +15,29 @@ const LAYER_DEFS: Record<
   { title: string; description: string; factKinds: ReadonlyArray<string> }
 > = {
   financial: {
-    title: "Official Financial Truth",
+    title: "Financial Truth",
     description:
       "P&L, balance sheet, working capital, and unit economics reconciled across entities, plants, and SKUs.",
     factKinds: ["revenue", "cost", "margin", "cash", "receivables", "payables"],
   },
   strategic: {
-    title: "Strategic Management Intent",
+    title: "Proposal and Revenue Truth",
     description:
-      "Board decks, annual plans, OKRs, and capital allocation translated into the metrics they actually imply.",
-    factKinds: ["target", "commitment", "action_item", "opportunity"],
+      "Revenue ambition, pipeline, proposals, customer prequalification, and commercial commitments reconciled to supporting evidence.",
+    factKinds: [
+      "target",
+      "commitment",
+      "action_item",
+      "opportunity",
+      "pipeline",
+      "orders",
+      "customer",
+    ],
   },
   operational: {
-    title: "Operational Reality",
+    title: "Operational, Vendor, and Capacity Truth",
     description:
-      "Production, quality, logistics, downtime, and OEE captured from MES, IoT, and shop-floor systems.",
+      "Production, quality, logistics, supplier qualification, subcontractor governance, talent, capacity, downtime, and OEE.",
     factKinds: [
       "headcount",
       "orders",
@@ -41,15 +49,15 @@ const LAYER_DEFS: Record<
     ],
   },
   process: {
-    title: "Process and SOP Truth",
+    title: "Compliance and Standards Truth",
     description:
-      "Documented processes reconciled with how work actually moves through the business — and the deviations that matter.",
+      "ISO and technical standards mapping, statutory documents, audit evidence, SOP controls, and documentation readiness.",
     factKinds: ["sop_rule", "risk"],
   },
   collaboration: {
-    title: "Collaboration Truth",
+    title: "AI Governance and Accountability Truth",
     description:
-      "Decisions, ownership, and accountability surfaced from email, meetings, and shared drives.",
+      "Human validation, source traceability, prompt and output review, approvals, policy controls, access, and audit trails.",
     factKinds: [],
   },
 };
@@ -119,14 +127,20 @@ function defaultGaps(key: TruthLayerKey): string[] {
     case "financial":
       return ["No financial source registered yet."];
     case "strategic":
-      return ["No board deck or strategy plan registered yet."];
+      return [
+        "No proposal register, customer prequalification pack, or revenue plan registered yet.",
+      ];
     case "operational":
-      return ["No operations report or production data registered yet."];
+      return [
+        "No operations, supplier qualification, subcontractor, or capacity evidence registered yet.",
+      ];
     case "process":
-      return ["No SOP or process document registered yet."];
+      return [
+        "No ISO readiness register, statutory document index, standards mapping, or audit evidence register provided yet.",
+      ];
     case "collaboration":
       return [
-        "No email or meeting sources registered yet — collaboration layer is intentionally the gap to fill.",
+        "No AI validation policy, approval workflow, source traceability control, or audit trail evidence provided yet.",
       ];
   }
 }

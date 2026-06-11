@@ -43,7 +43,10 @@ export default async function SourcesPage({
           <p className="text-sm text-muted mt-1 max-w-2xl">
             Every document, export, or summary the workbench is allowed to read.
             Each fact in the UI traces back to a source and a confidence level.
-            Email and meeting sources are optional and only ever summarised.
+            Include operating exports, ISO and technical standards mappings,
+            statutory documents, audit evidence, supplier qualification,
+            customer prequalification, and AI governance controls where
+            relevant.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -75,8 +78,9 @@ export default async function SourcesPage({
           </h3>
           <p className="text-sm text-muted max-w-md mx-auto">
             Add your first source to start building the truth map. Typical
-            starting set: FY25 audited financials, board strategy deck, and
-            the SOP for quote approval.
+            starting set: financials, strategy and proposal data, operating
+            exports, ISO/standards evidence register, statutory document index,
+            supplier qualification tracker, and AI governance policy.
           </p>
         </Card>
       ) : (
@@ -200,7 +204,9 @@ export default async function SourcesPage({
         <CardContent className="grid md:grid-cols-2 gap-3 text-sm">
           {[
             "Every fact traces to a source with a confidence level.",
+            "Readiness gaps remain explicit when ISO, statutory, supplier, or customer prequalification evidence is missing.",
             "Source content is read-only — never modified by the workbench.",
+            "AI-generated outputs require human validation, approval history, and an auditable source reference.",
             "Email and meeting sources are optional, summarised only, never republished verbatim.",
             "Failed parses are flagged so the team can re-upload or escalate.",
           ].map((line) => (

@@ -6,6 +6,7 @@ import type {
   Report,
   Scenario,
 } from "./types";
+import { DIAGNOSTIC_DISCLAIMER } from "@/lib/diagnostic-positioning";
 
 export const MICROFINISH_PUBLIC_DOMAIN_NAME =
   "Microfinish Public-Domain Sample Diagnostic";
@@ -77,7 +78,7 @@ export function presentReport(
   if (!report || !isMicrofinishPublicDomain(assessment)) return report;
   return {
     ...report,
-    executiveSummary: `${MICROFINISH_DISCLAIMER} The sample synthesises ${report.sourceCount} public-domain sources into directional operating hypotheses, validation priorities, and a practical internal data request.`,
+    executiveSummary: `${MICROFINISH_DISCLAIMER} The sample synthesises ${report.sourceCount} public-domain sources into directional operating hypotheses, compliance and standards readiness gaps, supplier and prequalification evidence needs, AI governance controls, validation priorities, and a practical internal data request. ${DIAGNOSTIC_DISCLAIMER}`,
     cockpit: presentCockpit(assessment, report.cockpit),
     scenarios: presentScenarios(assessment, report.scenarios),
     recommendations: presentRecommendations(
@@ -161,13 +162,13 @@ const MICROFINISH_SCENARIOS: Scenario[] = [
     key: "cost_minus_10",
     label: "Quote and proposal cycle-time reduction by 20%",
     description:
-      "Improve proposal velocity while protecting technical, certification, and compliance quality.",
+      "Improve proposal velocity while protecting technical standards, documentation, and compliance review quality.",
     currentBaseline: "Cycle time, revision count, and win/loss data are not available.",
     target: "Illustrative 20% cycle-time reduction after baseline measurement.",
     options: [
       "Create a quote and proposal register",
       "Track revisions, approvals, and compliance effort",
-      "Standardise reusable technical and certification content",
+      "Standardise reusable technical standards and readiness evidence content",
     ],
     pros: ["Can improve responsiveness", "Creates process evidence quickly"],
     shortfalls: ["Requires timestamped quote and proposal records"],
@@ -258,39 +259,39 @@ const recommendationInputs = [
     45,
   ],
   [
-    "Map the severe-service and pharma/API opportunity pipeline",
-    "Create a qualified pipeline view for severe-service/refining and pharma/API opportunities, including stage, value, probability, and next action.",
-    "Clarifies growth focus and resource allocation.",
-    "Sales leadership",
-    30,
+    "Run a 48-hour internal diagnostic using read-only exports",
+    "Use approved read-only financial, commercial, working-capital, proposal, standards, supplier, and governance evidence to replace public assumptions with internal validation.",
+    "Accelerates a higher-confidence diagnostic without system integration.",
+    "Assessment sponsor",
+    2,
   ],
   [
-    "Review proposal compliance and certification effort",
-    "Measure documentation, certification, technical review, and revision effort by proposal type.",
-    "Reduces avoidable proposal effort while protecting quality.",
+    "Create ISO and customer standards readiness evidence register",
+    "Map applicable ISO and customer-specific technical standards to evidence status, ownership, gaps, and review dates.",
+    "Improves documentation readiness and proposal evidence visibility.",
     "Engineering and quality leadership",
     45,
   ],
   [
-    "Identify distributor and export channel indicators",
-    "Track revenue, pipeline, conversion, margin, responsiveness, and concentration by distributor and export market.",
-    "Improves channel performance visibility.",
-    "International sales leadership",
+    "Build supplier qualification and vendor registration tracker",
+    "Track supplier qualification, onboarding documentation, exceptions, and review dates alongside partner ecosystem signals.",
+    "Improves vendor readiness and ecosystem visibility.",
+    "Procurement and quality leadership",
     45,
   ],
   [
-    "Build a 90-day leadership cockpit",
-    "Create a concise weekly cockpit for validated revenue, margin, cash, pipeline, proposal velocity, and execution measures.",
-    "Creates a shared leadership operating cadence.",
-    "Leadership team",
+    "Introduce AI output validation and human approval workflow",
+    "Require source traceability, prompt/output review, approval history, and no autonomous irreversible action.",
+    "Strengthens AI governance and trusted-agent readiness.",
+    "Technology and risk leadership",
     30,
   ],
   [
-    "Run a 48-hour internal diagnostic using read-only exports",
-    "Use approved read-only financial, commercial, working-capital, and proposal exports to replace public assumptions with internal evidence.",
-    "Accelerates a higher-confidence diagnostic without system integration.",
-    "Assessment sponsor",
-    2,
+    "Create statutory document and audit evidence dashboard",
+    "Index statutory documents and audit evidence with owner, validity, evidence status, gap, and next review date.",
+    "Improves documentation readiness without implying formal approval.",
+    "Company secretary and compliance leadership",
+    45,
   ],
 ] as const;
 

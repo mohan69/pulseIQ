@@ -59,11 +59,12 @@ export const demoSources: Source[] = [
   {
     id: "src-sop-quote-approval",
     assessmentId: demoAssessment.id,
-    name: "SOP — Quote Approval Authority",
+    name: "SOP & Readiness Evidence Register — Sample",
     type: "sop",
     status: "parsed",
     confidence: "high",
-    notes: "Approval matrix for quotes above ₹50L.",
+    notes:
+      "Sample quote approval matrix plus an initial gap review for ISO readiness, technical standards mapping, statutory documents, vendor onboarding, and AI output approvals.",
     createdAt: ago(48),
     pageCount: 4,
   },
@@ -388,7 +389,7 @@ export const demoFacts: ExtractedFact[] = [
 export const demoTruthLayers: TruthLayer[] = [
   {
     key: "financial",
-    title: "Official Financial Truth",
+    title: "Financial Truth",
     description:
       "P&L, balance sheet, working capital, and unit economics reconciled across entities, plants, and SKUs.",
     confidence: "high",
@@ -443,9 +444,9 @@ export const demoTruthLayers: TruthLayer[] = [
   },
   {
     key: "strategic",
-    title: "Strategic Management Intent",
+    title: "Proposal and Revenue Truth",
     description:
-      "Board decks, annual plans, OKRs, and capital allocation translated into the metrics they actually imply.",
+      "Revenue ambition, pipeline, proposal controls, customer prequalification readiness, and commercial commitments reconciled to evidence.",
     confidence: "high",
     evidence: [
       {
@@ -478,9 +479,16 @@ export const demoTruthLayers: TruthLayer[] = [
         impact: "medium",
         factIds: ["fact-commitment"],
       },
+      {
+        id: "fnd-str-4",
+        text: "Customer prequalification and technical standards evidence is not linked to the proposal workflow in the current source set.",
+        impact: "high",
+        factIds: ["fact-winrate-actual", "fact-sop-violation"],
+      },
     ],
     gaps: [
-      "Mid-quarter management review not included in the source set.",
+      "Customer prequalification pack and vendor registration status are not included in the source set.",
+      "API / ASME / ANSI / IEC / ISA and customer-specific requirements are not mapped to proposal checkpoints.",
     ],
     contradictions: [
       "Strategy growth target implies pricing/mix changes not visible in current pipeline mix.",
@@ -488,9 +496,9 @@ export const demoTruthLayers: TruthLayer[] = [
   },
   {
     key: "operational",
-    title: "Operational Reality",
+    title: "Operational, Vendor, and Capacity Truth",
     description:
-      "Production, quality, logistics, downtime, and OEE captured from MES, IoT, and shop-floor systems.",
+      "Production, quality, logistics, supplier qualification, subcontractor governance, talent, capacity, downtime, and OEE.",
     confidence: "medium",
     evidence: [
       {
@@ -523,17 +531,25 @@ export const demoTruthLayers: TruthLayer[] = [
         impact: "high",
         factIds: ["fact-delayed-proposals"],
       },
+      {
+        id: "fnd-ops-4",
+        text: "Supplier cost escalations are visible, but qualification status, onboarding documents, and subcontractor governance evidence are not.",
+        impact: "high",
+        factIds: ["fact-supplier-risk"],
+      },
     ],
     gaps: [
       "OEE and downtime data not in current source set — would need MES export.",
+      "Supplier qualification, vendor registration, and subcontractor governance tracker not provided.",
+      "Role capacity and critical-skill coverage are not mapped to delivery demand.",
     ],
     contradictions: [],
   },
   {
     key: "process",
-    title: "Process and SOP Truth",
+    title: "Compliance and Standards Truth",
     description:
-      "Documented processes reconciled with how work actually moves through the business — and the deviations that matter.",
+      "ISO and technical standards mapping, statutory documents, audit evidence, SOP controls, and documentation readiness.",
     confidence: "medium",
     evidence: [
       {
@@ -551,13 +567,21 @@ export const demoTruthLayers: TruthLayer[] = [
       },
       {
         id: "fnd-pro-2",
-        text: "2 suppliers with >8% QoQ cost increase — procurement process lacks a cost-movement control.",
-        impact: "medium",
-        factIds: ["fact-supplier-risk"],
+        text: "The sample evidence register has no complete mapping for ISO 9001, ISO 14001, ISO 45001, ISO/IEC 27001, ISO/IEC 42001, or ISO 50001 applicability.",
+        impact: "high",
+        factIds: ["fact-sop-violation"],
+      },
+      {
+        id: "fnd-pro-3",
+        text: "Statutory document status, audit evidence ownership, and customer technical standards mapping are not controlled in one readiness register.",
+        impact: "high",
+        factIds: ["fact-sop-violation"],
       },
     ],
     gaps: [
-      "End-to-end process map for proposal → production → delivery not in source set.",
+      "ISO readiness evidence register requires owner, evidence status, gap, and next-review fields.",
+      "API / ASME / ANSI / IEC / ISA and customer-specific standards mapping is incomplete.",
+      "Statutory document and audit evidence dashboard not provided.",
     ],
     contradictions: [
       "SOP says quotes >₹50L need approval; ERP log shows this is being bypassed.",
@@ -565,15 +589,16 @@ export const demoTruthLayers: TruthLayer[] = [
   },
   {
     key: "collaboration",
-    title: "Collaboration Truth",
+    title: "AI Governance and Accountability Truth",
     description:
-      "Decisions, ownership, and accountability surfaced from email, meetings, and shared drives.",
+      "Human validation, source traceability, prompt/output review, approvals, policy controls, role-based access, and audit trails.",
     confidence: "low",
     evidence: [],
     findings: [],
     gaps: [
-      "No email or meeting sources registered for this assessment.",
-      "Board action items (B-26-04 and others) lack a clear owner in the source set.",
+      "No documented human-in-the-loop validation workflow for AI-generated findings.",
+      "Prompt/output review, source traceability, approval history, and audit trail evidence are incomplete.",
+      "No autonomous irreversible action is permitted, but the policy control and exception process are not documented.",
     ],
     contradictions: [],
   },
@@ -653,6 +678,76 @@ export const demoCockpit: Cockpit = {
       status: "off_track",
       note: "Q3 win rate 24% vs 31% required to hit FY26 plan.",
     },
+    {
+      key: "standards_readiness_gaps",
+      label: "Standards readiness gaps",
+      value: 7,
+      target: 0,
+      unit: "count",
+      status: "off_track",
+      note:
+        "Sample gap review: ISO and customer technical standards mappings need evidence owners and closure dates.",
+    },
+    {
+      key: "audit_evidence_completeness",
+      label: "Audit evidence completeness",
+      value: 42,
+      target: 100,
+      unit: "%",
+      status: "off_track",
+      note:
+        "Sample evidence-status indicator based on the demo readiness register; not an audit opinion.",
+    },
+    {
+      key: "vendor_qualification_gaps",
+      label: "Vendor qualification gaps",
+      value: 5,
+      target: 0,
+      unit: "count",
+      status: "off_track",
+      note:
+        "Sample gaps across supplier qualification, onboarding documents, and subcontractor governance.",
+    },
+    {
+      key: "customer_prequalification_readiness",
+      label: "Customer prequalification readiness",
+      value: 48,
+      target: 100,
+      unit: "%",
+      status: "off_track",
+      note:
+        "Sample documentation readiness coverage; this does not represent customer approval.",
+    },
+    {
+      key: "ai_output_validation_coverage",
+      label: "AI output validation coverage",
+      value: 35,
+      target: 100,
+      unit: "%",
+      status: "off_track",
+      note:
+        "Sample coverage of human review checkpoints for AI-generated findings and recommendations.",
+    },
+    {
+      key: "source_traceability_coverage",
+      label: "Source traceability coverage",
+      value: 70,
+      target: 100,
+      unit: "%",
+      status: "at_risk",
+      note:
+        "Sample share of displayed findings linked to a source and evidence reference.",
+    },
+    {
+      key: "approval_workflow_coverage",
+      label: "Approval workflow coverage",
+      value: 40,
+      target: 100,
+      unit: "%",
+      status: "off_track",
+      note:
+        "Sample coverage for review, approval, exception handling, and audit trail checkpoints.",
+    },
   ],
   topRisks: [
     {
@@ -678,8 +773,9 @@ export const demoCockpit: Cockpit = {
     },
     {
       id: "risk-sop",
-      title: "Quote approval SOP bypass",
-      description: "7 quotes >₹50L in Q3 went out without required sign-off — margin and governance risk.",
+      title: "Standards and approval evidence gaps",
+      description:
+        "Quote approvals, ISO readiness evidence, customer standards mapping, and AI output review are not controlled in one auditable workflow.",
       likelihood: "high",
       impact: "medium",
     },
@@ -917,28 +1013,29 @@ export const demoRecommendations: Recommendation[] = [
   {
     id: "rec-4",
     rank: 4,
-    title: "Re-tender the 2 escalated suppliers",
+    title: "Create ISO and customer standards readiness evidence register",
     description:
-      "Run a competitive tender for the 2 suppliers flagged with >8% QoQ cost increase; include 1 alternate per category.",
+      "Map applicable ISO 9001, ISO 14001, ISO 45001, ISO/IEC 27001, ISO/IEC 42001, ISO 50001, and customer requirements to evidence owners, status, gaps, and review dates.",
     priority: "P1",
-    businessImpact: "₹0.6 – ₹1.0 Cr margin protection in FY26",
+    businessImpact: "Documentation readiness and audit evidence visibility.",
     effort: "medium",
-    timeframeDays: 120,
-    ownerRole: "Head of Procurement",
-    evidence: "AP variance report Q3: 2 suppliers flagged (BHF-SUP-014, BHF-SUP-021).",
+    timeframeDays: 45,
+    ownerRole: "Quality Head + Compliance Lead",
+    evidence:
+      "Sample readiness register lacks complete standards applicability, evidence status, and ownership mapping.",
     confidence: "medium",
   },
   {
     id: "rec-5",
     rank: 5,
-    title: "Enforce quote approval SOP for >₹50L deals",
+    title: "Map customer technical standards to proposal and delivery workflows",
     description:
-      "Block ERP from releasing quotes >₹50L without the approval matrix sign-off. Audit monthly.",
+      "Create controlled checkpoints for API, ASME, ANSI, IEC, ISA, and customer-specific requirements from bid review through delivery evidence.",
     priority: "P1",
-    businessImpact: "Margin protection on high-value deals; governance control.",
+    businessImpact: "Lower proposal rework and stronger technical evidence readiness.",
     effort: "low",
     timeframeDays: 30,
-    ownerRole: "CIO + CFO",
+    ownerRole: "Engineering Head + Proposal Head",
     evidence: "SOP §3.2 + ERP audit log: 7 quotes >₹50L without sign-off in Q3.",
     confidence: "high",
   },
@@ -959,57 +1056,61 @@ export const demoRecommendations: Recommendation[] = [
   {
     id: "rec-7",
     rank: 7,
-    title: "Inventory rationalisation on slow movers",
+    title: "Build supplier qualification and subcontractor governance tracker",
     description:
-      "Identify the top 20 slow-moving SKUs and run a sell-through plan over 90 days; write off the bottom 5.",
+      "Track qualification status, onboarding documents, performance evidence, exceptions, and review dates for suppliers and subcontractors.",
     priority: "P2",
-    businessImpact: "₹3 – ₹4 Cr working capital release",
+    businessImpact: "Vendor onboarding readiness and supply-chain risk visibility.",
     effort: "medium",
     timeframeDays: 90,
-    ownerRole: "COO + Plant Head",
-    evidence: "Inventory GL 31-Dec-2025 = ₹22 Cr; ageing not in current source set — to be confirmed.",
+    ownerRole: "Procurement Head + Quality Head",
+    evidence:
+      "Supplier cost movements are visible, but qualification, onboarding, and subcontractor governance evidence is missing.",
     confidence: "low",
   },
   {
     id: "rec-8",
     rank: 8,
-    title: "Reprice top 5 customer contracts where contracts permit",
+    title: "Introduce AI output validation and human approval workflow",
     description:
-      "Open a structured repricing conversation with the top 5 customers, anchored to value delivered, not just price.",
+      "Require source-linked review of prompts, outputs, exceptions, and recommendations before any management action; prohibit autonomous irreversible action.",
     priority: "P2",
-    businessImpact: "₹0.8 – ₹1.2 Cr margin uplift",
+    businessImpact: "Trusted-agent readiness, accountability, and audit trail coverage.",
     effort: "high",
     timeframeDays: 120,
-    ownerRole: "CRO + KAM Lead",
-    evidence: "Top 5 customers = 62% of revenue (FY25 audit schedule).",
+    ownerRole: "CIO + Risk / Compliance",
+    evidence:
+      "No complete human validation, prompt/output review, or approval history is present in the sample evidence set.",
     confidence: "medium",
   },
   {
     id: "rec-9",
     rank: 9,
-    title: "Stand up a board action-item tracker",
+    title: "Create statutory document and audit evidence dashboard",
     description:
-      "Replace the board deck's action-item table with a live tracker, owned by the company secretary.",
+      "Index required statutory documents and audit evidence with owner, validity, evidence status, gap, and next review date.",
     priority: "P3",
-    businessImpact: "Governance and execution visibility.",
+    businessImpact: "Documentation readiness and management visibility.",
     effort: "low",
     timeframeDays: 30,
-    ownerRole: "Company Secretary",
-    evidence: "Board action item B-26-04 lacks a clear owner in current source set.",
+    ownerRole: "Company Secretary + Compliance Lead",
+    evidence:
+      "Statutory document status and audit evidence ownership are not available in one controlled view.",
     confidence: "high",
   },
   {
     id: "rec-10",
     rank: 10,
-    title: "Bring OEE and downtime data into the next diagnostic",
+    title: "Standardize vendor registration and customer prequalification documentation",
     description:
-      "Pull MES export for the next 48-hour sprint so plant-level operating reality is fully visible.",
+      "Create reusable, version-controlled packs for vendor registration and customer prequalification, linked to proposal and onboarding workflows.",
     priority: "P3",
-    businessImpact: "Better operating diagnostic in next cycle.",
+    businessImpact: "Faster documentation response and fewer onboarding gaps.",
     effort: "low",
     timeframeDays: 7,
-    ownerRole: "CIO + Plant Head",
-    evidence: "OEE and downtime data is missing from the current source set.",
+    ownerRole: "Commercial Operations + Procurement",
+    evidence:
+      "Customer prequalification and vendor registration documentation is not included in the current source set.",
     confidence: "high",
   },
 ];
@@ -1021,7 +1122,7 @@ export const demoPlan: ActionPhase[] = [
     title: "Stabilise and stop the bleed",
     description: "Run the quick wins that protect cash and close the most exposed deals.",
     deliverables: [
-      "Enforce quote approval SOP for >₹50L (rec 5)",
+      "Create standards and customer requirements mapping (recs 4–5)",
       "Open 4 delayed-proposal fast-track reviews (rec 6)",
       "Kick off AR collection drive with 1% early-payment discount (rec 3)",
     ],
@@ -1034,7 +1135,7 @@ export const demoPlan: ActionPhase[] = [
     deliverables: [
       "Exit 3 lowest-margin SKUs with customer communications (rec 2)",
       "Run proposal win-rate programme: go/no-go, technical pre-bid, pricing discipline (rec 1)",
-      "Re-tender 2 escalated suppliers (rec 4)",
+      "Launch supplier qualification and subcontractor governance tracker (rec 7)",
     ],
   },
   {
@@ -1043,9 +1144,9 @@ export const demoPlan: ActionPhase[] = [
     title: "Reprice and restructure",
     description: "Open the harder commercial conversations supported by the new data.",
     deliverables: [
-      "Reprice top 5 customer contracts where contracts permit (rec 8)",
-      "Inventory rationalisation plan for slow movers (rec 7)",
-      "Stand up board action-item tracker (rec 9)",
+      "Introduce AI output validation and human approval workflow (rec 8)",
+      "Create statutory document and audit evidence dashboard (rec 9)",
+      "Standardize vendor registration and customer prequalification packs (rec 10)",
     ],
   },
   {
@@ -1055,7 +1156,7 @@ export const demoPlan: ActionPhase[] = [
     description: "Lock the operating cadence and feed the next 48-hour diagnostic.",
     deliverables: [
       "Board review of progress against FY26 plan",
-      "Pull MES export for next cycle's diagnostic (rec 10)",
+      "Review evidence closure across standards, suppliers, and AI governance",
       "Refresh truth map with Q4 actuals",
     ],
   },

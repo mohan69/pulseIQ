@@ -831,6 +831,58 @@ function deterministicRecommendations(
   cockpit: Cockpit,
 ): Recommendation[] {
   const recs: Omit<Recommendation, "id" | "rank">[] = [
+    {
+      title: "Create ISO and customer standards readiness evidence register",
+      description:
+        "Map applicable ISO and customer technical standards to owners, evidence status, gaps, and review dates.",
+      priority: "P1",
+      businessImpact: "Documentation readiness and evidence visibility.",
+      effort: "medium",
+      timeframeDays: 45,
+      ownerRole: "Quality and compliance leadership",
+      evidence:
+        "Diagnostic scope requires an explicit standards gap review; confirm applicability and evidence from registered sources.",
+      confidence: "low",
+    },
+    {
+      title: "Build supplier qualification and subcontractor governance tracker",
+      description:
+        "Track qualification, onboarding documents, exceptions, performance evidence, and review dates.",
+      priority: "P1",
+      businessImpact: "Vendor readiness and supply-chain risk visibility.",
+      effort: "medium",
+      timeframeDays: 60,
+      ownerRole: "Procurement and quality leadership",
+      evidence:
+        "Supplier and vendor evidence should be validated against the registered source set.",
+      confidence: "low",
+    },
+    {
+      title: "Introduce AI output validation and human approval workflow",
+      description:
+        "Require source-linked prompt/output review, approval history, and exception handling before action; prohibit autonomous irreversible action.",
+      priority: "P1",
+      businessImpact: "AI governance readiness and auditable accountability.",
+      effort: "medium",
+      timeframeDays: 30,
+      ownerRole: "CIO and risk / compliance",
+      evidence:
+        "AI outputs require human validation and source traceability before management use.",
+      confidence: "medium",
+    },
+    {
+      title: "Create statutory document and audit evidence dashboard",
+      description:
+        "Index required documents and evidence with owner, validity, status, gap, and next review date.",
+      priority: "P2",
+      businessImpact: "Statutory documentation and audit evidence readiness.",
+      effort: "medium",
+      timeframeDays: 45,
+      ownerRole: "Company secretary and compliance lead",
+      evidence:
+        "Confirm required statutory and audit evidence from the assessment's registered sources.",
+      confidence: "low",
+    },
     ...cockpit.metrics
       .filter((metricRow) => metricRow.status !== "on_track")
       .slice(0, 4)

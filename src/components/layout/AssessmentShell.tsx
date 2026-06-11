@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useAssessmentStore } from "@/stores/assessment";
 import { StepProgress } from "@/components/layout/StepProgress";
 import { Building2, Users, IndianRupee } from "lucide-react";
+import { DiagnosticScope } from "@/components/workbench/DiagnosticScope";
 
 export function AssessmentShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -31,6 +32,9 @@ export function AssessmentShell({ children }: { children: React.ReactNode }) {
                     <div className="min-w-0">
                       <div className="text-xl font-bold text-white truncate">{assessment.enterpriseProfile.companyName}</div>
                       <div className="text-lg text-white/90">{assessment.enterpriseProfile.industry}</div>
+                      <div className="mt-1 text-xs text-white/70">
+                        RightSense diagnostic powered by PulseIQ
+                      </div>
                     </div>
                   </div>
                   <div className="hidden md:flex items-center gap-5 text-white/90">
@@ -63,7 +67,10 @@ export function AssessmentShell({ children }: { children: React.ReactNode }) {
           <div className="border-t border-border/20"></div>
         </>
       )}
-      <main className="max-w-[1200px] mx-auto px-8 py-8">{children}</main>
+      <main className="max-w-[1200px] mx-auto px-8 py-8">
+        <DiagnosticScope compact />
+        <div className="mt-8">{children}</div>
+      </main>
     </div>
   );
 }

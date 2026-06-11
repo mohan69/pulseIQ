@@ -56,7 +56,9 @@ export default async function AllSourcesPage() {
         <p className="text-sm text-muted mt-1 max-w-2xl">
           Every document, export, and summary registered across every
           assessment. Each row is traceable to its parent assessment, with
-          status, confidence, and notes.
+          status, confidence, and notes. The source register supports financial,
+          operating, proposal, ISO/standards, statutory, supplier,
+          prequalification, and AI governance evidence.
         </p>
       </div>
 
@@ -69,8 +71,9 @@ export default async function AllSourcesPage() {
             No sources yet
           </h3>
           <p className="text-sm text-muted max-w-md mx-auto">
-            Once you attach sources to an assessment, they will be listed here
-            across the whole workbench.
+            Add financial and operating exports alongside compliance registers,
+            standards mappings, vendor qualification trackers, statutory
+            evidence, and AI governance controls.
           </p>
         </Card>
       ) : (

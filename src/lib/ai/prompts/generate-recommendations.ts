@@ -13,6 +13,10 @@ Rules:
 - Return up to 10 ranked recommendations.
 - Each recommendation must cite evidence from the facts.
 - Prioritize actions that move revenue, margin, cash, productivity, governance, or risk.
+- Include evidence-backed actions for compliance/ISO/technical standards mapping,
+  statutory documentation, supplier qualification, customer prequalification,
+  source traceability, and human-approved AI output validation where gaps exist.
+- Use readiness and gap-review language. Never claim certification or approval.
 - Every recommendation requires priority, business impact, owner role,
   timeframe, confidence, and evidence/source reference.
 - Prefix public-domain inferences with "Assumption:" and keep confidence low.

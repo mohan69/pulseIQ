@@ -22,6 +22,11 @@ const PAGE_HINTS: Record<SourceType, number> = {
   hrms_export: 4,
   operations_report: 8,
   proposal_report: 3,
+  compliance_register: 6,
+  standards_mapping: 8,
+  vendor_qualification: 6,
+  statutory_document: 12,
+  ai_governance: 6,
   email_summary: 1,
   meeting_summary: 1,
 };

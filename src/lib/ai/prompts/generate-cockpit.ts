@@ -14,7 +14,10 @@ ${factsPromptJson(ctx)}
 
 Do not invent metric values or targets. Omit a metric when reliable numeric
 evidence is unavailable. Mark public-domain inferences as assumptions in notes
-or descriptions.
+or descriptions. Where evidence supports it, include safe readiness metrics for
+standards gaps, audit evidence completeness, vendor qualification gaps,
+customer prequalification readiness, AI output validation, source traceability,
+or approval workflow coverage. Never claim certification or approval.
 
 ${strictJsonContract(
   '{"metrics":[{"key":"string","label":"string","value":123,"target":123,"unit":"₹|%|₹/employee|count","status":"on_track|at_risk|off_track","note":"string"}],"topRisks":[{"title":"string","description":"string","likelihood":"high|medium|low","impact":"high|medium|low"}],"topOpportunities":[{"title":"string","description":"string","impactInr":123,"timeframeDays":90}]}',

@@ -34,8 +34,9 @@ export default async function AssessmentsListPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Assessments</h1>
           <p className="text-sm text-muted mt-1">
-            Every assessment in the workbench. Open one to see its truth map,
-            cockpit, what-if, recommendations, and report.
+            RightSense diagnostic assessments powered by PulseIQ. Open one to
+            review its sources, truth map, cockpit, readiness gaps, scenarios,
+            recommendations, and report.
           </p>
         </div>
         <Link href="/app/assessments/new">
@@ -55,8 +56,9 @@ export default async function AssessmentsListPage() {
             No assessments yet
           </h3>
           <p className="text-sm text-muted mb-5 max-w-md mx-auto">
-            Start by creating an assessment. You can fill in targets now and
-            attach sources on the next screen.
+            Start a RightSense diagnostic assessment. Capture the commercial
+            targets now, then add operating, compliance, standards, supplier,
+            statutory, prequalification, and AI governance evidence.
           </p>
           <div className="flex items-center justify-center">
             <Link href="/app/assessments/new">

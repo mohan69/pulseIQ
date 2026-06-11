@@ -8,6 +8,11 @@ import {
   ArrowRight,
   Circle,
 } from "lucide-react";
+import {
+  DIAGNOSTIC_DISCLAIMER,
+  DIAGNOSTIC_PILLARS,
+  DIAGNOSTIC_POSITIONING,
+} from "@/lib/diagnostic-positioning";
 
 export default function DemoPage() {
   return (
@@ -19,10 +24,26 @@ export default function DemoPage() {
         <div className="text-center">
           <h1 className="text-4xl font-bold text-foreground mb-4">Guided Demo Scenarios</h1>
           <p className="text-lg text-foreground-secondary max-w-2xl mx-auto">
-            Explore how PulseIQ works for different industries through guided assessments.
-            Select a scenario to see a pre-configured enterprise intelligence assessment.
+            {DIAGNOSTIC_POSITIONING} Select a scenario to see a pre-configured
+            truth map, readiness review, cockpit, and execution plan.
           </p>
         </div>
+
+        <section className="rounded-2xl border border-accent/20 bg-accent-muted/30 p-6">
+          <h2 className="text-lg font-bold text-foreground">
+            Diagnostic pillars
+          </h2>
+          <div className="mt-4 grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+            {DIAGNOSTIC_PILLARS.map((pillar) => (
+              <div
+                key={pillar}
+                className="rounded-lg border border-border-subtle bg-white px-3 py-2 text-sm font-medium text-foreground"
+              >
+                {pillar}
+              </div>
+            ))}
+          </div>
+        </section>
 
         {/* Manufacturing Scenario */}
         <section className="bg-white rounded-2xl border border-border p-8 mb-8 shadow-sm">
@@ -33,8 +54,9 @@ export default function DemoPage() {
             <h2 className="text-2xl font-bold text-foreground">Manufacturing: Bharat Heavy Fabrications</h2>
           </div>
            <p className="text-sm text-muted mb-4">
-             See how PulseIQ identifies AI opportunities in production scheduling, quality inspection, 
-             supply chain, maintenance, and finance for an industrial manufacturing company.
+             See operating, margin, ISO and technical standards, statutory
+             documentation, supplier qualification, customer prequalification,
+             and AI governance readiness for an industrial manufacturer.
            </p>
            <div className="grid md:grid-cols-2 gap-6">
              <div className="space-y-3">
@@ -47,13 +69,13 @@ export default function DemoPage() {
                   <Circle className="h-3 w-3" /> 8 AI transformation opportunities identified
                 </span>
                 <span className="flex items-center gap-2 text-xs font-medium text-accent">
-                  <Circle className="h-3 w-3" /> ₹22-33Cr estimated annual opportunity value
+                  <Circle className="h-3 w-3" /> ISO and customer standards readiness evidence gaps
                 </span>
                 <span className="flex items-center gap-2 text-xs font-medium text-accent">
-                  <Circle className="h-3 w-3" /> Executive cockpit with transformation score
+                  <Circle className="h-3 w-3" /> Supplier qualification and statutory evidence status
                 </span>
                 <span className="flex items-center gap-2 text-xs font-medium text-accent">
-                  <Circle className="h-3 w-3" /> 90-day execution roadmap with owners and KPIs
+                  <Circle className="h-3 w-3" /> Human-approved AI governance and 30/60/90 plan
                 </span>
               </div>
             </div>
@@ -92,8 +114,9 @@ export default function DemoPage() {
             <h2 className="text-2xl font-bold text-foreground">EPC: Apex EPC Infrastructure</h2>
           </div>
            <p className="text-sm text-muted mb-4">
-             Discover how PulseIQ transforms proposal response, project cost control, vendor management, 
-             and compliance tracking for an engineering, procurement, and construction company.
+             Review proposal response, project cost control, vendor and
+             subcontractor governance, customer prequalification, technical
+             standards mapping, and compliance evidence readiness.
            </p>
            <div className="grid md:grid-cols-2 gap-6">
              <div className="space-y-3">
@@ -106,13 +129,13 @@ export default function DemoPage() {
                   <Circle className="h-3 w-3" /> 5 AI transformation opportunities identified
                 </span>
                 <span className="flex items-center gap-2 text-xs font-medium text-accent">
-                  <Circle className="h-3 w-3" /> ₹55-80Cr estimated annual opportunity value
+                  <Circle className="h-3 w-3" /> API / ASME / ANSI / IEC / ISA mapping gaps
                 </span>
                 <span className="flex items-center gap-2 text-xs font-medium text-accent">
-                  <Circle className="h-3 w-3" /> Executive cockpit with transformation score
+                  <Circle className="h-3 w-3" /> Vendor registration and subcontractor governance readiness
                 </span>
                 <span className="flex items-center gap-2 text-xs font-medium text-accent">
-                  <Circle className="h-3 w-3" /> 90-day execution roadmap with owners and KPIs
+                  <Circle className="h-3 w-3" /> Customer prequalification and audit evidence plan
                 </span>
               </div>
             </div>
@@ -151,8 +174,9 @@ export default function DemoPage() {
             <h2 className="text-2xl font-bold text-foreground">Financial Services: Meridian Finance & Operations</h2>
           </div>
            <p className="text-sm text-muted mb-4">
-             Explore how PulseIQ automates month-end close, compliance reporting, establishes a single source of truth, 
-             and provides real-time MIS dashboards for a financial services company.
+             Explore month-end close, compliance reporting, statutory document
+             readiness, audit trail coverage, source traceability, and
+             human-approved AI output validation.
            </p>
            <div className="grid md:grid-cols-2 gap-6">
              <div className="space-y-3">
@@ -165,13 +189,13 @@ export default function DemoPage() {
                   <Circle className="h-3 w-3" /> 6 AI transformation opportunities identified
                 </span>
                 <span className="flex items-center gap-2 text-xs font-medium text-accent">
-                  <Circle className="h-3 w-3" /> ₹25-35Cr estimated annual opportunity value
+                  <Circle className="h-3 w-3" /> Statutory document and audit evidence gaps
                 </span>
                 <span className="flex items-center gap-2 text-xs font-medium text-accent">
-                  <Circle className="h-3 w-3" /> Executive cockpit with transformation score
+                  <Circle className="h-3 w-3" /> Source traceability and approval workflow coverage
                 </span>
                 <span className="flex items-center gap-2 text-xs font-medium text-accent">
-                  <Circle className="h-3 w-3" /> 90-day execution roadmap with owners and KPIs
+                  <Circle className="h-3 w-3" /> AI governance controls and 30/60/90 plan
                 </span>
               </div>
             </div>
@@ -210,8 +234,9 @@ export default function DemoPage() {
             <h2 className="text-2xl font-bold text-foreground">Recruitment: CareerAxis Talent Solutions</h2>
           </div>
           <p className="text-sm text-muted mb-4">
-            See how PulseIQ transforms resume screening, candidate engagement, client reporting, 
-            placement tracking, and revenue forecasting for a recruitment and talent services company.
+            See talent and capacity truth, client prequalification
+            documentation, partner readiness, source traceability, role-based
+            controls, and human validation for AI-assisted workflows.
           </p>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-3">
@@ -224,13 +249,13 @@ export default function DemoPage() {
                   <Circle className="h-3 w-3" /> 5 AI transformation opportunities identified
                 </span>
                 <span className="flex items-center gap-2 text-xs font-medium text-accent">
-                  <Circle className="h-3 w-3" /> ₹18-25Cr estimated annual opportunity value
+                  <Circle className="h-3 w-3" /> Talent/capacity and client documentation readiness
                 </span>
                 <span className="flex items-center gap-2 text-xs font-medium text-accent">
-                  <Circle className="h-3 w-3" /> Executive cockpit with transformation score
+                  <Circle className="h-3 w-3" /> Prompt/output review and approval workflow coverage
                 </span>
                 <span className="flex items-center gap-2 text-xs font-medium text-accent">
-                  <Circle className="h-3 w-3" /> 90-day execution roadmap with owners and KPIs
+                  <Circle className="h-3 w-3" /> Human-in-the-loop AI governance and audit trail plan
                 </span>
               </div>
             </div>
@@ -265,7 +290,11 @@ export default function DemoPage() {
           <h2 className="text-3xl font-bold text-foreground mb-6">Ready for Your Own Assessment?</h2>
           <p className="text-lg text-foreground-secondary max-w-3xl mx-auto mb-8">
             These demos show how PulseIQ works for specific industries. 
-            For a custom assessment of your enterprise, explore the dashboard or book a live demo.
+            RightSense owns and delivers the diagnostic; PulseIQ powers the
+            evidence-backed app experience.
+          </p>
+          <p className="text-sm text-muted max-w-4xl mx-auto mb-8">
+            {DIAGNOSTIC_DISCLAIMER}
           </p>
           <div className="flex flex-col sm:flex-row sm:justify-center gap-4">
             <Link href="/dashboard">

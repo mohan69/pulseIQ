@@ -72,6 +72,11 @@ const SourceTypeSchema = z.enum([
   "hrms_export",
   "operations_report",
   "proposal_report",
+  "compliance_register",
+  "standards_mapping",
+  "vendor_qualification",
+  "statutory_document",
+  "ai_governance",
   "email_summary",
   "meeting_summary",
 ]);

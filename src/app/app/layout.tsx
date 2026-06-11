@@ -6,8 +6,9 @@ import { AppSearchHint } from "@/components/layout/AppSearchHint";
 import { Bell, User } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Workbench | PulseIQ",
-  description: "PulseIQ Assessment Workbench — internal admin console.",
+  title: "RightSense Diagnostic Workbench | PulseIQ",
+  description:
+    "PulseIQ powers the RightSense 48-Hour Enterprise Intelligence, Compliance & Standards Diagnostic.",
   robots: { index: false, follow: false },
 };
 

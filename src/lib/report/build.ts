@@ -11,6 +11,10 @@ import type {
   Source,
   TruthLayer,
 } from "@/lib/assessment/types";
+import {
+  DIAGNOSTIC_DISCLAIMER,
+  DIAGNOSTIC_POSITIONING,
+} from "@/lib/diagnostic-positioning";
 
 export function buildReport(input: {
   assessment: Assessment;
@@ -69,5 +73,5 @@ function buildExecutiveSummary(
       : atRisk > 0
         ? `${atRisk} metric${atRisk === 1 ? "" : "s"} at risk`
         : "operating broadly on plan";
-  return `Assessment of ${assessment.companyName} synthesised from ${sources.length} source${sources.length === 1 ? "" : "s"} and ${facts.length} extracted fact${facts.length === 1 ? "" : "s"}. Current operating posture: ${headline}.`;
+  return `${DIAGNOSTIC_POSITIONING} Assessment of ${assessment.companyName} synthesised from ${sources.length} source${sources.length === 1 ? "" : "s"} and ${facts.length} extracted fact${facts.length === 1 ? "" : "s"}. Current operating posture: ${headline}. The scope includes compliance and standards readiness, vendor/supplier ecosystem readiness, statutory and customer prequalification documentation readiness, and AI governance readiness. ${DIAGNOSTIC_DISCLAIMER}`;
 }

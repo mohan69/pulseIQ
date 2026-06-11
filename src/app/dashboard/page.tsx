@@ -14,7 +14,13 @@ import {
   Zap,
   AlertTriangle,
   BarChart3,
+  ShieldCheck,
+  FileCheck2,
 } from "lucide-react";
+import {
+  DIAGNOSTIC_PILLARS,
+  DIAGNOSTIC_POSITIONING,
+} from "@/lib/diagnostic-positioning";
 
 export default function DashboardPage() {
   const assessments = useAssessmentStore((s) => s.assessments);
@@ -30,7 +36,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex flex-col">
               <span className="text-xl font-bold text-foreground leading-tight">PulseIQ</span>
-              <span className="text-[11px] text-muted leading-none">Enterprise Intelligence</span>
+              <span className="text-[11px] text-muted leading-none">RightSense diagnostic engine</span>
             </div>
           </Link>
           <div className="flex items-center gap-2">
@@ -49,9 +55,10 @@ export default function DashboardPage() {
          <section className="dark-grid-banner relative overflow-hidden">
            <div className="hero-glow absolute inset-0" />
            <div className="max-w-[1200px] mx-auto px-6 py-12 text-center">
-             <h2 className="text-2xl font-bold mb-4">Enterprise Intelligence Demo Center</h2>
+             <h2 className="text-2xl font-bold mb-4">RightSense Diagnostic Demo Center</h2>
              <p className="text-lg max-w-3xl">
-               Explore how PulseIQ converts operating complexity into AI transformation priorities, business impact, and a 90-day roadmap.
+               {DIAGNOSTIC_POSITIONING} Explore truth, readiness gaps,
+               scenarios, recommendations, and a 30/60/90 execution plan.
              </p>
              <div className="mt-8">
                <Link href="/assessment/bharat-heavy-fabrications/intake">
@@ -67,16 +74,29 @@ export default function DashboardPage() {
          <div className="mb-8">
            <h3 className="text-xl font-bold text-foreground mb-4">Available Demo Assessments</h3>
            <p className="text-foreground-secondary text-lg max-w-2xl">
-             Select a seeded demo assessment to see how PulseIQ converts operating complexity into AI transformation priorities.
+             Select a seeded demo assessment to review enterprise intelligence,
+             compliance and standards readiness, supplier ecosystem readiness,
+             and AI governance controls.
            </p>
+         </div>
+
+         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+           {DIAGNOSTIC_PILLARS.map((pillar) => (
+             <div
+               key={pillar}
+               className="rounded-xl border border-border bg-white px-4 py-3 text-sm font-semibold text-foreground shadow-sm"
+             >
+               {pillar}
+             </div>
+           ))}
          </div>
 
          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
            {[
              { icon: Building2, value: "4", label: "Demo Enterprises", color: "accent" },
-             { icon: IndianRupee, value: "₹100Cr+", label: "Opportunity Range", color: "success" },
-             { icon: Zap, value: "21", label: "AI Opportunities", color: "warning" },
-             { icon: TrendingUp, value: "12", label: "Quick Wins", color: "info" },
+             { icon: ShieldCheck, value: "7", label: "Standards Readiness Gaps", color: "warning" },
+             { icon: FileCheck2, value: "42%", label: "Sample Audit Evidence", color: "info" },
+             { icon: Zap, value: "35%", label: "Sample AI Validation", color: "success" },
            ].map((kpi) => (
              <div key={kpi.label} className="bg-white rounded-2xl border border-border p-6 flex items-center gap-5 shadow-sm hover:shadow-md transition-shadow duration-200">
                <div className={`h-12 w-12 rounded-xl bg-${kpi.color}-muted flex items-center justify-center shrink-0`}>
@@ -142,7 +162,7 @@ export default function DashboardPage() {
                       </div>
                       <div>
                         <div className="text-sm font-semibold text-foreground leading-tight">{assessment.cockpit.opportunityValue}</div>
-                        <div className="text-[11px] text-muted">Opportunity</div>
+                        <div className="text-[11px] text-muted">Sample opportunity</div>
                       </div>
                     </div>
                   </div>

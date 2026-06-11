@@ -21,6 +21,7 @@ import {
   XCircle,
   Lightbulb,
 } from "lucide-react";
+import { TRUTH_CATEGORIES } from "@/lib/diagnostic-positioning";
 
 const LAYER_ORDER = [
   "financial",
@@ -48,12 +49,32 @@ export default async function TruthMapPage({
       <div>
         <h2 className="text-lg font-semibold text-foreground">Truth map</h2>
         <p className="text-sm text-muted mt-1 max-w-2xl">
-          Five canonical layers reconcile what the company says, what the
-          numbers say, what the operations say, and what the process and
-          collaboration signals say. Gaps and contradictions are surfaced
-          honestly — they are the point of the diagnostic.
+          The stored layers reconcile financial, operating, proposal,
+          standards, supplier, capacity, and AI governance evidence. Gaps and
+          contradictions are surfaced honestly — they are the point of the
+          diagnostic.
         </p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Diagnostic truth coverage</CardTitle>
+          <CardDescription>
+            Every RightSense diagnostic reviews these truth categories, even
+            when the result is an evidence or documentation gap.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+          {TRUTH_CATEGORIES.map((category) => (
+            <div
+              key={category}
+              className="rounded-lg border border-border-subtle bg-background-alt px-3 py-2 text-sm font-medium text-foreground"
+            >
+              {category}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
 
       <div className="space-y-4">
         {ordered.map((layer) => (
@@ -187,9 +208,9 @@ export default async function TruthMapPage({
         ))}
       </div>
       <div className="text-center py-4 text-sm text-muted border-t border-border-subtle mt-2">
-        The Collaboration layer is intentionally empty in the demo — no email or
-        meeting sources were registered. In a full engagement, this is where
-        decision ownership and accountability signals would surface.
+        Missing standards, statutory, supplier, prequalification, source
+        traceability, approval, or audit-trail evidence remains visible as a
+        readiness gap rather than being inferred.
       </div>
     </div>
   );

@@ -4,16 +4,22 @@ import { factsPromptJson, sourcesPromptJson } from "./context";
 import { strictJsonContract } from "./json-contract";
 
 export function generateTruthMapPrompt(ctx: AIContext): string {
-  return `Build the PulseIQ five-layer truth map for ${ctx.companyName}.
+  return `Build the PulseIQ truth map for the RightSense 48-Hour Enterprise Intelligence, Compliance & Standards Diagnostic for ${ctx.companyName}.
 
 Layers must be: financial, strategic, operational, process, collaboration.
+Use the five storage keys to cover these diagnostic truths:
+- financial: financial truth
+- strategic: proposal/revenue truth and customer prequalification readiness
+- operational: operating, vendor/supplier ecosystem, and talent/capacity truth
+- process: compliance, ISO, technical standards, statutory documents, and audit evidence truth
+- collaboration: AI governance, human approval, source traceability, and audit trail truth
 Facts:
 ${factsPromptJson(ctx)}
 
 Sources:
 ${sourcesPromptJson(ctx)}
 
-Return exactly five layers, one for each required key. Mark public-domain
+Return exactly five layers, one for each required storage key. Mark public-domain
 inferences as assumptions in finding text and use low confidence.
 
 ${strictJsonContract(

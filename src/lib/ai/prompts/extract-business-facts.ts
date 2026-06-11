@@ -20,7 +20,12 @@ ${input.extractedText.slice(0, 12000)}
 
 Rules:
 - Return only facts supported by the text.
-- Prefer board, financial, operating, pipeline, customer, supplier, process, risk, opportunity, target, commitment, and action-item facts.
+- Prefer board, financial, operating, pipeline, customer, supplier, process,
+  compliance, ISO/technical standards, statutory document, audit evidence,
+  prequalification, AI governance, source traceability, approval workflow,
+  risk, opportunity, target, commitment, and action-item facts.
+- Map standards/documentation/governance controls to risk or sop_rule when the
+  output enum has no more specific kind.
 - Include numericValue when a number is clear.
 - Use INR absolute rupees for currency numericValue.
 - Evidence must be a short excerpt from the source.

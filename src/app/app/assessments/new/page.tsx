@@ -18,9 +18,10 @@ export default function NewAssessmentPage() {
       <div>
         <h1 className="text-2xl font-bold text-foreground">New assessment</h1>
         <p className="text-sm text-muted mt-1.5 max-w-xl">
-          Capture the company, industry, and the targets leadership wants
-          hit. You can attach sources on the next screen and refine the
-          analysis as you go.
+          Start the RightSense 48-Hour Enterprise Intelligence, Compliance
+          &amp; Standards Diagnostic. Capture the company and leadership
+          targets here, then attach operating, ISO, technical standards,
+          statutory, supplier, prequalification, and AI governance evidence.
         </p>
       </div>
       <Card className="p-6">

@@ -23,8 +23,8 @@ const INDUSTRIES: { value: Industry; label: string }[] = [
 ];
 
 const OBJECTIVES: { value: AssessmentObjective; label: string }[] = [
-  { value: "board_review", label: "Board review" },
-  { value: "ai_transformation", label: "AI transformation" },
+  { value: "board_review", label: "RightSense diagnostic / board review" },
+  { value: "ai_transformation", label: "AI governance & transformation" },
   { value: "revenue_push", label: "Revenue push" },
   { value: "margin_improvement", label: "Margin improvement" },
   { value: "operating_reset", label: "Operating reset" },

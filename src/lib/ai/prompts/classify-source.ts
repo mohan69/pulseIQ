@@ -16,6 +16,6 @@ Extracted text:
 ${input.extractedText.slice(0, 6000)}
 
 ${strictJsonContract(
-  '{"sourceType":"financial_filing|strategy_deck|sop|excel_tracker|erp_export|crm_export|hrms_export|operations_report|proposal_report|email_summary|meeting_summary","confidence":"high|medium|low","reason":"short reason"}',
+  '{"sourceType":"financial_filing|strategy_deck|sop|excel_tracker|erp_export|crm_export|hrms_export|operations_report|proposal_report|compliance_register|standards_mapping|vendor_qualification|statutory_document|ai_governance|email_summary|meeting_summary","confidence":"high|medium|low","reason":"short reason"}',
 )}`;
 }
