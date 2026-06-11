@@ -8,6 +8,7 @@ import {
   ClipboardList,
   FileStack,
   ChevronRight,
+  Telescope,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -23,10 +24,18 @@ const NAV: NavItem[] = [
   { href: "/app", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/app/assessments", label: "Assessments", icon: ClipboardList },
   { href: "/app/sources", label: "Sources", icon: FileStack },
+  {
+    href: "/app/growth-intelligence",
+    label: "Growth Intelligence",
+    icon: Telescope,
+  },
 ];
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const isGrowthIntelligence = pathname.startsWith(
+    "/app/growth-intelligence",
+  );
   return (
     <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-border bg-white">
       <div className="px-5 py-5 border-b border-border">
@@ -39,7 +48,7 @@ export function AppSidebar() {
               PulseIQ
             </span>
             <span className="text-[10px] uppercase tracking-wider text-muted font-medium">
-              Workbench
+              {isGrowthIntelligence ? "Growth workspace" : "Workbench"}
             </span>
           </div>
         </Link>
@@ -70,9 +79,13 @@ export function AppSidebar() {
       </nav>
       <div className="px-5 py-4 border-t border-border">
         <div className="text-[11px] text-muted leading-relaxed">
-          Workbench MVP · internal admin only.
+          {isGrowthIntelligence
+            ? "PulseIQ Workbench"
+            : "Workbench MVP · internal admin only."}
           <br />
-          Read-only by design.
+          {isGrowthIntelligence
+            ? "Secure enterprise intelligence workspace"
+            : "Read-only by design."}
         </div>
       </div>
     </aside>
