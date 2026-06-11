@@ -71,7 +71,7 @@ export default function Home() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-4 py-1.5 text-sm text-white/90 font-medium mb-6 backdrop-blur-sm">
             <Zap className="h-3.5 w-3.5" />
-            Powered by RightSense — enterprise intelligence engine
+            The operating intelligence engine powering the RightSense 48-Hour Diagnostic.
           </div>
 
           {/* Headline */}
@@ -102,7 +102,7 @@ export default function Home() {
           {/* Proof Metric Tiles */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {[
-              { icon: Clock, value: "2-week", label: "assessment sprint" },
+              { icon: Clock, value: "48-hour", label: "diagnostic sprint" },
               { icon: Calendar, value: "30/60/90", label: "execution roadmap" },
               { icon: Target, value: "CXO-ready", label: "operating model" },
               { icon: TrendingUp, value: "AI-ranked", label: "opportunity pipeline" },
@@ -144,10 +144,10 @@ export default function Home() {
           </div>
           <div className="grid md:grid-cols-2 gap-5">
             {[
-              { title: "Manufacturing", desc: "Production scheduling delays, manual quality tracking, no real-time OEE visibility.", tags: ["SAP ERP", "MES", "Excel"], outcome: "Reduce quality-related downtime by 20–30%" },
-              { title: "EPC & Infrastructure", desc: "Proposal cycle time, vendor coordination manual, project cost overruns.", tags: ["Oracle ERP", "MS Project", "WhatsApp"], outcome: "Cut proposal cycle time by 40–50%" },
-              { title: "Financial Services & Operations", desc: "Month-end close delays, compliance reporting manual, no single source of truth.", tags: ["Tally", "Spreadsheets", "Manual Audit"], outcome: "Accelerate month-end close by 3–5 days" },
-              { title: "Recruitment & Talent", desc: "Recruiter productivity, placement tracking manual, no pipeline visibility.", tags: ["Custom ATS", "Excel", "WhatsApp"], outcome: "Improve recruiter throughput by 25–35%" },
+              { title: "Manufacturing", desc: "Production scheduling delays, manual quality tracking, no real-time OEE visibility.", tags: ["SAP ERP", "MES", "Excel"], outcome: "Target outcome: quality-related downtime reduction" },
+              { title: "EPC & Infrastructure", desc: "Proposal cycle time, vendor coordination manual, project cost overruns.", tags: ["Oracle ERP", "MS Project", "WhatsApp"], outcome: "Target outcome: proposal cycle time reduction" },
+              { title: "Financial Services & Operations", desc: "Month-end close delays, compliance reporting manual, no single source of truth.", tags: ["Tally", "Spreadsheets", "Manual Audit"], outcome: "Target outcome: faster month-end close" },
+              { title: "Recruitment & Talent", desc: "Recruiter productivity, placement tracking manual, no pipeline visibility.", tags: ["Custom ATS", "Excel", "WhatsApp"], outcome: "Target outcome: recruiter throughput improvement" },
             ].map((item) => (
               <div key={item.title} className="rounded-2xl border border-border bg-white p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5">
                 <div className="flex items-center gap-3 mb-3">
@@ -204,7 +204,7 @@ export default function Home() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground">From Diagnostic to Operating Cockpit</h2>
             <p className="mt-3 text-foreground-secondary max-w-2xl mx-auto">
-              The RightSense 48-Hour Diagnostic kick-starts the intelligence cycle. PulseIQ sustains it.
+              RightSense owns and delivers the diagnostic; PulseIQ powers the truth map, cockpit, scenarios, recommendations, and execution plan.
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -427,7 +427,7 @@ export default function Home() {
               { value: "20–30%", label: "Manual effort reduction potential", icon: TrendingUp, color: "success" },
               { value: "30–50%", label: "Faster assessment cycle", icon: Clock, color: "accent" },
               { value: "₹100Cr+", label: "Transformation impact range", icon: IndianRupee, color: "warning" },
-              { value: "2 Weeks", label: "CXO-ready roadmap delivery", icon: Calendar, color: "info" },
+              { value: "48-Hour", label: "diagnostic to roadmap delivery", icon: Calendar, color: "info" },
             ].map((item) => (
               <div key={item.label} className="rounded-2xl border border-border bg-white p-6 text-center hover:shadow-lg transition-all">
                 <div className={`h-11 w-11 rounded-xl bg-${item.color}-muted flex items-center justify-center mx-auto mb-3`}>
@@ -450,7 +450,7 @@ export default function Home() {
               Turn Enterprise Complexity Into a 90-Day AI Transformation Roadmap
             </h2>
             <p className="text-white/70 text-lg leading-relaxed mb-6">
-              Powered by PulseIQ and delivered by RightSense Technologies. Start with a 48-Hour Diagnostic or explore the demo.
+              Delivered by RightSense Technologies and powered by PulseIQ. Start with a 48-Hour Diagnostic or explore the demo.
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <a href="https://www.rightsense.in/48-hour-diagnostic" target="_blank" rel="noopener noreferrer">

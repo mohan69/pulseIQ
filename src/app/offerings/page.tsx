@@ -272,7 +272,7 @@ export default function OfferingsPage() {
         <div className="text-center">
           <h2 className="text-3xl font-bold text-foreground mb-6">Start Your Transformation Journey</h2>
           <p className="text-lg text-foreground-secondary max-w-3xl mx-auto mb-8">
-            Powered by PulseIQ and delivered by RightSense Technologies. Book a 48-Hour Diagnostic or explore the platform.
+            Delivered by RightSense Technologies and powered by PulseIQ. Book a 48-Hour Diagnostic or explore the platform.
           </p>
           <div className="flex flex-col sm:flex-row sm:justify-center gap-4">
             <a href="https://www.rightsense.in/48-hour-diagnostic" target="_blank" rel="noopener noreferrer">
