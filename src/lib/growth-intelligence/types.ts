@@ -2,13 +2,13 @@ export type GrowthMode = "rightsense" | "customer";
 
 export type GrowthPipelineStatus =
   | "Target Identified"
-  | "Researched"
-  | "Outreach Drafted"
-  | "Outreach Sent"
-  | "Replied"
+  | "Diagnostic Angle Researched"
+  | "Diagnostic Draft Prepared"
+  | "Human Outreach Approved"
   | "Discovery Scheduled"
-  | "Demo Completed"
-  | "Proposal Shared"
+  | "Diagnostic Completed"
+  | "Product Route Recommended"
+  | "Pilot Proposed"
   | "Pilot / Deal Won"
   | "Nurture / Lost";
 
@@ -17,6 +17,10 @@ export type GrowthAccountIntelligence = {
   likelyBusinessModel: string;
   businessPriorities: string[];
   painSignals: string[];
+  diagnosticEntryAngle: string;
+  likelyReadinessGaps: string[];
+  bestDiagnosticPillar: string;
+  recommendedProductRouteAfterDiagnostic: string;
   buyingTriggerHypothesis: string;
   bestPersonaToApproach: string;
   conversationAngle: string;
@@ -24,12 +28,12 @@ export type GrowthAccountIntelligence = {
 };
 
 export type GrowthFitScores = {
-  productFit: number;
-  urgencyFit: number;
-  personaFit: number;
-  revenuePotential: number;
-  conversionProbability: number;
-  strategicFit: number;
+  diagnosticFit: number;
+  complianceStandardsSignal: number;
+  vendorSupplierReadinessSignal: number;
+  aiGovernanceSignal: number;
+  productRouteFit: number;
+  commercialReadiness: number;
 };
 
 export type RightSenseFitScores = {

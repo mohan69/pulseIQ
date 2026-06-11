@@ -72,6 +72,55 @@ describe("growth intelligence generator", () => {
     );
   });
 
+  it("makes the RightSense diagnostic the first commercial action", () => {
+    const result = generateGrowthIntelligence({
+      ...baseInput,
+      targetProductService: "WinsProposal",
+      notes:
+        "RFQ tender standards mapping vendor prequalification and supplier documentation",
+    });
+
+    expect(result.intelligence.recommendedNextAction).toMatch(
+      /^Offer the RightSense 48-Hour Diagnostic\./,
+    );
+    expect(result.intelligence.diagnosticEntryAngle).toContain(
+      "RightSense 48-Hour Enterprise Intelligence, Compliance & Standards Diagnostic",
+    );
+    expect(
+      result.intelligence.recommendedProductRouteAfterDiagnostic,
+    ).toContain("Confirm only after diagnostic evidence review");
+  });
+
+  it("surfaces readiness gaps for compliance, supplier, proposal, and AI governance signals", () => {
+    const result = generateGrowthIntelligence({
+      ...baseInput,
+      notes:
+        "ISO statutory technical standards vendor supplier subcontractor prequalification proposal audit trail AI validation source traceability human approval workflow",
+    });
+    const gaps = result.intelligence.likelyReadinessGaps.join(" ");
+
+    expect(gaps).toMatch(/ISO|standards/i);
+    expect(gaps).toMatch(/vendor|supplier|subcontractor/i);
+    expect(gaps).toMatch(/proposal|prequalification/i);
+    expect(gaps).toMatch(/AI output validation|source traceability/i);
+  });
+
+  it("generates diagnostic scoring dimensions within the 0-100 range", () => {
+    const scores = generateGrowthIntelligence(baseInput).fitScores;
+
+    expect(Object.keys(scores)).toEqual([
+      "diagnosticFit",
+      "complianceStandardsSignal",
+      "vendorSupplierReadinessSignal",
+      "aiGovernanceSignal",
+      "productRouteFit",
+      "commercialReadiness",
+    ]);
+    expect(Object.values(scores).every((score) => score >= 0 && score <= 100)).toBe(
+      true,
+    );
+  });
+
   it("does not expose RightSense product scores in customer mode", () => {
     const result = generateGrowthIntelligence({
       ...baseInput,
@@ -100,6 +149,16 @@ describe("growth intelligence generator", () => {
     ).toBe(true);
     expect(
       Object.values(result.outreachDrafts).every((draft) =>
+        draft.includes("NO AUTOMATED SENDING"),
+      ),
+    ).toBe(true);
+    expect(
+      Object.values(result.outreachDrafts).every((draft) =>
+        draft.includes("NO CONFIDENTIAL DATA ACCESS ASSUMED"),
+      ),
+    ).toBe(true);
+    expect(
+      Object.values(result.outreachDrafts).every((draft) =>
         draft.endsWith("Regards,\nGrowth Team"),
       ),
     ).toBe(true);
@@ -117,6 +176,37 @@ describe("growth intelligence generator", () => {
     ).toBe(true);
     expect(Object.values(result.outreachDrafts).join("\n")).not.toMatch(
       /\nFounder, RightSense Technologies/,
+    );
+  });
+
+  it("covers the required diagnostic discovery categories", () => {
+    const brief =
+      generateGrowthIntelligence(baseInput).outreachDrafts.discoveryCallBrief;
+
+    for (const category of [
+      "revenue, proposal, RFP, bid",
+      "operating visibility",
+      "margin or productivity leakage",
+      "compliance, ISO, technical standards",
+      "suppliers, subcontractors, vendor registration",
+      "AI outputs validated",
+      "systems and approved data sources",
+      "30-day pilot",
+    ]) {
+      expect(brief).toContain(category);
+    }
+  });
+
+  it("avoids unsupported assurance claims in generated outreach", () => {
+    const outreach = Object.values(
+      generateGrowthIntelligence({
+        ...baseInput,
+        notes: "ISO certification customer standards and tender compliance",
+      }).outreachDrafts,
+    ).join("\n");
+
+    expect(outreach).not.toMatch(
+      /certification guaranteed|customer approved|fully compliant|guaranteed acceptance|tender-ready/i,
     );
   });
 

@@ -7,13 +7,13 @@ import type {
 
 const STATUS_SCORE: Record<GrowthPipelineStatus, number> = {
   "Target Identified": 0,
-  Researched: 1,
-  "Outreach Drafted": 2,
-  "Outreach Sent": 3,
-  Replied: 5,
+  "Diagnostic Angle Researched": 1,
+  "Diagnostic Draft Prepared": 2,
+  "Human Outreach Approved": 4,
   "Discovery Scheduled": 6,
-  "Demo Completed": 7,
-  "Proposal Shared": 8,
+  "Diagnostic Completed": 7,
+  "Product Route Recommended": 8,
+  "Pilot Proposed": 9,
   "Pilot / Deal Won": 10,
   "Nurture / Lost": 0,
 };
@@ -85,7 +85,10 @@ export function calculateGrowthLearning(
   const personas = ranked(accounts, (account) => account.targetPersona);
   const pains = ranked(accounts, painAngle);
   const channels = ranked(accounts, channel);
-  const offers = ranked(accounts, (account) => account.targetProductService);
+  const offers = ranked(
+    accounts,
+    (account) => account.intelligence.recommendedProductRouteAfterDiagnostic,
+  );
   const bestSegment = segments[0]?.label ?? "Not enough data";
   const bestPersona = personas[0]?.label ?? "Not enough data";
   const bestPain = pains[0]?.label ?? "Not enough data";
@@ -106,8 +109,34 @@ export function calculateGrowthLearning(
     bestChannel: channels[0]?.label ?? "Not enough data",
     highestConvertingOffer: offers[0]?.label ?? "Not enough data",
     weakSegment,
-    recommendedNextCampaign: `${bestSegment} campaign for ${bestPersona}`,
-    recommendedMessageChange: `Lead with ${bestPain.toLowerCase()} and one measurable next step`,
+    recommendedNextCampaign: campaignFor(accounts, bestSegment),
+    recommendedMessageChange: `Lead with a RightSense diagnostic angle around ${bestPain.toLowerCase()}, then state the likely product route only after the gap review`,
     confidenceScore,
   };
+}
+
+function campaignFor(
+  accounts: GrowthAccount[],
+  bestSegment: string,
+): string {
+  const text = accounts
+    .map(
+      (account) =>
+        `${account.industry} ${account.intelligence.bestDiagnosticPillar} ${account.intelligence.recommendedProductRouteAfterDiagnostic} ${account.intelligence.diagnosticEntryAngle}`,
+    )
+    .join(" ")
+    .toLowerCase();
+  if (/proposal|rfq|tender|bid|epc|standards/.test(text)) {
+    return "Proposal and compliance readiness diagnostic campaign";
+  }
+  if (/vendor|supplier|subcontractor|procurement/.test(text)) {
+    return "Vendor/supplier readiness diagnostic campaign";
+  }
+  if (/talent|recruitment|hiring|staffing|capacity/.test(text)) {
+    return "Talent delivery-readiness diagnostic campaign";
+  }
+  if (/manufacturing|industrial|oem|fabrication/.test(text)) {
+    return "Industrial standards-readiness diagnostic campaign";
+  }
+  return `${bestSegment} operating visibility diagnostic campaign`;
 }

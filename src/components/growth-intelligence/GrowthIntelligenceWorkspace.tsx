@@ -58,13 +58,13 @@ import type {
 
 const PIPELINE_STATUSES: GrowthPipelineStatus[] = [
   "Target Identified",
-  "Researched",
-  "Outreach Drafted",
-  "Outreach Sent",
-  "Replied",
+  "Diagnostic Angle Researched",
+  "Diagnostic Draft Prepared",
+  "Human Outreach Approved",
   "Discovery Scheduled",
-  "Demo Completed",
-  "Proposal Shared",
+  "Diagnostic Completed",
+  "Product Route Recommended",
+  "Pilot Proposed",
   "Pilot / Deal Won",
   "Nurture / Lost",
 ];
@@ -75,7 +75,7 @@ const EMPTY_FORM: GrowthAccountInput = {
   industry: "Industrial Manufacturing",
   location: "",
   segment: "Mid-market manufacturer",
-  targetProductService: "PulseIQ",
+  targetProductService: "RightSense Consulting",
   targetPersona: "CEO / MD",
   contactName: "",
   contactRole: "",
@@ -148,15 +148,18 @@ export function GrowthIntelligenceWorkspace({
     ).length;
     const discoveryReady = accounts.filter((account) =>
       [
-        "Replied",
+        "Human Outreach Approved",
         "Discovery Scheduled",
-        "Demo Completed",
-        "Proposal Shared",
+        "Diagnostic Completed",
+        "Product Route Recommended",
+        "Pilot Proposed",
         "Pilot / Deal Won",
       ].includes(account.outcome.status),
     ).length;
     const proposals = accounts.filter((account) =>
-      ["Proposal Shared", "Pilot / Deal Won"].includes(account.outcome.status),
+      ["Product Route Recommended", "Pilot Proposed", "Pilot / Deal Won"].includes(
+        account.outcome.status,
+      ),
     ).length;
     const segmentScores = new Map<string, number[]>();
     for (const { account, score } of scored) {
@@ -181,14 +184,14 @@ export function GrowthIntelligenceWorkspace({
         tone: "accent",
       },
       {
-        label: "High-Fit Accounts",
+        label: "High Diagnostic Fit",
         value: highFit.toString(),
         hint: "Composite score 75+",
         icon: TrendingUp,
         tone: "success",
       },
       {
-        label: "Outreach Drafted",
+        label: "Diagnostic Drafts",
         value: drafted.toString(),
         hint: "Review required",
         icon: FileText,
@@ -202,7 +205,7 @@ export function GrowthIntelligenceWorkspace({
         tone: "success",
       },
       {
-        label: "Proposals / Pilots",
+        label: "Routes / Pilots",
         value: proposals.toString(),
         hint: "Commercial validation",
         icon: BriefcaseBusiness,
@@ -309,14 +312,17 @@ export function GrowthIntelligenceWorkspace({
             <div className="max-w-3xl">
               <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white">
                 <Sparkles className="h-3.5 w-3.5" />
-                Customer-facing growth workspace
+                Diagnostic-led growth workspace
               </div>
               <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
-                Growth Intelligence Agent
+                Diagnostic-Led Growth Intelligence
               </h1>
               <p className="mt-3 max-w-3xl text-sm leading-relaxed text-white/80 md:text-base">
-                Prioritize target accounts, identify business pain signals,
-                prepare human-approved outreach, and learn from GTM outcomes.
+                Convert public business signals into a RightSense 48-Hour
+                Diagnostic entry angle, readiness hypotheses, human-reviewed
+                outreach, and a likely post-diagnostic product route. PulseIQ
+                powers the intelligence engine; RightSense owns and delivers
+                the diagnostic.
               </p>
             </div>
             <div className="rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm backdrop-blur-sm">
@@ -354,7 +360,7 @@ export function GrowthIntelligenceWorkspace({
         />
         <SafetyNote
           icon={BrainCircuit}
-          text="Learning insights are based on captured GTM outcomes and scoring patterns."
+          text="Learning insights use aggregated GTM outcomes and scoring patterns only, without private account notes."
         />
         <SafetyNote
           icon={ShieldCheck}
@@ -499,14 +505,19 @@ export function GrowthIntelligenceWorkspace({
                   <option>Professional services</option>
                 </select>
               </Field>
-              <Field label="Target Product / Service">
-                <input
+              <Field label="Likely Product Route After Diagnostic">
+                <select
                   className="growth-input"
                   value={form.targetProductService}
                   onChange={(event) =>
                     setField("targetProductService", event.target.value)
                   }
-                />
+                >
+                  <option>PulseIQ</option>
+                  <option>WinsProposal</option>
+                  <option>TalentPulse</option>
+                  <option>RightSense Consulting</option>
+                </select>
               </Field>
               <Field label="Target Persona">
                 <select
@@ -600,7 +611,7 @@ export function GrowthIntelligenceWorkspace({
               disabled={!persistenceAvailable || isSaving}
             >
               <Sparkles className="h-4 w-4" />
-              Generate Growth Intelligence Brief
+              Generate Diagnostic Account Brief
             </Button>
           </CardContent>
           </Card>
@@ -668,10 +679,11 @@ export function GrowthIntelligenceWorkspace({
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BrainCircuit className="h-4 w-4 text-accent" />
-                Account Intelligence Brief
+                Diagnostic Account Brief
               </CardTitle>
               <CardDescription>
-                Hypotheses generated from the approved account fields above.
+                Public-context hypotheses for a readiness diagnostic. No
+                confidential data access is assumed.
               </CardDescription>
             </CardHeader>
             <CardContent className="mt-5 grid gap-4 md:grid-cols-2">
@@ -690,6 +702,25 @@ export function GrowthIntelligenceWorkspace({
               <IntelligenceList
                 label="Pain Signals"
                 values={selectedAccount.intelligence.painSignals}
+              />
+              <IntelligenceItem
+                label="Diagnostic Entry Angle"
+                value={selectedAccount.intelligence.diagnosticEntryAngle}
+              />
+              <IntelligenceList
+                label="Likely Readiness Gaps"
+                values={selectedAccount.intelligence.likelyReadinessGaps}
+              />
+              <IntelligenceItem
+                label="Best Diagnostic Pillar"
+                value={selectedAccount.intelligence.bestDiagnosticPillar}
+              />
+              <IntelligenceItem
+                label="Recommended Product Route After Diagnostic"
+                value={
+                  selectedAccount.intelligence
+                    .recommendedProductRouteAfterDiagnostic
+                }
               />
               <IntelligenceItem
                 label="Buying Trigger Hypothesis"
@@ -720,8 +751,8 @@ export function GrowthIntelligenceWorkspace({
         }
       >
         <ScoreCard
-          title="Generic Fit Scores"
-          description="Portable account scoring for any customer workspace."
+          title="Diagnostic Fit & Readiness Signals"
+          description="Internal prioritization signals based only on supplied public or approved context."
           scores={selectedAccount.fitScores}
         />
         {selectedAccount.mode === "rightsense" &&
@@ -733,8 +764,8 @@ export function GrowthIntelligenceWorkspace({
       <section>
         <SectionHeading
           icon={MessageSquareText}
-          title="Outreach Studio"
-          description="Human-approved draft cards. Approval changes review state only and never sends a message."
+          title="Diagnostic Outreach Studio"
+          description="Every draft leads with the diagnostic, requires human review, assumes no confidential access, and never sends a message."
         />
         <div className="mt-4 grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
           {(
@@ -754,7 +785,7 @@ export function GrowthIntelligenceWorkspace({
                   <div className="flex items-start justify-between gap-3">
                     <CardTitle className="text-base">{title}</CardTitle>
                     <Badge variant={approved ? "success" : "warning"}>
-                      {approved ? "Approved" : "Review required"}
+                      {approved ? "Human-approved" : "Review required"}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -791,8 +822,8 @@ export function GrowthIntelligenceWorkspace({
       <section>
         <SectionHeading
           icon={Activity}
-          title="Pipeline Tracker"
-          description="Persisted GTM status tracking. Outreach Sent is a manually recorded outcome, not an action in PulseIQ."
+          title="Diagnostic-Led Pipeline Tracker"
+          description="Persisted GTM status tracking from target research through diagnostic, product routing, and pilot. No status sends outreach."
         />
         <Card className="mt-4 overflow-hidden p-0">
           <div className="overflow-x-auto">
@@ -803,8 +834,8 @@ export function GrowthIntelligenceWorkspace({
                     "Company",
                     "Segment",
                     "Persona",
-                    "Product / Service",
-                    "Fit Score",
+                    "Likely Product Route",
+                    "Diagnostic Fit Score",
                     "Status",
                     "Next Action",
                     "Outcome",
@@ -964,7 +995,7 @@ export function GrowthIntelligenceWorkspace({
             />
             <LearningMetric label="Best Channel" value={learning.bestChannel} />
             <LearningMetric
-              label="Highest Converting Offer"
+              label="Highest Converting Product Route"
               value={learning.highestConvertingOffer}
             />
             <LearningMetric label="Weak Segment" value={learning.weakSegment} />
@@ -990,7 +1021,7 @@ export function GrowthIntelligenceWorkspace({
               Security & Governance
             </CardTitle>
             <CardDescription>
-              Product controls applied to this persistent workspace.
+              Diagnostic-led controls applied to this persistent workspace.
             </CardDescription>
           </CardHeader>
           <CardContent className="mt-5 space-y-3">
@@ -999,6 +1030,7 @@ export function GrowthIntelligenceWorkspace({
               ["Tenant-scoped records", "Enabled", true],
               ["Audit logging", "Enabled", true],
               ["Sensitive data minimization", "Enabled", true],
+              ["Confidential data access assumed", "No", true],
               ["Automatic outbound sending", "Disabled", true],
               ["Cross-customer data sharing", "Disabled", true],
               ["Learning source", "Aggregated GTM outcomes only", true],
@@ -1183,12 +1215,12 @@ function ScoreCard({
   scores: GrowthFitScores;
 }) {
   const rows = [
-    ["Product Fit", scores.productFit],
-    ["Urgency Fit", scores.urgencyFit],
-    ["Persona Fit", scores.personaFit],
-    ["Revenue Potential", scores.revenuePotential],
-    ["Conversion Probability", scores.conversionProbability],
-    ["Strategic Fit", scores.strategicFit],
+    ["Diagnostic Fit", scores.diagnosticFit],
+    ["Compliance / Standards Signal", scores.complianceStandardsSignal],
+    ["Vendor / Supplier Readiness Signal", scores.vendorSupplierReadinessSignal],
+    ["AI Governance Signal", scores.aiGovernanceSignal],
+    ["Product Route Fit", scores.productRouteFit],
+    ["Commercial Readiness", scores.commercialReadiness],
   ] as const;
   return (
     <Card>
@@ -1220,10 +1252,10 @@ function RightSenseScoreCard({ scores }: { scores: RightSenseFitScores }) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-accent" />
-          RightSense Internal Fit Scores
+          Product Route Fit After Diagnostic
         </CardTitle>
         <CardDescription>
-          Visible only for RightSense mode accounts.
+          Internal routing guidance visible only for RightSense mode accounts.
         </CardDescription>
       </CardHeader>
       <CardContent className="mt-5 grid gap-4 sm:grid-cols-2">

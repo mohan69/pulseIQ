@@ -93,6 +93,18 @@ describe("growth persistence", () => {
     });
   });
 
+  it("normalizes legacy pipeline statuses to the diagnostic journey", () => {
+    expect(
+      growthRepositoryInternals.normalizePipelineStatus("Researched"),
+    ).toBe("Diagnostic Angle Researched");
+    expect(
+      growthRepositoryInternals.normalizePipelineStatus("Proposal Shared"),
+    ).toBe("Pilot Proposed");
+    expect(
+      growthRepositoryInternals.normalizePipelineStatus("unknown-status"),
+    ).toBe("Target Identified");
+  });
+
   it("does not duplicate demo seed records on later loads", async () => {
     const count = vi.fn().mockResolvedValueOnce(0).mockResolvedValueOnce(8);
     const auditCount = vi.fn().mockResolvedValueOnce(0).mockResolvedValueOnce(4);

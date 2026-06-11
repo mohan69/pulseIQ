@@ -46,7 +46,46 @@ function optionalJson<T>(
   return value === undefined ? Prisma.JsonNull : json(value);
 }
 
+const LEGACY_STATUS_MAP: Record<string, GrowthPipelineStatus> = {
+  "Target Identified": "Target Identified",
+  Researched: "Diagnostic Angle Researched",
+  "Outreach Drafted": "Diagnostic Draft Prepared",
+  "Outreach Sent": "Human Outreach Approved",
+  Replied: "Human Outreach Approved",
+  "Discovery Scheduled": "Discovery Scheduled",
+  "Demo Completed": "Diagnostic Completed",
+  "Proposal Shared": "Pilot Proposed",
+  "Pilot / Deal Won": "Pilot / Deal Won",
+  "Nurture / Lost": "Nurture / Lost",
+  "Diagnostic Angle Researched": "Diagnostic Angle Researched",
+  "Diagnostic Draft Prepared": "Diagnostic Draft Prepared",
+  "Human Outreach Approved": "Human Outreach Approved",
+  "Diagnostic Completed": "Diagnostic Completed",
+  "Product Route Recommended": "Product Route Recommended",
+  "Pilot Proposed": "Pilot Proposed",
+};
+
+function normalizePipelineStatus(value: unknown): GrowthPipelineStatus {
+  return LEGACY_STATUS_MAP[String(value)] ?? "Target Identified";
+}
+
 function mapAccount(row: DbGrowthAccount): GrowthAccount {
+  const input: GrowthAccountInput = {
+    companyName: row.companyName,
+    website: row.website,
+    industry: row.industry,
+    location: row.location,
+    segment: row.segment,
+    targetProductService: row.targetProductOrService,
+    targetPersona: row.targetPersona,
+    contactName: row.contactName,
+    contactRole: row.contactRole,
+    linkedInUrl: row.linkedInUrl,
+    notes: row.notes,
+    mode: row.mode as GrowthAccount["mode"],
+  };
+  const generated = generateGrowthIntelligence(input);
+  const storedOutcome = row.outcome as GrowthOutcome;
   return {
     id: row.id,
     orgId: row.orgId,
@@ -67,14 +106,14 @@ function mapAccount(row: DbGrowthAccount): GrowthAccount {
     contactRole: row.contactRole,
     linkedInUrl: row.linkedInUrl,
     notes: row.notes,
-    intelligence: row.intelligence as GrowthAccount["intelligence"],
-    fitScores: row.fitScores as GrowthAccount["fitScores"],
-    rightSenseFitScores:
-      row.rightSenseFitScores == null
-        ? undefined
-        : (row.rightSenseFitScores as GrowthAccount["rightSenseFitScores"]),
-    outreachDrafts: row.outreach as GrowthAccount["outreachDrafts"],
-    outcome: row.outcome as GrowthOutcome,
+    intelligence: generated.intelligence,
+    fitScores: generated.fitScores,
+    rightSenseFitScores: generated.rightSenseFitScores,
+    outreachDrafts: generated.outreachDrafts,
+    outcome: {
+      ...storedOutcome,
+      status: normalizePipelineStatus(storedOutcome.status ?? row.status),
+    },
   };
 }
 
@@ -238,9 +277,9 @@ export function createGrowthRepository(client: PrismaClient) {
     ): Promise<GrowthAccount> {
       const now = new Date();
       const outcome: GrowthOutcome = {
-        status: "Outreach Drafted",
-        nextAction: "Review intelligence and approve a draft",
-        outcome: "Drafts generated; no outreach sent",
+        status: "Diagnostic Draft Prepared",
+        nextAction: "Review the diagnostic angle and approve one draft manually",
+        outcome: "Diagnostic-led drafts generated; no outreach sent",
         updatedAt: now.toISOString(),
       };
       const row = await client.$transaction(async (tx) => {
@@ -438,4 +477,5 @@ export const growthRepositoryInternals = {
   mapAccount,
   mapAuditLog,
   seededAccountId,
+  normalizePipelineStatus,
 };
