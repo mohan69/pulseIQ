@@ -52,6 +52,85 @@ export type GrowthOutreachDrafts = {
   discoveryCallBrief: string;
 };
 
+export type GrowthDraftType =
+  | "cxoEmail"
+  | "functionalLeaderEmail"
+  | "linkedInNote"
+  | "whatsappMessage"
+  | "followUpMessage";
+
+export type GrowthApprovalStatus =
+  | "Draft"
+  | "Needs Review"
+  | "Approved"
+  | "Sent Manually"
+  | "Replied"
+  | "Nurture";
+
+export type GrowthReplyClassification =
+  | "Interested"
+  | "Ask later"
+  | "Wrong person"
+  | "Referral provided"
+  | "Needs more information"
+  | "Not interested"
+  | "Meeting requested";
+
+export type GrowthControlDraftState = {
+  status: GrowthApprovalStatus;
+  updatedAt: string;
+  replyClassification?: GrowthReplyClassification;
+};
+
+export type GrowthControlState = {
+  version: 1;
+  drafts: Partial<Record<GrowthDraftType, GrowthControlDraftState>>;
+};
+
+export type GrowthApprovalQueueItem = {
+  id: string;
+  accountId: string;
+  draftType: GrowthDraftType;
+  draftLabel: string;
+  targetAccount: string;
+  contactRole: string;
+  diagnosticAngle: string;
+  messagePreview: string;
+  riskFlags: string[];
+  status: GrowthApprovalStatus;
+  replyClassification?: GrowthReplyClassification;
+};
+
+export type GrowthFollowUpPlan = {
+  suggestedFollowUpDate: string;
+  followUpReason: string;
+  draftFollowUpMessage: string;
+  previousTouchSummary: string;
+  humanApprovalRequired: true;
+};
+
+export type GrowthDiscoveryBrief = {
+  recommendedOpening: string;
+  discoveryQuestions: string[];
+  likelyReadinessGaps: string[];
+  diagnosticPillarFocus: string;
+  likelyProductRouteAfterDiagnostic: string;
+  objectionsToExpect: string[];
+  pilotSuccessCriteria: string[];
+};
+
+export type GrowthControlMetrics = {
+  accountsByDiagnosticFit: { high: number; medium: number; developing: number };
+  draftsPrepared: number;
+  approvedDrafts: number;
+  manualSendsLogged: number;
+  repliesLogged: number;
+  discoveryCallsScheduled: number;
+  bestDiagnosticAngle: string;
+  bestSegment: string;
+  bestProductRoute: string;
+};
+
 export type GrowthOutcome = {
   status: GrowthPipelineStatus;
   nextAction: string;
@@ -83,6 +162,7 @@ export type GrowthAccount = {
   fitScores: GrowthFitScores;
   rightSenseFitScores?: RightSenseFitScores;
   outreachDrafts: GrowthOutreachDrafts;
+  controlState: GrowthControlState;
   outcome: GrowthOutcome;
 };
 
@@ -99,6 +179,9 @@ export type GrowthAuditLog = {
     | "ACCOUNT_UPDATED"
     | "INTELLIGENCE_GENERATED"
     | "OUTREACH_DRAFTED"
+    | "OUTREACH_APPROVED"
+    | "MANUAL_SEND_LOGGED"
+    | "REPLY_CLASSIFIED"
     | "OUTCOME_UPDATED";
   summary: string;
 };

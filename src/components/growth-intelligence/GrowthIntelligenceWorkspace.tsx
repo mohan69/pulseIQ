@@ -8,6 +8,7 @@ import {
   BrainCircuit,
   BriefcaseBusiness,
   Building2,
+  CalendarClock,
   Check,
   ChevronDown,
   ChevronUp,
@@ -41,13 +42,23 @@ import {
 import {
   createGrowthAccountAction,
   regenerateGrowthAccountAction,
+  updateGrowthControlDraftAction,
   updateGrowthOutcomeAction,
   updateGrowthStatusAction,
 } from "@/app/app/growth-intelligence/actions";
+import {
+  approvalStatusFor,
+  buildApprovalQueue,
+  buildDiscoveryBrief,
+  buildFollowUpPlan,
+  calculateControlMetrics,
+} from "@/lib/growth-intelligence/control-center";
 import type {
   GrowthAccount,
   GrowthAccountInput,
+  GrowthApprovalStatus,
   GrowthAuditLog,
+  GrowthDraftType,
   GrowthFitScores,
   GrowthLearningInsight,
   GrowthMode,
@@ -85,11 +96,7 @@ const EMPTY_FORM: GrowthAccountInput = {
 };
 
 type DraftKey =
-  | "cxoEmail"
-  | "functionalLeaderEmail"
-  | "linkedInNote"
-  | "whatsappMessage"
-  | "followUpMessage"
+  | GrowthDraftType
   | "discoveryCallBrief";
 
 type Props = {
@@ -115,21 +122,27 @@ export function GrowthIntelligenceWorkspace({
   const [form, setForm] = useState<GrowthAccountInput>(EMPTY_FORM);
   const [auditLogs, setAuditLogs] = useState(initialAuditLogs);
   const [learning, setLearning] = useState(initialLearning);
-  const [approvedDrafts, setApprovedDrafts] = useState<
-    Record<string, DraftKey[]>
-  >({});
   const [formMessage, setFormMessage] = useState("");
   const [isIntakeOpen, setIsIntakeOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [outcomeDrafts, setOutcomeDrafts] = useState<
     Record<string, { nextAction: string; outcome: string }>
   >({});
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
 
   const selectedAccount =
     accounts.find((account) => account.id === selectedId) ?? accounts[0];
-  const selectedApprovedDrafts = selectedAccount
-    ? approvedDrafts[selectedAccount.id] ?? []
-    : [];
+  const approvalQueue = useMemo(() => buildApprovalQueue(accounts), [accounts]);
+  const controlMetrics = useMemo(
+    () => calculateControlMetrics(accounts),
+    [accounts],
+  );
+  const followUpPlan = selectedAccount
+    ? buildFollowUpPlan(selectedAccount)
+    : undefined;
+  const discoveryBrief = selectedAccount
+    ? buildDiscoveryBrief(selectedAccount)
+    : undefined;
   const outcomeDraft = selectedAccount
     ? outcomeDrafts[selectedAccount.id] ?? {
         nextAction: selectedAccount.outcome.nextAction,
@@ -288,15 +301,26 @@ export function GrowthIntelligenceWorkspace({
     }
   };
 
-  const toggleDraftApproval = (draftKey: DraftKey) => {
-    if (!selectedAccount) return;
-    setApprovedDrafts((current) => {
-      const approved = current[selectedAccount.id] ?? [];
-      const next = approved.includes(draftKey)
-        ? approved.filter((key) => key !== draftKey)
-        : [...approved, draftKey];
-      return { ...current, [selectedAccount.id]: next };
+  const updateControlDraft = async (
+    accountId: string,
+    draftType: GrowthDraftType,
+    status: GrowthApprovalStatus,
+    replyText?: string,
+  ) => {
+    setIsSaving(true);
+    const result = await updateGrowthControlDraftAction(accountId, {
+      draftType,
+      status,
+      replyText,
     });
+    setIsSaving(false);
+    setFormMessage(result.message);
+    if (result.ok) {
+      applySnapshot(result.snapshot);
+      if (status === "Replied") {
+        setReplyDrafts((current) => ({ ...current, [accountId]: "" }));
+      }
+    }
   };
 
   if (!selectedAccount) {
@@ -315,7 +339,7 @@ export function GrowthIntelligenceWorkspace({
                 Diagnostic-led growth workspace
               </div>
               <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
-                Diagnostic-Led Growth Intelligence
+                Diagnostic-Led GTM Control Center
               </h1>
               <p className="mt-3 max-w-3xl text-sm leading-relaxed text-white/80 md:text-base">
                 Convert public business signals into a RightSense 48-Hour
@@ -763,6 +787,273 @@ export function GrowthIntelligenceWorkspace({
 
       <section>
         <SectionHeading
+          icon={BarChart3}
+          title="GTM Control Center"
+          description="Review-first operating metrics derived from tenant-scoped account, queue, and outcome state."
+        />
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <ControlMetric
+            label="Accounts by Diagnostic Fit"
+            value={`${controlMetrics.accountsByDiagnosticFit.high} high · ${controlMetrics.accountsByDiagnosticFit.medium} medium · ${controlMetrics.accountsByDiagnosticFit.developing} developing`}
+          />
+          <ControlMetric
+            label="Drafts Prepared"
+            value={String(controlMetrics.draftsPrepared)}
+          />
+          <ControlMetric
+            label="Approved Drafts"
+            value={String(controlMetrics.approvedDrafts)}
+          />
+          <ControlMetric
+            label="Manual Sends Logged"
+            value={String(controlMetrics.manualSendsLogged)}
+          />
+          <ControlMetric
+            label="Replies Logged"
+            value={String(controlMetrics.repliesLogged)}
+          />
+          <ControlMetric
+            label="Discovery Calls Scheduled"
+            value={String(controlMetrics.discoveryCallsScheduled)}
+          />
+          <ControlMetric
+            label="Best Diagnostic Angle"
+            value={controlMetrics.bestDiagnosticAngle}
+          />
+          <ControlMetric
+            label="Best Segment"
+            value={controlMetrics.bestSegment}
+          />
+          <ControlMetric
+            label="Best Product Route"
+            value={controlMetrics.bestProductRoute}
+          />
+        </div>
+      </section>
+
+      <section>
+        <SectionHeading
+          icon={ClipboardCheck}
+          title="Outreach Approval Queue"
+          description="Approve preparation, log external manual sends, and classify replies. PulseIQ never transmits a message."
+        />
+        <div className="mt-4 space-y-3">
+          {approvalQueue.map((item) => {
+            const replyText = replyDrafts[item.accountId] ?? "";
+            return (
+              <Card key={item.id} className="p-4">
+                <div className="grid gap-4 xl:grid-cols-[1fr_1.4fr_auto]">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline">{item.draftLabel}</Badge>
+                      <ApprovalStatusBadge status={item.status} />
+                      {item.replyClassification && (
+                        <Badge variant="info">{item.replyClassification}</Badge>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      className="mt-3 text-left font-semibold text-foreground hover:text-accent"
+                      onClick={() => setSelectedId(item.accountId)}
+                    >
+                      {item.targetAccount}
+                    </button>
+                    <p className="mt-1 text-xs text-muted">{item.contactRole}</p>
+                    <p className="mt-3 text-sm leading-relaxed text-foreground-secondary">
+                      {item.diagnosticAngle}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {item.riskFlags.map((flag) => (
+                        <Badge key={flag} variant="warning">
+                          {flag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="max-h-52 overflow-auto whitespace-pre-line rounded-lg border border-border-subtle bg-background-alt p-3 text-xs leading-relaxed text-foreground-secondary">
+                    {item.messagePreview}
+                  </div>
+                  <div className="flex min-w-48 flex-col gap-2">
+                    {(item.status === "Draft" ||
+                      item.status === "Needs Review") && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        disabled={!persistenceAvailable || isSaving}
+                        onClick={() =>
+                          updateControlDraft(
+                            item.accountId,
+                            item.draftType,
+                            "Approved",
+                          )
+                        }
+                      >
+                        <ClipboardCheck className="h-3.5 w-3.5" />
+                        Approve for manual use
+                      </Button>
+                    )}
+                    {item.status === "Approved" && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={!persistenceAvailable || isSaving}
+                        onClick={() =>
+                          updateControlDraft(
+                            item.accountId,
+                            item.draftType,
+                            "Sent Manually",
+                          )
+                        }
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                        Log manual send
+                      </Button>
+                    )}
+                    {item.status === "Sent Manually" && (
+                      <>
+                        <textarea
+                          className="growth-input min-h-24 py-2"
+                          value={replyText}
+                          maxLength={2000}
+                          placeholder="Paste a reply for classification. It is not included in audit summaries."
+                          onChange={(event) =>
+                            setReplyDrafts((current) => ({
+                              ...current,
+                              [item.accountId]: event.target.value,
+                            }))
+                          }
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={
+                            !persistenceAvailable ||
+                            isSaving ||
+                            !replyText.trim()
+                          }
+                          onClick={() =>
+                            updateControlDraft(
+                              item.accountId,
+                              item.draftType,
+                              "Replied",
+                              replyText,
+                            )
+                          }
+                        >
+                          Classify reply
+                        </Button>
+                      </>
+                    )}
+                    {item.status !== "Nurture" && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        disabled={!persistenceAvailable || isSaving}
+                        onClick={() =>
+                          updateControlDraft(
+                            item.accountId,
+                            item.draftType,
+                            "Nurture",
+                          )
+                        }
+                      >
+                        Move to nurture
+                      </Button>
+                    )}
+                    <p className="text-[11px] leading-relaxed text-muted">
+                      Human approval is required. This control records workflow
+                      state only.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      </section>
+
+      {followUpPlan && discoveryBrief && (
+        <section className="grid gap-5 xl:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CalendarClock className="h-4 w-4 text-accent" />
+                Follow-up Planner
+              </CardTitle>
+              <CardDescription>
+                Suggested preparation for {selectedAccount.companyName}. No
+                follow-up is sent automatically.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="mt-5 space-y-4">
+              <IntelligenceItem
+                label="Suggested Follow-up Date"
+                value={followUpPlan.suggestedFollowUpDate}
+              />
+              <IntelligenceItem
+                label="Follow-up Reason"
+                value={followUpPlan.followUpReason}
+              />
+              <IntelligenceItem
+                label="Previous Touch Summary"
+                value={followUpPlan.previousTouchSummary}
+              />
+              <div className="whitespace-pre-line rounded-xl border border-border-subtle bg-background-alt p-4 text-sm leading-relaxed text-foreground-secondary">
+                {followUpPlan.draftFollowUpMessage}
+              </div>
+              <Badge variant="warning">Human approval required</Badge>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BriefcaseBusiness className="h-4 w-4 text-accent" />
+                Discovery Brief Generator
+              </CardTitle>
+              <CardDescription>
+                Structured diagnostic preparation based on public or approved
+                account context.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="mt-5 space-y-4">
+              <IntelligenceItem
+                label="Recommended Opening"
+                value={discoveryBrief.recommendedOpening}
+              />
+              <IntelligenceList
+                label="5 Discovery Questions"
+                values={discoveryBrief.discoveryQuestions}
+              />
+              <IntelligenceList
+                label="Likely Readiness Gaps"
+                values={discoveryBrief.likelyReadinessGaps}
+              />
+              <IntelligenceItem
+                label="Diagnostic Pillar Focus"
+                value={discoveryBrief.diagnosticPillarFocus}
+              />
+              <IntelligenceItem
+                label="Likely Product Route After Diagnostic"
+                value={discoveryBrief.likelyProductRouteAfterDiagnostic}
+              />
+              <IntelligenceList
+                label="Objections to Expect"
+                values={discoveryBrief.objectionsToExpect}
+              />
+              <IntelligenceList
+                label="30-Day Pilot Success Criteria"
+                values={discoveryBrief.pilotSuccessCriteria}
+              />
+            </CardContent>
+          </Card>
+        </section>
+      )}
+
+      <section>
+        <SectionHeading
           icon={MessageSquareText}
           title="Diagnostic Outreach Studio"
           description="Every draft leads with the diagnostic, requires human review, assumes no confidential access, and never sends a message."
@@ -778,40 +1069,65 @@ export function GrowthIntelligenceWorkspace({
               ["discoveryCallBrief", "Discovery Call Brief"],
             ] as [DraftKey, string][]
           ).map(([key, title]) => {
-            const approved = selectedApprovedDrafts.includes(key);
+            const isOutreachDraft = key !== "discoveryCallBrief";
+            const status = isOutreachDraft
+              ? approvalStatusFor(selectedAccount, key)
+              : "Needs Review";
             return (
               <Card key={key} className="flex min-h-72 flex-col">
                 <CardHeader>
                   <div className="flex items-start justify-between gap-3">
                     <CardTitle className="text-base">{title}</CardTitle>
-                    <Badge variant={approved ? "success" : "warning"}>
-                      {approved ? "Human-approved" : "Review required"}
-                    </Badge>
+                    <ApprovalStatusBadge status={status} />
                   </div>
                 </CardHeader>
                 <CardContent className="mt-4 flex flex-1 flex-col">
                   <div className="flex-1 whitespace-pre-line rounded-lg border border-border-subtle bg-background-alt p-3 text-sm leading-relaxed text-foreground-secondary">
                     {selectedAccount.outreachDrafts[key]}
                   </div>
-                  <Button
-                    type="button"
-                    variant={approved ? "outline" : "default"}
-                    size="sm"
-                    className="mt-4 w-full"
-                    onClick={() => toggleDraftApproval(key)}
-                  >
-                    {approved ? (
-                      <>
-                        <Check className="h-3.5 w-3.5" />
-                        Approved for manual use
-                      </>
-                    ) : (
-                      <>
+                  {isOutreachDraft &&
+                    (status === "Draft" || status === "Needs Review") && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="mt-4 w-full"
+                        disabled={!persistenceAvailable || isSaving}
+                        onClick={() =>
+                          updateControlDraft(
+                            selectedAccount.id,
+                            key,
+                            "Approved",
+                          )
+                        }
+                      >
                         <ClipboardCheck className="h-3.5 w-3.5" />
-                        Mark human-approved
-                      </>
+                        Approve for manual use
+                      </Button>
                     )}
-                  </Button>
+                  {isOutreachDraft && status === "Approved" && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-4 w-full"
+                      disabled={!persistenceAvailable || isSaving}
+                      onClick={() =>
+                        updateControlDraft(
+                          selectedAccount.id,
+                          key,
+                          "Sent Manually",
+                        )
+                      }
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                      Log manual send
+                    </Button>
+                  )}
+                  {!isOutreachDraft && (
+                    <div className="mt-4 rounded-lg border border-warning/25 bg-warning-muted px-3 py-2 text-xs text-foreground-secondary">
+                      Discovery preparation only. Human review is required.
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             );
@@ -1027,6 +1343,7 @@ export function GrowthIntelligenceWorkspace({
           <CardContent className="mt-5 space-y-3">
             {[
               ["Human-approved outreach", "Enabled", true],
+              ["Approval and manual-send audit events", "Enabled", true],
               ["Tenant-scoped records", "Enabled", true],
               ["Audit logging", "Enabled", true],
               ["Sensitive data minimization", "Enabled", true],
@@ -1324,12 +1641,40 @@ function LearningMetric({ label, value }: { label: string; value: string }) {
   );
 }
 
+function ControlMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <Card className="p-4">
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-muted">
+        {label}
+      </div>
+      <div className="mt-2 text-sm font-semibold leading-relaxed text-foreground">
+        {value}
+      </div>
+    </Card>
+  );
+}
+
+function ApprovalStatusBadge({ status }: { status: GrowthApprovalStatus }) {
+  const variant =
+    status === "Approved" || status === "Replied"
+      ? "success"
+      : status === "Sent Manually"
+        ? "info"
+        : status === "Nurture"
+          ? "outline"
+          : "warning";
+  return <Badge variant={variant}>{status}</Badge>;
+}
+
 function auditEventLabel(event: GrowthAuditLog["event"]): string {
   return {
     ACCOUNT_CREATED: "Account created",
     ACCOUNT_UPDATED: "Account updated",
     INTELLIGENCE_GENERATED: "Intelligence generated",
     OUTREACH_DRAFTED: "Outreach drafted",
+    OUTREACH_APPROVED: "Outreach approved",
+    MANUAL_SEND_LOGGED: "Manual send logged",
+    REPLY_CLASSIFIED: "Reply classified",
     OUTCOME_UPDATED: "Outcome updated",
   }[event];
 }

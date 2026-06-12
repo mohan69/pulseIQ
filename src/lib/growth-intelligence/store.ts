@@ -6,6 +6,7 @@ import type {
 } from "@/lib/growth-intelligence/types";
 import type {
   GrowthIdentity,
+  GrowthControlDraftPatch,
   GrowthOutcomePatch,
   GrowthRepository,
 } from "@/lib/growth-intelligence/repository";
@@ -80,6 +81,18 @@ export async function updateGrowthOutcome(
 ) {
   const repository = await getRepository();
   if (!(await repository.updateOutcome(identity, accountId, patch))) {
+    throw new Error("Growth account was not found.");
+  }
+  return loadGrowthWorkspace(identity, false);
+}
+
+export async function updateGrowthControlDraft(
+  identity: GrowthIdentity,
+  accountId: string,
+  patch: GrowthControlDraftPatch,
+) {
+  const repository = await getRepository();
+  if (!(await repository.updateControlDraft(identity, accountId, patch))) {
     throw new Error("Growth account was not found.");
   }
   return loadGrowthWorkspace(identity, false);

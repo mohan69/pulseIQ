@@ -4,6 +4,13 @@ import type {
   PrismaClient,
 } from "@prisma/client";
 import { Prisma } from "@prisma/client";
+import {
+  approvalStatusFor,
+  canTransitionApprovalStatus,
+  classifyGrowthReply,
+  emptyGrowthControlState,
+  normalizeGrowthControlState,
+} from "@/lib/growth-intelligence/control-center";
 import { generateGrowthIntelligence } from "@/lib/growth-intelligence/generator";
 import {
   DEMO_GROWTH_ORG_ID,
@@ -13,7 +20,9 @@ import {
 import type {
   GrowthAccount,
   GrowthAccountInput,
+  GrowthApprovalStatus,
   GrowthAuditLog,
+  GrowthDraftType,
   GrowthOutcome,
   GrowthPipelineStatus,
 } from "@/lib/growth-intelligence/types";
@@ -27,6 +36,12 @@ export type GrowthOutcomePatch = {
   status: GrowthPipelineStatus;
   nextAction: string;
   outcome: string;
+};
+
+export type GrowthControlDraftPatch = {
+  draftType: GrowthDraftType;
+  status: GrowthApprovalStatus;
+  replyText?: string;
 };
 
 export type GrowthRepository = ReturnType<typeof createGrowthRepository>;
@@ -110,6 +125,7 @@ function mapAccount(row: DbGrowthAccount): GrowthAccount {
     fitScores: generated.fitScores,
     rightSenseFitScores: generated.rightSenseFitScores,
     outreachDrafts: generated.outreachDrafts,
+    controlState: normalizeGrowthControlState(row.experiment),
     outcome: {
       ...storedOutcome,
       status: normalizePipelineStatus(storedOutcome.status ?? row.status),
@@ -161,7 +177,7 @@ function accountData(
     rightSenseFitScores: optionalJson(generated.rightSenseFitScores),
     outreach: json(generated.outreachDrafts),
     outcome: json(outcome),
-    experiment: Prisma.JsonNull,
+    experiment: json(emptyGrowthControlState()),
   };
 }
 
@@ -464,6 +480,79 @@ export function createGrowthRepository(client: PrismaClient) {
             updatedBy: identity.userId,
             event: "OUTCOME_UPDATED",
             summary: `Pipeline outcome updated at ${patch.status}.`,
+          },
+        });
+        return true;
+      });
+    },
+
+    async updateControlDraft(
+      identity: GrowthIdentity,
+      accountId: string,
+      patch: GrowthControlDraftPatch,
+    ): Promise<boolean> {
+      return client.$transaction(async (tx) => {
+        const existing = await tx.growthAccount.findFirst({
+          where: { id: accountId, ...activeTenantWhere(identity.orgId) },
+        });
+        if (!existing) return false;
+        const account = mapAccount(existing);
+        const currentStatus = approvalStatusFor(account, patch.draftType);
+        if (!canTransitionApprovalStatus(currentStatus, patch.status)) {
+          throw new Error(
+            `Invalid outreach review transition from ${currentStatus} to ${patch.status}.`,
+          );
+        }
+        if (patch.status === "Replied" && !patch.replyText?.trim()) {
+          throw new Error("Reply text is required for classification.");
+        }
+        const now = new Date().toISOString();
+        const controlState = normalizeGrowthControlState(existing.experiment);
+        const replyClassification =
+          patch.status === "Replied"
+            ? classifyGrowthReply(patch.replyText ?? "")
+            : controlState.drafts[patch.draftType]?.replyClassification;
+        controlState.drafts[patch.draftType] = {
+          status: patch.status,
+          updatedAt: now,
+          ...(replyClassification ? { replyClassification } : {}),
+        };
+        await tx.growthAccount.update({
+          where: { id: existing.id },
+          data: {
+            experiment: json(controlState),
+            updatedBy: identity.userId,
+          },
+        });
+        const event =
+          patch.status === "Approved"
+            ? "OUTREACH_APPROVED"
+            : patch.status === "Sent Manually"
+              ? "MANUAL_SEND_LOGGED"
+              : patch.status === "Replied"
+                ? "REPLY_CLASSIFIED"
+                : "ACCOUNT_UPDATED";
+        const summary =
+          patch.status === "Approved"
+            ? "Outreach draft approved for manual use."
+            : patch.status === "Sent Manually"
+              ? "Manual send recorded; no message was sent by PulseIQ."
+              : patch.status === "Replied"
+                ? `Reply classified as ${replyClassification}.`
+                : `Outreach review status updated to ${patch.status}.`;
+        await tx.growthAuditLog.create({
+          data: {
+            accountId: existing.id,
+            orgId: identity.orgId,
+            createdBy: identity.userId,
+            updatedBy: identity.userId,
+            event,
+            summary,
+            metadata: json({
+              draftType: patch.draftType,
+              status: patch.status,
+              ...(replyClassification ? { replyClassification } : {}),
+            }),
           },
         });
         return true;

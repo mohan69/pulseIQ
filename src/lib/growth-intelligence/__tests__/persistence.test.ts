@@ -221,6 +221,55 @@ describe("growth persistence", () => {
     });
   });
 
+  it("persists approval, manual-send, and reply audit events without reply text", async () => {
+    const row = dbRow(demoGrowthAccounts[2]);
+    let experiment = row.experiment;
+    const auditCreate = vi.fn().mockResolvedValue({});
+    const tx = {
+      growthAccount: {
+        findFirst: vi.fn(() =>
+          Promise.resolve({ ...row, experiment }),
+        ),
+        update: vi.fn(({ data }) => {
+          experiment = data.experiment;
+          return Promise.resolve({ ...row, experiment });
+        }),
+      },
+      growthAuditLog: { create: auditCreate },
+    };
+    const client = {
+      $transaction: vi.fn(async (callback) => callback(tx)),
+    } as unknown as PrismaClient;
+    const repository = createGrowthRepository(client);
+
+    await repository.updateControlDraft(identity, row.id, {
+      draftType: "functionalLeaderEmail",
+      status: "Approved",
+    });
+    await repository.updateControlDraft(identity, row.id, {
+      draftType: "functionalLeaderEmail",
+      status: "Sent Manually",
+    });
+    await repository.updateControlDraft(identity, row.id, {
+      draftType: "functionalLeaderEmail",
+      status: "Replied",
+      replyText: "Please schedule a meeting next week. PRIVATE-REPLY",
+    });
+
+    expect(auditCreate).toHaveBeenCalledTimes(3);
+    expect(
+      auditCreate.mock.calls.map(([call]) => call.data.event),
+    ).toEqual([
+      "OUTREACH_APPROVED",
+      "MANUAL_SEND_LOGGED",
+      "REPLY_CLASSIFIED",
+    ]);
+    expect(JSON.stringify(auditCreate.mock.calls)).not.toContain(
+      "PRIVATE-REPLY",
+    );
+    expect(JSON.stringify(experiment)).toContain("Meeting requested");
+  });
+
   it("updates learning from outcomes without exposing private notes", () => {
     const accounts = demoGrowthAccounts.map((account, index) => ({
       ...account,

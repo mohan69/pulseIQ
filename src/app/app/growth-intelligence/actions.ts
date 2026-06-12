@@ -9,10 +9,13 @@ import {
   createGrowthAccount,
   regenerateGrowthAccount,
   updateGrowthOutcome,
+  updateGrowthControlDraft,
   updateGrowthStatus,
 } from "@/lib/growth-intelligence/store";
 import type {
   GrowthAccountInput,
+  GrowthApprovalStatus,
+  GrowthDraftType,
   GrowthPipelineStatus,
   GrowthWorkspaceSnapshot,
 } from "@/lib/growth-intelligence/types";
@@ -32,6 +35,23 @@ const PIPELINE_STATUSES: GrowthPipelineStatus[] = [
   "Pilot Proposed",
   "Pilot / Deal Won",
   "Nurture / Lost",
+];
+
+const CONTROL_DRAFT_TYPES: GrowthDraftType[] = [
+  "cxoEmail",
+  "functionalLeaderEmail",
+  "linkedInNote",
+  "whatsappMessage",
+  "followUpMessage",
+];
+
+const CONTROL_STATUSES: GrowthApprovalStatus[] = [
+  "Draft",
+  "Needs Review",
+  "Approved",
+  "Sent Manually",
+  "Replied",
+  "Nurture",
 ];
 
 async function identity() {
@@ -137,6 +157,44 @@ export async function updateGrowthOutcomeAction(
     });
     revalidatePath("/app/growth-intelligence");
     return { ok: true, snapshot, message: "Outcome and learning insights updated." };
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+export async function updateGrowthControlDraftAction(
+  accountId: string,
+  patch: {
+    draftType: GrowthDraftType;
+    status: GrowthApprovalStatus;
+    replyText?: string;
+  },
+): Promise<GrowthActionResult> {
+  if (
+    !CONTROL_DRAFT_TYPES.includes(patch.draftType) ||
+    !CONTROL_STATUSES.includes(patch.status)
+  ) {
+    return { ok: false, message: "Invalid outreach review update." };
+  }
+  try {
+    const snapshot = await updateGrowthControlDraft(
+      await identity(),
+      accountId,
+      {
+        draftType: patch.draftType,
+        status: patch.status,
+        replyText: patch.replyText?.trim().slice(0, 2000),
+      },
+    );
+    revalidatePath("/app/growth-intelligence");
+    return {
+      ok: true,
+      snapshot,
+      message:
+        patch.status === "Sent Manually"
+          ? "Manual send logged. PulseIQ did not send a message."
+          : "Outreach review status persisted.",
+    };
   } catch (error) {
     return failure(error);
   }

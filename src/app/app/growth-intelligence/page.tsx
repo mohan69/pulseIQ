@@ -11,9 +11,9 @@ import { calculateGrowthLearning } from "@/lib/growth-intelligence/learning";
 import { loadGrowthWorkspace } from "@/lib/growth-intelligence/store";
 
 export const metadata: Metadata = {
-  title: "Growth Intelligence Agent | PulseIQ",
+  title: "Diagnostic-Led GTM Control Center | PulseIQ",
   description:
-    "Prioritize target accounts, identify business pain signals, prepare human-approved outreach, and learn from GTM outcomes.",
+    "Prioritize diagnostic-led accounts, review outreach, plan follow-ups, classify replies, and learn from manually logged GTM outcomes.",
   robots: { index: false, follow: false },
 };
 

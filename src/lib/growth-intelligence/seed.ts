@@ -11,6 +11,7 @@ import {
   DEMO_GROWTH_ORG_ID,
   DEMO_GROWTH_USER_ID,
 } from "@/lib/growth-intelligence/context";
+import { emptyGrowthControlState } from "@/lib/growth-intelligence/control-center";
 
 export { DEMO_GROWTH_ORG_ID, DEMO_GROWTH_USER_ID };
 
@@ -177,6 +178,7 @@ export const demoGrowthAccounts: GrowthAccount[] = seedInputs.map(
     return {
       ...input,
       ...generated,
+      controlState: emptyGrowthControlState(),
       orgId: DEMO_GROWTH_ORG_ID,
       createdBy: DEMO_GROWTH_USER_ID,
       updatedBy: DEMO_GROWTH_USER_ID,
