@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import type { PrismaClient } from "@prisma/client";
 import { describe, expect, it, vi } from "vitest";
 import { calculateGrowthLearning } from "@/lib/growth-intelligence/learning";
+import { researchAccount } from "@/lib/growth-intelligence/research";
 import {
   createGrowthRepository,
   growthRepositoryInternals,
@@ -180,6 +181,61 @@ describe("growth persistence", () => {
       "INTELLIGENCE_GENERATED",
       "OUTREACH_DRAFTED",
     ]);
+  });
+
+  it("creates an account with research and contact candidates in control state", async () => {
+    const research = await researchAccount({
+      companyName: "Research Intake Co",
+      website: "https://example.com/research",
+      industry: "Industrial Manufacturing",
+      segment: "Mid-market manufacturer",
+      location: "Pune, India",
+      targetProductRoutePreference: "PulseIQ",
+      knownRelationshipNote: "",
+      publicSourceNotes: "Public notes mention ERP and operating visibility.",
+      targetRole: "COO",
+    });
+    let createdData: Record<string, unknown> | undefined;
+    const tx = {
+      growthAccount: {
+        create: vi.fn(({ data }) => {
+          createdData = data;
+          return Promise.resolve({
+            ...dbRow(),
+            id: "research-created-account",
+            companyName: research.companyName,
+            experiment: data.experiment,
+            intelligence: data.intelligence,
+            fitScores: data.fitScores,
+            rightSenseFitScores: data.rightSenseFitScores,
+            outreach: data.outreach,
+            outcome: data.outcome,
+          });
+        }),
+      },
+      growthOutcome: { create: vi.fn().mockResolvedValue({}) },
+      growthAuditLog: { createMany: vi.fn().mockResolvedValue({ count: 3 }) },
+    };
+    const client = {
+      $transaction: vi.fn(async (callback) => callback(tx)),
+    } as unknown as PrismaClient;
+    const repository = createGrowthRepository(client);
+
+    const created = await repository.createAccount(identity, input, {
+      version: 3,
+      drafts: {},
+      contacts: research.contactCandidates,
+      preferredContactId: research.contactCandidates[0]?.id,
+      research: { ...research, verificationStatus: "Verified" },
+    });
+
+    expect(created.controlState.research?.companyName).toBe(
+      "Research Intake Co",
+    );
+    expect(created.controlState.contacts).toHaveLength(1);
+    expect(
+      JSON.stringify(createdData?.experiment),
+    ).toContain("publicSignals");
   });
 
   it("creates audits for regenerate and outcome updates", async () => {

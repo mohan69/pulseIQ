@@ -15,6 +15,7 @@ import {
   ClipboardCheck,
   FileText,
   Gauge,
+  Globe2,
   History,
   Lightbulb,
   Link2,
@@ -23,6 +24,7 @@ import {
   Phone,
   Plus,
   RefreshCw,
+  Search,
   SendHorizontal,
   ShieldCheck,
   Sparkles,
@@ -44,10 +46,13 @@ import {
 } from "@/lib/growth-intelligence/generator";
 import {
   createGrowthAccountAction,
+  createGrowthAccountFromResearchAction,
   regenerateGrowthAccountAction,
+  researchGrowthAccountAction,
   sendApprovedGrowthEmailAction,
   updateGrowthControlDraftAction,
   updateGrowthContactAction,
+  updateGrowthAccountFromResearchAction,
   updateGrowthEmailTrackingAction,
   updateGrowthOutcomeAction,
   updateGrowthStatusAction,
@@ -61,6 +66,7 @@ import {
   calculateControlMetrics,
   recommendedDraftType,
 } from "@/lib/growth-intelligence/control-center";
+import { assessResearchRisk } from "@/lib/growth-intelligence/research";
 import type {
   GrowthAccount,
   GrowthAccountInput,
@@ -72,6 +78,8 @@ import type {
   GrowthLearningInsight,
   GrowthMode,
   GrowthPipelineStatus,
+  GrowthResearchInput,
+  GrowthResearchResult,
   RightSenseFitScores,
   GrowthWorkspaceSnapshot,
 } from "@/lib/growth-intelligence/types";
@@ -104,6 +112,18 @@ const EMPTY_FORM: GrowthAccountInput = {
   mode: "rightsense",
 };
 
+const EMPTY_RESEARCH_FORM: GrowthResearchInput = {
+  companyName: "",
+  website: "",
+  industry: "Industrial Manufacturing",
+  segment: "Mid-market manufacturer",
+  location: "",
+  targetProductRoutePreference: "Unknown",
+  knownRelationshipNote: "",
+  publicSourceNotes: "",
+  targetRole: "CEO / MD",
+};
+
 type DraftKey =
   | GrowthDraftType
   | "discoveryCallBrief";
@@ -129,6 +149,12 @@ export function GrowthIntelligenceWorkspace({
       ?.id ?? initialAccounts[0]?.id,
   );
   const [form, setForm] = useState<GrowthAccountInput>(EMPTY_FORM);
+  const [researchForm, setResearchForm] =
+    useState<GrowthResearchInput>(EMPTY_RESEARCH_FORM);
+  const [researchResult, setResearchResult] =
+    useState<GrowthResearchResult>();
+  const [researchMessage, setResearchMessage] = useState("");
+  const [isResearchOpen, setIsResearchOpen] = useState(false);
   const [auditLogs, setAuditLogs] = useState(initialAuditLogs);
   const [learning, setLearning] = useState(initialLearning);
   const [formMessage, setFormMessage] = useState("");
@@ -169,6 +195,9 @@ export function GrowthIntelligenceWorkspace({
     selectedAccount && executionDraftType
       ? approvalStatusFor(selectedAccount, executionDraftType)
       : "Draft";
+  const researchRisk = researchResult
+    ? assessResearchRisk(researchResult)
+    : undefined;
   const outcomeDraft = selectedAccount
     ? outcomeDrafts[selectedAccount.id] ?? {
         nextAction: selectedAccount.outcome.nextAction,
@@ -265,6 +294,11 @@ export function GrowthIntelligenceWorkspace({
     value: GrowthAccountInput[K],
   ) => setForm((current) => ({ ...current, [key]: value }));
 
+  const setResearchField = <K extends keyof GrowthResearchInput>(
+    key: K,
+    value: GrowthResearchInput[K],
+  ) => setResearchForm((current) => ({ ...current, [key]: value }));
+
   const applySnapshot = (snapshot: GrowthWorkspaceSnapshot) => {
     setAccounts(snapshot.accounts);
     setAuditLogs(snapshot.auditLogs);
@@ -285,6 +319,55 @@ export function GrowthIntelligenceWorkspace({
     setSelectedId(result.snapshot.accounts[0]?.id);
     setForm(EMPTY_FORM);
     setIsIntakeOpen(false);
+  };
+
+  const runResearch = async () => {
+    if (!researchForm.companyName.trim()) {
+      setResearchMessage("Company Name is required.");
+      return;
+    }
+    setIsSaving(true);
+    const result = await researchGrowthAccountAction(researchForm);
+    setIsSaving(false);
+    setResearchMessage(result.message);
+    if (result.ok) setResearchResult(result.research);
+  };
+
+  const markResearchVerified = () => {
+    setResearchResult((current) =>
+      current ? { ...current, verificationStatus: "Verified" } : current,
+    );
+    setResearchMessage(
+      "Research marked verified by the user. Contact verification remains separate.",
+    );
+  };
+
+  const createAccountFromResearch = async () => {
+    if (!researchResult) return;
+    setIsSaving(true);
+    const result =
+      await createGrowthAccountFromResearchAction(researchResult);
+    setIsSaving(false);
+    setResearchMessage(result.message);
+    if (result.ok) {
+      applySnapshot(result.snapshot);
+      setSelectedId(result.snapshot.accounts[0]?.id);
+      setResearchForm(EMPTY_RESEARCH_FORM);
+      setResearchResult(undefined);
+      setIsResearchOpen(false);
+    }
+  };
+
+  const updateSelectedAccountFromResearch = async () => {
+    if (!researchResult || !selectedAccount) return;
+    setIsSaving(true);
+    const result = await updateGrowthAccountFromResearchAction(
+      selectedAccount.id,
+      researchResult,
+    );
+    setIsSaving(false);
+    setResearchMessage(result.message);
+    if (result.ok) applySnapshot(result.snapshot);
   };
 
   const regenerateSelectedAccount = async () => {
@@ -480,6 +563,369 @@ export function GrowthIntelligenceWorkspace({
           );
         })}
       </section>
+
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Search className="h-4 w-4 text-accent" />
+                Automated Research & Account Intake
+              </CardTitle>
+              <CardDescription className="mt-1">
+                Prepare a structured diagnostic intake from supplied public or
+                approved context. No external web research provider is configured.
+              </CardDescription>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsResearchOpen((open) => !open)}
+              aria-expanded={isResearchOpen}
+            >
+              {isResearchOpen ? (
+                <>
+                  <ChevronUp className="h-3.5 w-3.5" />
+                  Collapse research
+                </>
+              ) : (
+                <>
+                  <Globe2 className="h-3.5 w-3.5" />
+                  Open research intake
+                </>
+              )}
+            </Button>
+          </div>
+        </CardHeader>
+        {isResearchOpen && (
+          <CardContent className="mt-5 space-y-5">
+            <div className="rounded-lg border border-info/20 bg-info-muted px-3 py-2.5 text-xs leading-relaxed text-foreground-secondary">
+              Automated public web research is not configured. Using supplied
+              account details and safe diagnostic heuristics.
+            </div>
+            <div className="grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
+              <div className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label="Company Name" required>
+                    <input
+                      className="growth-input"
+                      value={researchForm.companyName}
+                      onChange={(event) =>
+                        setResearchField("companyName", event.target.value)
+                      }
+                      placeholder="Target company"
+                    />
+                  </Field>
+                  <Field label="Website URL">
+                    <input
+                      className="growth-input"
+                      type="url"
+                      value={researchForm.website}
+                      onChange={(event) =>
+                        setResearchField("website", event.target.value)
+                      }
+                      placeholder="https://company.example"
+                    />
+                  </Field>
+                  <Field label="Industry">
+                    <input
+                      className="growth-input"
+                      value={researchForm.industry}
+                      onChange={(event) =>
+                        setResearchField("industry", event.target.value)
+                      }
+                    />
+                  </Field>
+                  <Field label="Segment">
+                    <select
+                      className="growth-input"
+                      value={researchForm.segment}
+                      onChange={(event) =>
+                        setResearchField("segment", event.target.value)
+                      }
+                    >
+                      <option>Mid-market manufacturer</option>
+                      <option>Industrial OEM</option>
+                      <option>Large enterprise</option>
+                      <option>Growth-stage company</option>
+                      <option>Professional services</option>
+                    </select>
+                  </Field>
+                  <Field label="Location">
+                    <input
+                      className="growth-input"
+                      value={researchForm.location}
+                      onChange={(event) =>
+                        setResearchField("location", event.target.value)
+                      }
+                      placeholder="City, Country"
+                    />
+                  </Field>
+                  <Field label="Route Preference">
+                    <select
+                      className="growth-input"
+                      value={researchForm.targetProductRoutePreference}
+                      onChange={(event) =>
+                        setResearchField(
+                          "targetProductRoutePreference",
+                          event.target
+                            .value as GrowthResearchInput["targetProductRoutePreference"],
+                        )
+                      }
+                    >
+                      <option>Unknown</option>
+                      <option>PulseIQ</option>
+                      <option>WinsProposal</option>
+                      <option>TalentPulse</option>
+                      <option>RightSense Consulting</option>
+                    </select>
+                  </Field>
+                  <Field label="Target Role">
+                    <select
+                      className="growth-input"
+                      value={researchForm.targetRole}
+                      onChange={(event) =>
+                        setResearchField(
+                          "targetRole",
+                          event.target.value as GrowthResearchInput["targetRole"],
+                        )
+                      }
+                    >
+                      {[
+                        "CEO / MD",
+                        "COO",
+                        "CFO",
+                        "CIO",
+                        "Sales Head",
+                        "Proposal Head",
+                        "Quality",
+                        "Compliance",
+                        "HR",
+                        "Other",
+                      ].map((role) => (
+                        <option key={role}>{role}</option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
+                <Field label="Known Relationship Note">
+                  <textarea
+                    className="growth-input min-h-20 py-2"
+                    value={researchForm.knownRelationshipNote}
+                    onChange={(event) =>
+                      setResearchField(
+                        "knownRelationshipNote",
+                        event.target.value,
+                      )
+                    }
+                    placeholder="Optional approved relationship context"
+                  />
+                </Field>
+                <Field label="Public Source Notes">
+                  <textarea
+                    className="growth-input min-h-28 py-2"
+                    value={researchForm.publicSourceNotes}
+                    onChange={(event) =>
+                      setResearchField("publicSourceNotes", event.target.value)
+                    }
+                    placeholder="Paste approved website summaries, directory notes, or manually supplied public signals"
+                  />
+                </Field>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    disabled={isSaving}
+                    onClick={runResearch}
+                  >
+                    <Search className="h-4 w-4" />
+                    Research account
+                  </Button>
+                  {researchResult && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={isSaving}
+                      onClick={runResearch}
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" />
+                      Regenerate research
+                    </Button>
+                  )}
+                </div>
+                {researchMessage && (
+                  <p className="text-xs leading-relaxed text-muted" role="status">
+                    {researchMessage}
+                  </p>
+                )}
+              </div>
+
+              {researchResult ? (
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="info">{researchResult.confidence} confidence</Badge>
+                    <Badge
+                      variant={
+                        researchResult.verificationStatus === "Verified"
+                          ? "success"
+                          : "warning"
+                      }
+                    >
+                      {researchResult.verificationStatus}
+                    </Badge>
+                    {researchRisk && (
+                      <RiskStatusBadge status={researchRisk.status} />
+                    )}
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <IntelligenceItem
+                      label="Research Result"
+                      value={`${researchResult.companyName} · ${researchResult.industry} · ${researchResult.sizeBand} · ${researchResult.location || "Location to be validated"}`}
+                    />
+                    <IntelligenceItem
+                      label="Likely Business Model"
+                      value={researchResult.likelyBusinessModel}
+                    />
+                    <IntelligenceItem
+                      label="Diagnostic Angle"
+                      value={researchResult.diagnosticEntryAngle}
+                    />
+                    <IntelligenceItem
+                      label="Best Diagnostic Pillar"
+                      value={researchResult.bestDiagnosticPillar}
+                    />
+                    <IntelligenceItem
+                      label="Recommended Product Route"
+                      value={
+                        researchResult.recommendedProductRouteAfterDiagnostic
+                      }
+                    />
+                    <IntelligenceList
+                      label="Evidence Needed"
+                      values={researchResult.evidenceNeeded}
+                    />
+                  </div>
+                  <div className="rounded-xl border border-border-subtle bg-background-alt p-4">
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-muted">
+                      Public Signals
+                    </div>
+                    <div className="mt-3 space-y-3">
+                      {researchResult.publicSignals.map((signal) => (
+                        <div key={signal.category}>
+                          <div className="text-sm font-medium text-foreground">
+                            {signal.category}
+                          </div>
+                          <p className="mt-1 text-xs leading-relaxed text-foreground-secondary">
+                            {signal.hypothesis}
+                          </p>
+                          <p className="mt-1 text-[11px] text-muted">
+                            Source: {signal.sourceNote}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <IntelligenceList
+                    label="Top 3 Likely Findings Preview"
+                    values={researchResult.likelyReadinessGaps
+                      .slice(0, 3)
+                      .map(
+                        (gap) =>
+                          `Likely readiness hypothesis: ${gap}; to be validated with evidence needed.`,
+                      )}
+                  />
+                  <div className="rounded-xl border border-border-subtle bg-background-alt p-4">
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-muted">
+                      Contact Candidates
+                    </div>
+                    {researchResult.contactCandidates.map((contact) => (
+                      <div key={contact.id} className="mt-3 text-sm">
+                        <div className="font-medium text-foreground">
+                          {contact.name} · {contact.title}
+                        </div>
+                        <div className="mt-1 grid gap-1 text-xs text-foreground-secondary">
+                          <span>
+                            Email:{" "}
+                            {contact.email ||
+                              "Not found / needs manual verification"}
+                          </span>
+                          <span>
+                            Phone:{" "}
+                            {contact.phone ||
+                              "Not found / needs manual verification"}
+                          </span>
+                          <span>
+                            Source: {contact.sourceType} ·{" "}
+                            {contact.sourceUrl || "No source URL supplied"}
+                          </span>
+                          <span>
+                            Confidence: {contact.confidence} ·{" "}
+                            {contact.verificationNote}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {researchRisk && (
+                    <div className="flex flex-wrap gap-2">
+                      {researchRisk.flags.map((flag) => (
+                        <Badge key={flag} variant="warning">
+                          {flag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={markResearchVerified}
+                      disabled={
+                        researchResult.verificationStatus === "Verified" ||
+                        researchRisk?.status === "Blocked"
+                      }
+                    >
+                      <BadgeCheck className="h-4 w-4" />
+                      Mark research verified
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={createAccountFromResearch}
+                      disabled={
+                        !persistenceAvailable ||
+                        isSaving ||
+                        researchRisk?.status === "Blocked" ||
+                        researchResult.verificationStatus !== "Verified"
+                      }
+                    >
+                      <Plus className="h-4 w-4" />
+                      Create Account From Research
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={updateSelectedAccountFromResearch}
+                      disabled={
+                        !persistenceAvailable ||
+                        isSaving ||
+                        researchRisk?.status === "Blocked" ||
+                        researchResult.verificationStatus !== "Verified"
+                      }
+                    >
+                      Update Selected Account
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex min-h-72 items-center justify-center rounded-xl border border-dashed border-border bg-background-alt p-8 text-center text-sm text-muted">
+                  Research results, public signals, contact candidates, and
+                  diagnostic hypotheses will appear here for manual verification.
+                </div>
+              )}
+            </div>
+          </CardContent>
+        )}
+      </Card>
 
       <Card className="p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1037,6 +1483,29 @@ export function GrowthIntelligenceWorkspace({
                       }
                     />
                   </Field>
+                  <Field label="Source Type">
+                    <select
+                      className="growth-input"
+                      value={contactDraft.sourceType}
+                      onChange={(event) =>
+                        setContactDrafts((current) => ({
+                          ...current,
+                          [selectedAccount.id]: {
+                            ...contactDraft,
+                            sourceType: event.target
+                              .value as GrowthContactCandidate["sourceType"],
+                          },
+                        }))
+                      }
+                    >
+                      <option>website</option>
+                      <option>LinkedIn</option>
+                      <option>public directory</option>
+                      <option>existing relationship</option>
+                      <option>manual input</option>
+                      <option>unknown</option>
+                    </select>
+                  </Field>
                   <Field label="Last Checked Date">
                     <input
                       className="growth-input"
@@ -1087,6 +1556,29 @@ export function GrowthIntelligenceWorkspace({
                   <span>
                     Allowed to contact after manual verification. This does not
                     approve or send an email.
+                  </span>
+                </label>
+                <label className="flex items-start gap-3 rounded-lg border border-error/20 bg-error-muted p-3 text-sm text-foreground-secondary">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={contactDraft.doNotContact}
+                    onChange={(event) =>
+                      setContactDrafts((current) => ({
+                        ...current,
+                        [selectedAccount.id]: {
+                          ...contactDraft,
+                          doNotContact: event.target.checked,
+                          allowedToContact: event.target.checked
+                            ? false
+                            : contactDraft.allowedToContact,
+                        },
+                      }))
+                    }
+                  />
+                  <span>
+                    Do not contact. This blocks email execution even if a draft
+                    is approved.
                   </span>
                 </label>
                 <Button

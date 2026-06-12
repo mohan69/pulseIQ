@@ -126,7 +126,7 @@ describe("growth control center", () => {
       },
     });
 
-    expect(normalized.version).toBe(2);
+    expect(normalized.version).toBe(3);
     expect(normalized.drafts.cxoEmail?.status).toBe("Approved");
     expect(normalized.contacts).toEqual([]);
   });
@@ -190,7 +190,7 @@ function withApprovedExecutionDraft(
   return {
     ...source,
     controlState: {
-      version: 2,
+      version: 3,
       drafts: {
         [draftType]: {
           status: "Approved",
@@ -208,10 +208,12 @@ function withApprovedExecutionDraft(
               phone: "",
               linkedInUrl: source.linkedInUrl,
               sourceUrl: source.linkedInUrl,
+              sourceType: "manual input",
               confidence: "High",
               verificationNote: "Verified manually against the supplied source.",
               lastCheckedDate: "2026-06-12",
               allowedToContact: true,
+              doNotContact: false,
             },
           ]
         : [],

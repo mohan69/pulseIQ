@@ -7,14 +7,20 @@ import {
 } from "@/lib/growth-intelligence/context";
 import {
   createGrowthAccount,
+  createGrowthAccountFromResearch,
   regenerateGrowthAccount,
   sendGrowthApprovedEmail,
   updateGrowthEmailTrackingStatus,
+  updateGrowthAccountFromResearch,
   updateGrowthOutcome,
   updateGrowthControlDraft,
   updateGrowthContact,
   updateGrowthStatus,
 } from "@/lib/growth-intelligence/store";
+import {
+  assessResearchRisk,
+  researchAccount,
+} from "@/lib/growth-intelligence/research";
 import type {
   GrowthAccountInput,
   GrowthApprovalStatus,
@@ -22,6 +28,8 @@ import type {
   GrowthDraftType,
   GrowthEmailTrackingStatus,
   GrowthPipelineStatus,
+  GrowthResearchInput,
+  GrowthResearchResult,
   GrowthWorkspaceSnapshot,
 } from "@/lib/growth-intelligence/types";
 
@@ -31,6 +39,10 @@ type GrowthActionResult =
 
 type GrowthEmailActionResult =
   | { ok: true; message: string }
+  | { ok: false; message: string };
+
+type GrowthResearchActionResult =
+  | { ok: true; research: GrowthResearchResult; message: string }
   | { ok: false; message: string };
 
 const PIPELINE_STATUSES: GrowthPipelineStatus[] = [
@@ -110,6 +122,98 @@ export async function createGrowthAccountAction(
     const snapshot = await createGrowthAccount(await identity(), cleaned);
     revalidatePath("/app/growth-intelligence");
     return { ok: true, snapshot, message: "Account created and persisted." };
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+export async function researchGrowthAccountAction(
+  input: GrowthResearchInput,
+): Promise<GrowthResearchActionResult> {
+  try {
+    await identity();
+    if (!input.companyName.trim()) {
+      return { ok: false, message: "Company Name is required." };
+    }
+    const research = await researchAccount({
+      ...input,
+      companyName: input.companyName.trim().slice(0, 200),
+      website: input.website.trim().slice(0, 500),
+      industry: input.industry.trim().slice(0, 200),
+      segment: input.segment.trim().slice(0, 200),
+      location: input.location.trim().slice(0, 200),
+      knownRelationshipNote: input.knownRelationshipNote.trim().slice(0, 2000),
+      publicSourceNotes: input.publicSourceNotes.trim().slice(0, 4000),
+    });
+    return { ok: true, research, message: research.providerMessage };
+  } catch (error) {
+    const failed = failure(error);
+    return { ok: false, message: failed.message };
+  }
+}
+
+export async function createGrowthAccountFromResearchAction(
+  research: GrowthResearchResult,
+): Promise<GrowthActionResult> {
+  if (research.verificationStatus !== "Verified") {
+    return {
+      ok: false,
+      message: "Research must be manually verified before account creation.",
+    };
+  }
+  const risk = assessResearchRisk(research);
+  if (risk.status === "Blocked") {
+    return {
+      ok: false,
+      message: `Research is blocked: ${risk.flags.join("; ")}`,
+    };
+  }
+  try {
+    const snapshot = await createGrowthAccountFromResearch(
+      await identity(),
+      research,
+    );
+    revalidatePath("/app/growth-intelligence");
+    return {
+      ok: true,
+      snapshot,
+      message:
+        "Account created from verified research using safe diagnostic heuristics.",
+    };
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+export async function updateGrowthAccountFromResearchAction(
+  accountId: string,
+  research: GrowthResearchResult,
+): Promise<GrowthActionResult> {
+  if (research.verificationStatus !== "Verified") {
+    return {
+      ok: false,
+      message: "Research must be manually verified before account update.",
+    };
+  }
+  const risk = assessResearchRisk(research);
+  if (risk.status === "Blocked") {
+    return {
+      ok: false,
+      message: `Research is blocked: ${risk.flags.join("; ")}`,
+    };
+  }
+  try {
+    const snapshot = await updateGrowthAccountFromResearch(
+      await identity(),
+      accountId,
+      research,
+    );
+    revalidatePath("/app/growth-intelligence");
+    return {
+      ok: true,
+      snapshot,
+      message: "Selected account updated from verified research.",
+    };
   } catch (error) {
     return failure(error);
   }

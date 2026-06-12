@@ -24,10 +24,12 @@ import type {
   GrowthApprovalStatus,
   GrowthAuditLog,
   GrowthContactCandidate,
+  GrowthControlState,
   GrowthDraftType,
   GrowthEmailTrackingStatus,
   GrowthOutcome,
   GrowthPipelineStatus,
+  GrowthResearchResult,
 } from "@/lib/growth-intelligence/types";
 
 export type GrowthIdentity = {
@@ -159,6 +161,7 @@ function accountData(
   input: GrowthAccountInput,
   outcome: GrowthOutcome,
   seedKey?: string,
+  controlState: GrowthControlState = emptyGrowthControlState(),
 ) {
   const generated = generateGrowthIntelligence(input);
   return {
@@ -184,7 +187,7 @@ function accountData(
     rightSenseFitScores: optionalJson(generated.rightSenseFitScores),
     outreach: json(generated.outreachDrafts),
     outcome: json(outcome),
-    experiment: json(emptyGrowthControlState()),
+    experiment: json(controlState),
   };
 }
 
@@ -307,6 +310,7 @@ export function createGrowthRepository(client: PrismaClient) {
     async createAccount(
       identity: GrowthIdentity,
       input: GrowthAccountInput,
+      controlState?: GrowthControlState,
     ): Promise<GrowthAccount> {
       const now = new Date();
       const outcome: GrowthOutcome = {
@@ -317,7 +321,7 @@ export function createGrowthRepository(client: PrismaClient) {
       };
       const row = await client.$transaction(async (tx) => {
         const created = await tx.growthAccount.create({
-          data: accountData(identity, input, outcome),
+          data: accountData(identity, input, outcome, undefined, controlState),
         });
         await tx.growthOutcome.create({
           data: {
@@ -622,10 +626,12 @@ export function createGrowthRepository(client: PrismaClient) {
           phone: patch.phone,
           linkedInUrl: patch.linkedInUrl,
           sourceUrl: patch.sourceUrl,
+          sourceType: patch.sourceType,
           confidence: patch.confidence,
           verificationNote: patch.verificationNote,
           lastCheckedDate: patch.lastCheckedDate,
           allowedToContact: patch.allowedToContact,
+          doNotContact: patch.doNotContact,
         });
         controlState.contacts = contacts;
         if (patch.preferred) controlState.preferredContactId = patch.id;
@@ -652,6 +658,69 @@ export function createGrowthRepository(client: PrismaClient) {
               preferred: patch.preferred,
             }),
           },
+        });
+        return true;
+      });
+    },
+
+    async applyResearchToAccount(
+      identity: GrowthIdentity,
+      accountId: string,
+      input: GrowthAccountInput,
+      research: GrowthResearchResult,
+    ): Promise<boolean> {
+      return client.$transaction(async (tx) => {
+        const existing = await tx.growthAccount.findFirst({
+          where: { id: accountId, ...activeTenantWhere(identity.orgId) },
+        });
+        if (!existing) return false;
+        const generated = generateGrowthIntelligence(input);
+        const controlState = normalizeGrowthControlState(existing.experiment);
+        controlState.research = research;
+        controlState.contacts = research.contactCandidates;
+        controlState.preferredContactId = research.contactCandidates[0]?.id;
+        await tx.growthAccount.update({
+          where: { id: existing.id },
+          data: {
+            updatedBy: identity.userId,
+            companyName: input.companyName,
+            website: input.website,
+            industry: input.industry,
+            location: input.location,
+            segment: input.segment,
+            targetProductOrService: input.targetProductService,
+            targetPersona: input.targetPersona,
+            contactName: input.contactName,
+            contactRole: input.contactRole,
+            linkedInUrl: input.linkedInUrl,
+            notes: input.notes,
+            intelligence: json(generated.intelligence),
+            fitScores: json(generated.fitScores),
+            rightSenseFitScores: optionalJson(generated.rightSenseFitScores),
+            outreach: json(generated.outreachDrafts),
+            experiment: json(controlState),
+          },
+        });
+        await tx.growthAuditLog.createMany({
+          data: [
+            {
+              accountId: existing.id,
+              orgId: identity.orgId,
+              createdBy: identity.userId,
+              updatedBy: identity.userId,
+              event: "ACCOUNT_UPDATED",
+              summary: "Account intake updated from manually verified research.",
+            },
+            {
+              accountId: existing.id,
+              orgId: identity.orgId,
+              createdBy: identity.userId,
+              updatedBy: identity.userId,
+              event: "INTELLIGENCE_GENERATED",
+              summary:
+                "Diagnostic intelligence regenerated from verified research.",
+            },
+          ],
         });
         return true;
       });

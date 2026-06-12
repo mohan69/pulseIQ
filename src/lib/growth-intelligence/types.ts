@@ -87,6 +87,14 @@ export type GrowthContactRoleCategory =
 
 export type GrowthContactConfidence = "High" | "Medium" | "Low";
 
+export type GrowthContactSourceType =
+  | "website"
+  | "LinkedIn"
+  | "public directory"
+  | "existing relationship"
+  | "manual input"
+  | "unknown";
+
 export type GrowthContactCandidate = {
   id: string;
   name: string;
@@ -96,10 +104,87 @@ export type GrowthContactCandidate = {
   phone: string;
   linkedInUrl: string;
   sourceUrl: string;
+  sourceType: GrowthContactSourceType;
   confidence: GrowthContactConfidence;
   verificationNote: string;
   lastCheckedDate: string;
   allowedToContact: boolean;
+  doNotContact: boolean;
+};
+
+export type GrowthResearchVerificationStatus =
+  | "Draft"
+  | "Needs Manual Verification"
+  | "Verified";
+
+export type GrowthPublicSignalCategory =
+  | "Proposal / RFP complexity"
+  | "Operating visibility"
+  | "Margin / productivity leakage"
+  | "Compliance and standards readiness"
+  | "ISO readiness"
+  | "Technical standards mapping"
+  | "Statutory document readiness"
+  | "Vendor registration readiness"
+  | "Supplier qualification"
+  | "Subcontractor governance"
+  | "Customer prequalification readiness"
+  | "AI governance and output validation"
+  | "Talent / delivery capacity";
+
+export type GrowthPublicSignal = {
+  category: GrowthPublicSignalCategory;
+  hypothesis: string;
+  sourceNote: string;
+};
+
+export type GrowthResearchInput = {
+  companyName: string;
+  website: string;
+  industry: string;
+  segment: string;
+  location: string;
+  targetProductRoutePreference:
+    | "PulseIQ"
+    | "WinsProposal"
+    | "TalentPulse"
+    | "RightSense Consulting"
+    | "Unknown";
+  knownRelationshipNote: string;
+  publicSourceNotes: string;
+  targetRole:
+    | "CEO / MD"
+    | "COO"
+    | "CFO"
+    | "CIO"
+    | "Sales Head"
+    | "Proposal Head"
+    | "Quality"
+    | "Compliance"
+    | "HR"
+    | "Other";
+};
+
+export type GrowthResearchResult = {
+  companyName: string;
+  website: string;
+  industry: string;
+  location: string;
+  segment: string;
+  sizeBand: string;
+  productsOrServices: string[];
+  likelyBusinessModel: string;
+  publicSignals: GrowthPublicSignal[];
+  likelyReadinessGaps: string[];
+  diagnosticEntryAngle: string;
+  bestDiagnosticPillar: string;
+  recommendedProductRouteAfterDiagnostic: string;
+  confidence: GrowthContactConfidence;
+  sourceNotes: string[];
+  evidenceNeeded: string[];
+  verificationStatus: GrowthResearchVerificationStatus;
+  contactCandidates: GrowthContactCandidate[];
+  providerMessage: string;
 };
 
 export type GrowthEmailTrackingStatus =
@@ -130,11 +215,12 @@ export type GrowthControlDraftState = {
 };
 
 export type GrowthControlState = {
-  version: 2;
+  version: 3;
   drafts: Partial<Record<GrowthDraftType, GrowthControlDraftState>>;
   contacts: GrowthContactCandidate[];
   preferredContactId?: string;
   emailTracking?: GrowthEmailTracking;
+  research?: GrowthResearchResult;
 };
 
 export type GrowthApprovalQueueItem = {

@@ -26,19 +26,25 @@ const UNSAFE_CLAIMS =
   /certification guaranteed|customer approved|regulatory approved|statutory approved|fully compliant|compliance built-in|guaranteed acceptance|tender-ready/i;
 
 export function emptyGrowthControlState(): GrowthControlState {
-  return { version: 2, drafts: {}, contacts: [] };
+  return { version: 3, drafts: {}, contacts: [] };
 }
 
 export function normalizeGrowthControlState(value: unknown): GrowthControlState {
   if (!value || typeof value !== "object") return emptyGrowthControlState();
   const candidate = value as Partial<GrowthControlState>;
   return {
-    version: 2,
+    version: 3,
     drafts:
       candidate.drafts && typeof candidate.drafts === "object"
         ? candidate.drafts
         : {},
-    contacts: Array.isArray(candidate.contacts) ? candidate.contacts : [],
+    contacts: Array.isArray(candidate.contacts)
+      ? candidate.contacts.map((contact) => ({
+          ...contact,
+          sourceType: contact.sourceType ?? "unknown",
+          doNotContact: contact.doNotContact ?? false,
+        }))
+      : [],
     preferredContactId:
       typeof candidate.preferredContactId === "string"
         ? candidate.preferredContactId
@@ -46,6 +52,10 @@ export function normalizeGrowthControlState(value: unknown): GrowthControlState 
     emailTracking:
       candidate.emailTracking && typeof candidate.emailTracking === "object"
         ? candidate.emailTracking
+        : undefined,
+    research:
+      candidate.research && typeof candidate.research === "object"
+        ? candidate.research
         : undefined,
   };
 }
@@ -77,11 +87,13 @@ export function contactCandidatesFor(
       phone: "",
       linkedInUrl: account.linkedInUrl,
       sourceUrl: account.linkedInUrl || account.website,
+      sourceType: account.linkedInUrl ? "manual input" : "unknown",
       confidence: account.linkedInUrl ? "Medium" : "Low",
       verificationNote:
         "Email and phone not found; needs manual verification before contact.",
       lastCheckedDate: account.updatedAt.slice(0, 10),
       allowedToContact: false,
+      doNotContact: false,
     },
   ];
 }
@@ -217,7 +229,7 @@ export function assessExecutionRisk(
     flags.push("Contact email not found; needs manual verification");
     blocked = true;
   }
-  if (!contact?.allowedToContact) {
+  if (!contact?.allowedToContact || contact?.doNotContact) {
     flags.push("Contact is not marked allowed-to-contact");
     blocked = true;
   }
@@ -270,6 +282,7 @@ export function buildDiagnosticSampleOutput(
     "AI-assisted analysis may need stronger source traceability, human approval, and audit trail before enterprise use.",
   ];
   const source = [
+    ...(account.controlState.research?.likelyReadinessGaps ?? []),
     ...account.intelligence.likelyReadinessGaps,
     ...fallbacks,
   ].slice(0, 3);

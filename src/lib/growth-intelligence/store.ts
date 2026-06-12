@@ -4,10 +4,12 @@ import {
   getExecutionSendEligibility,
 } from "@/lib/growth-intelligence/control-center";
 import { sendApprovedEmail } from "@/lib/growth-intelligence/email-sender";
+import { researchToGrowthInput } from "@/lib/growth-intelligence/research";
 import type {
   GrowthAccountInput,
   GrowthEmailTrackingStatus,
   GrowthPipelineStatus,
+  GrowthResearchResult,
   GrowthWorkspaceSnapshot,
 } from "@/lib/growth-intelligence/types";
 import type {
@@ -56,6 +58,40 @@ export async function createGrowthAccount(
 ) {
   const repository = await getRepository();
   await repository.createAccount(identity, input);
+  return loadGrowthWorkspace(identity, false);
+}
+
+export async function createGrowthAccountFromResearch(
+  identity: GrowthIdentity,
+  research: GrowthResearchResult,
+) {
+  const repository = await getRepository();
+  await repository.createAccount(identity, researchToGrowthInput(research), {
+    version: 3,
+    drafts: {},
+    contacts: research.contactCandidates,
+    preferredContactId: research.contactCandidates[0]?.id,
+    research,
+  });
+  return loadGrowthWorkspace(identity, false);
+}
+
+export async function updateGrowthAccountFromResearch(
+  identity: GrowthIdentity,
+  accountId: string,
+  research: GrowthResearchResult,
+) {
+  const repository = await getRepository();
+  if (
+    !(await repository.applyResearchToAccount(
+      identity,
+      accountId,
+      researchToGrowthInput(research),
+      research,
+    ))
+  ) {
+    throw new Error("Growth account was not found.");
+  }
   return loadGrowthWorkspace(identity, false);
 }
 
