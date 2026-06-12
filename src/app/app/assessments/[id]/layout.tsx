@@ -57,8 +57,8 @@ export default async function AssessmentLayout({
   const isMicrofinishSample = isMicrofinishPublicDomain(assessment);
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-2xl border border-border bg-white p-5 lg:p-6">
+    <div className="space-y-6 print:space-y-0">
+      <section className="rounded-2xl border border-border bg-white p-5 lg:p-6 print:hidden">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
             <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-accent to-cyan flex items-center justify-center shrink-0">
@@ -122,7 +122,12 @@ export default async function AssessmentLayout({
           </div>
         </div>
       </section>
-      <AssessmentTabs assessmentId={assessment.id} sourceCount={sources.length} />
+      <div className="print:hidden">
+        <AssessmentTabs
+          assessmentId={assessment.id}
+          sourceCount={sources.length}
+        />
+      </div>
       <div>{children}</div>
     </div>
   );

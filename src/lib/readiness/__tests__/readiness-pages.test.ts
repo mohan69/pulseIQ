@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import AIGovernancePage from "@/app/app/assessments/[id]/ai-governance/page";
 import CustomerQualificationPage from "@/app/app/assessments/[id]/customer-qualification/page";
 import ReadinessPackPage from "@/app/app/assessments/[id]/readiness-pack/page";
-import ReportPage from "@/app/app/assessments/[id]/report/page";
+import DetailedReportPage from "@/app/app/assessments/[id]/report/detail/page";
 import StandardsReadinessPage from "@/app/app/assessments/[id]/standards-readiness/page";
 import StatutoryReadinessPage from "@/app/app/assessments/[id]/statutory-readiness/page";
 import SupplierEcosystemPage from "@/app/app/assessments/[id]/supplier-ecosystem/page";
@@ -26,7 +26,7 @@ describe("readiness module pages", () => {
   });
 
   it("renders the new structured sections in the existing report", async () => {
-    const markup = renderToStaticMarkup(await ReportPage(pageProps));
+    const markup = renderToStaticMarkup(await DetailedReportPage(pageProps));
 
     expect(markup).toContain("Compliance &amp; Standards Readiness");
     expect(markup).toContain("Customer Qualification Readiness");
