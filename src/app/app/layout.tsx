@@ -21,7 +21,7 @@ export default function WorkbenchLayout({
     <div className="min-h-screen flex bg-background">
       <AppSidebar />
       <div className="flex-1 min-w-0 flex flex-col">
-        <header className="sticky top-0 z-30 border-b border-border bg-white/85 backdrop-blur-sm">
+        <header className="app-shell-header sticky top-0 z-30 border-b border-border bg-white/85 backdrop-blur-sm print:hidden">
           <div className="flex items-center justify-between px-6 lg:px-8 h-14">
             <AppBreadcrumbs />
             <div className="flex items-center gap-2">
@@ -39,8 +39,10 @@ export default function WorkbenchLayout({
             </div>
           </div>
         </header>
-        <main className="flex-1 min-w-0 px-6 lg:px-8 py-8 max-w-[1280px] has-[.growth-intelligence-workspace]:max-w-[1440px] w-full mx-auto">
-          <AppContextNotice />
+        <main className="flex-1 min-w-0 px-6 lg:px-8 py-8 max-w-[1280px] has-[.growth-intelligence-workspace]:max-w-[1440px] w-full mx-auto print:max-w-none print:p-0">
+          <div className="app-shell-notice print:hidden">
+            <AppContextNotice />
+          </div>
           {children}
         </main>
       </div>

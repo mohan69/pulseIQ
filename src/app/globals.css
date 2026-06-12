@@ -175,7 +175,16 @@ h1, h2, h3, h4, h5, h6 {
   background: #94a3b8;
 }
 
+.board-page-footer {
+  display: none;
+}
+
 @media print {
+  @page {
+    size: A4;
+    margin: 14mm 12mm 16mm;
+  }
+
   body {
     background: white !important;
     color: black !important;
@@ -325,5 +334,215 @@ h1, h2, h3, h4, h5, h6 {
   
   p, span, div, li {
     color: black !important;
+  }
+
+  .board-report-route {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body:has(.board-report-route) .app-shell-sidebar,
+  body:has(.board-report-route) .app-shell-header,
+  body:has(.board-report-route) .app-shell-notice,
+  body:has(.board-report-route) .assessment-shell-summary,
+  body:has(.board-report-route) .assessment-shell-tabs,
+  body:has(.board-report-route) .board-report-route > div:first-child {
+    display: none !important;
+  }
+
+  body:has(.board-report-route) main {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body:has(.board-report-route) main > div,
+  body:has(.board-report-route) main > div > div {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .board-report {
+    width: 100% !important;
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 9pt !important;
+    line-height: 1.38 !important;
+  }
+
+  .board-page {
+    position: relative;
+    min-height: auto !important;
+    padding-bottom: 12mm !important;
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .board-page-break {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  .board-page:last-of-type {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .board-avoid-break,
+  .board-roadmap-card,
+  .board-table tr,
+  .board-table thead {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .board-report p,
+  .board-report li,
+  .board-report td {
+    orphans: 3;
+    widows: 3;
+  }
+
+  .board-report .space-y-2,
+  .board-report .space-y-3,
+  .board-report .space-y-4,
+  .board-report .space-y-5 {
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
+  .board-table {
+    table-layout: fixed;
+    font-size: 7.6pt;
+    line-height: 1.3;
+  }
+
+  .board-table th {
+    border: 1px solid #b8c2cc;
+    padding: 7px;
+    vertical-align: top;
+    font-weight: 700;
+  }
+
+  .board-table td {
+    border: 1px solid #d7dde3;
+    padding: 7px;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+  }
+
+  .board-scorecard-table th:nth-child(1),
+  .board-scorecard-table td:nth-child(1) {
+    width: 20%;
+  }
+
+  .board-scorecard-table th:nth-child(2),
+  .board-scorecard-table td:nth-child(2) {
+    width: 14%;
+  }
+
+  .board-scorecard-table th:nth-child(3),
+  .board-scorecard-table td:nth-child(3) {
+    width: 13%;
+  }
+
+  .board-scorecard-table th:nth-child(4),
+  .board-scorecard-table td:nth-child(4) {
+    width: 12%;
+  }
+
+  .board-scorecard-table th:nth-child(5),
+  .board-scorecard-table td:nth-child(5) {
+    width: 41%;
+  }
+
+  .board-priority-table th:first-child,
+  .board-priority-table td:first-child {
+    width: 8%;
+  }
+
+  .board-priority-table th:not(:first-child),
+  .board-priority-table td:not(:first-child) {
+    width: 23%;
+  }
+
+  .board-cover {
+    min-height: 250mm !important;
+    padding-bottom: 16mm !important;
+    background: #172554 !important;
+    color: white !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .board-cover * {
+    background: transparent !important;
+    color: white !important;
+  }
+
+  .board-cover .bg-cyan {
+    background: #06b6d4 !important;
+  }
+
+  .board-page-footer {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex !important;
+    border-top: 1px solid #cbd5e1;
+    padding-top: 2.5mm;
+    font-size: 7pt;
+    color: #475569 !important;
+  }
+
+  .board-page-footer-inverse {
+    border-top-color: rgba(255, 255, 255, 0.35);
+    color: white !important;
+  }
+
+  .board-executive-page {
+    font-size: 8.4pt !important;
+  }
+
+  .board-executive-page .board-summary-metrics,
+  .board-executive-page .board-decision-grid,
+  .board-executive-page .board-callout-grid {
+    margin-top: 4mm !important;
+    gap: 3mm !important;
+  }
+
+  .board-executive-page .board-callout-grid {
+    margin-top: 2mm !important;
+  }
+
+  .board-executive-page .board-decision-metric,
+  .board-executive-page .board-decision-list,
+  .board-executive-page .board-decision-callout {
+    padding: 3mm !important;
+  }
+
+  .board-executive-page .board-decision-metric > div:nth-child(2) {
+    margin-top: 2mm !important;
+    font-size: 18pt !important;
+  }
+
+  .board-executive-page .board-decision-list ul {
+    margin-top: 2.5mm !important;
+  }
+
+  .board-executive-page .board-decision-list li {
+    font-size: 7.8pt !important;
+    line-height: 1.3 !important;
+  }
+
+  .board-executive-page .board-decision-list li + li {
+    margin-top: 1.5mm !important;
+  }
+
+  .board-executive-page .board-decision-callout p {
+    margin-top: 1mm !important;
+    font-size: 7pt !important;
+    line-height: 1.2 !important;
   }
 }

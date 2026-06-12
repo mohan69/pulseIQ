@@ -128,13 +128,48 @@ describe("Board report", () => {
       await DetailedReportPage(pageProps),
     );
 
+    expect(rootMarkup).toContain("RightSense Diagnostic Report");
     expect(rootMarkup).toContain("Board Report");
     expect(rootMarkup).toContain("Executive Decision Summary");
+    expect(count(rootMarkup, 'data-testid="top-risks-item"')).toBe(3);
+    expect(count(rootMarkup, 'data-testid="top-opportunities-item"')).toBe(3);
     expect(detailMarkup).toContain("Detailed Workbench Report");
     expect(detailMarkup).toContain(
       "Internal use only. Not intended for Board/customer circulation without review.",
     );
     expect(detailMarkup).toContain("Top 10 recommendations");
+  });
+
+  it("keeps the default and explicit Board routes equivalent", async () => {
+    const rootMarkup = renderToStaticMarkup(await ReportPage(pageProps));
+    const boardMarkup = renderToStaticMarkup(await BoardReportPage(pageProps));
+
+    expect(rootMarkup).toBe(boardMarkup);
+  });
+
+  it("does not expose detailed cockpit or truth-map output before the appendix", async () => {
+    const markup = renderToStaticMarkup(await ReportPage(pageProps));
+    const appendixIndex = markup.indexOf('data-testid="truth-map-appendix"');
+    const mainReport = markup.slice(0, appendixIndex);
+
+    expect(appendixIndex).toBeGreaterThan(0);
+    expect(mainReport).not.toContain("Compliance readiness cockpit");
+    expect(mainReport).not.toContain("Truth map");
+    expect(mainReport).not.toContain(
+      "Revenue ambition, pipeline, proposal controls, customer prequalification readiness",
+    );
+  });
+
+  it("imports the Board report directly for the default route", () => {
+    const reportRoute = source(
+      "src/app/app/assessments/[id]/report/page.tsx",
+    );
+
+    expect(reportRoute).toContain(
+      'import { BoardReport } from "@/components/report/BoardReport"',
+    );
+    expect(reportRoute).not.toContain("./detail/page");
+    expect(reportRoute).not.toContain("ComplianceCockpitCards");
   });
 
   it("does not make unsupported approval or certification claims", async () => {
