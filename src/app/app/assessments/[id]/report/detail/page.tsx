@@ -72,6 +72,10 @@ export default async function ReportPage({
             Full internal evidence, scenario, truth-map, recommendation, and
             generated action detail.
           </p>
+          <p className="mt-1 text-xs font-medium text-warning">
+            Internal use only. Not intended for Board/customer circulation
+            without review.
+          </p>
         </div>
         <ReportViewNav assessmentId={id} active="detail" />
       </div>

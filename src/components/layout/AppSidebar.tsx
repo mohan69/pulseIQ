@@ -37,7 +37,7 @@ export function AppSidebar() {
     "/app/growth-intelligence",
   );
   return (
-    <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-border bg-white print:hidden">
+    <aside className="app-shell-sidebar hidden lg:flex w-64 shrink-0 flex-col border-r border-border bg-white print:hidden">
       <div className="px-5 py-5 border-b border-border">
         <Link href="/app" className="flex items-center gap-3">
           <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-accent to-cyan flex items-center justify-center shadow-sm">
