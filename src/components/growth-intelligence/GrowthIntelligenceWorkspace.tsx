@@ -17,7 +17,10 @@ import {
   Gauge,
   History,
   Lightbulb,
+  Link2,
+  Mail,
   MessageSquareText,
+  Phone,
   Plus,
   RefreshCw,
   SendHorizontal,
@@ -42,7 +45,10 @@ import {
 import {
   createGrowthAccountAction,
   regenerateGrowthAccountAction,
+  sendApprovedGrowthEmailAction,
   updateGrowthControlDraftAction,
+  updateGrowthContactAction,
+  updateGrowthEmailTrackingAction,
   updateGrowthOutcomeAction,
   updateGrowthStatusAction,
 } from "@/app/app/growth-intelligence/actions";
@@ -51,13 +57,16 @@ import {
   buildApprovalQueue,
   buildDiscoveryBrief,
   buildFollowUpPlan,
+  buildGrowthExecutionPack,
   calculateControlMetrics,
+  recommendedDraftType,
 } from "@/lib/growth-intelligence/control-center";
 import type {
   GrowthAccount,
   GrowthAccountInput,
   GrowthApprovalStatus,
   GrowthAuditLog,
+  GrowthContactCandidate,
   GrowthDraftType,
   GrowthFitScores,
   GrowthLearningInsight,
@@ -129,6 +138,9 @@ export function GrowthIntelligenceWorkspace({
     Record<string, { nextAction: string; outcome: string }>
   >({});
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const [contactDrafts, setContactDrafts] = useState<
+    Record<string, GrowthContactCandidate>
+  >({});
 
   const selectedAccount =
     accounts.find((account) => account.id === selectedId) ?? accounts[0];
@@ -143,6 +155,20 @@ export function GrowthIntelligenceWorkspace({
   const discoveryBrief = selectedAccount
     ? buildDiscoveryBrief(selectedAccount)
     : undefined;
+  const executionPack = selectedAccount
+    ? buildGrowthExecutionPack(selectedAccount)
+    : undefined;
+  const contactDraft =
+    selectedAccount && executionPack?.preferredContact
+      ? contactDrafts[selectedAccount.id] ?? executionPack.preferredContact
+      : undefined;
+  const executionDraftType = selectedAccount
+    ? recommendedDraftType(selectedAccount)
+    : undefined;
+  const executionApprovalStatus =
+    selectedAccount && executionDraftType
+      ? approvalStatusFor(selectedAccount, executionDraftType)
+      : "Draft";
   const outcomeDraft = selectedAccount
     ? outcomeDrafts[selectedAccount.id] ?? {
         nextAction: selectedAccount.outcome.nextAction,
@@ -321,6 +347,46 @@ export function GrowthIntelligenceWorkspace({
         setReplyDrafts((current) => ({ ...current, [accountId]: "" }));
       }
     }
+  };
+
+  const saveContact = async () => {
+    if (!selectedAccount || !contactDraft) return;
+    setIsSaving(true);
+    const result = await updateGrowthContactAction(
+      selectedAccount.id,
+      contactDraft,
+      true,
+    );
+    setIsSaving(false);
+    setFormMessage(result.message);
+    if (result.ok) {
+      applySnapshot(result.snapshot);
+      setContactDrafts((current) => {
+        const next = { ...current };
+        delete next[selectedAccount.id];
+        return next;
+      });
+    }
+  };
+
+  const attemptApprovedEmailSend = async () => {
+    if (!selectedAccount) return;
+    setIsSaving(true);
+    const result = await sendApprovedGrowthEmailAction(selectedAccount.id);
+    setIsSaving(false);
+    setFormMessage(result.message);
+  };
+
+  const updateEmailTracking = async (status: "Bounced" | "Follow-up Due") => {
+    if (!selectedAccount) return;
+    setIsSaving(true);
+    const result = await updateGrowthEmailTrackingAction(
+      selectedAccount.id,
+      status,
+    );
+    setIsSaving(false);
+    setFormMessage(result.message);
+    if (result.ok) applySnapshot(result.snapshot);
   };
 
   if (!selectedAccount) {
@@ -784,6 +850,622 @@ export function GrowthIntelligenceWorkspace({
           <RightSenseScoreCard scores={selectedAccount.rightSenseFitScores} />
         )}
       </section>
+
+      {executionPack && contactDraft && executionDraftType && (
+        <>
+          <section>
+            <SectionHeading
+              icon={BriefcaseBusiness}
+              title="GTM Execution Pack"
+              description="Everything needed to prepare, approve, send through a configured provider, or log manual outreach for the selected account."
+            />
+            <Card className="mt-4">
+              <CardContent className="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-3">
+                <IntelligenceItem
+                  label="Account Profile"
+                  value={`${executionPack.accountProfile.companyName} · ${executionPack.accountProfile.industry} · ${executionPack.accountProfile.segment} · ${executionPack.accountProfile.location}`}
+                />
+                <IntelligenceItem
+                  label="Diagnostic Angle"
+                  value={executionPack.accountProfile.diagnosticAngle}
+                />
+                <IntelligenceItem
+                  label="Recommended Product Route"
+                  value={
+                    executionPack.accountProfile
+                      .recommendedProductRouteAfterDiagnostic
+                  }
+                />
+              </CardContent>
+            </Card>
+          </section>
+
+          <section className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserRoundCheck className="h-4 w-4 text-accent" />
+                  Contact Intelligence
+                </CardTitle>
+                <CardDescription>
+                  Supplied contact context is not treated as verified. Unknown
+                  email and phone fields remain explicitly empty.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="mt-5 space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label="Name">
+                    <input
+                      className="growth-input"
+                      value={contactDraft.name}
+                      onChange={(event) =>
+                        setContactDrafts((current) => ({
+                          ...current,
+                          [selectedAccount.id]: {
+                            ...contactDraft,
+                            name: event.target.value,
+                          },
+                        }))
+                      }
+                    />
+                  </Field>
+                  <Field label="Title">
+                    <input
+                      className="growth-input"
+                      value={contactDraft.title}
+                      onChange={(event) =>
+                        setContactDrafts((current) => ({
+                          ...current,
+                          [selectedAccount.id]: {
+                            ...contactDraft,
+                            title: event.target.value,
+                          },
+                        }))
+                      }
+                    />
+                  </Field>
+                  <Field label="Role Category">
+                    <select
+                      className="growth-input"
+                      value={contactDraft.roleCategory}
+                      onChange={(event) =>
+                        setContactDrafts((current) => ({
+                          ...current,
+                          [selectedAccount.id]: {
+                            ...contactDraft,
+                            roleCategory: event.target
+                              .value as GrowthContactCandidate["roleCategory"],
+                          },
+                        }))
+                      }
+                    >
+                      {[
+                        "CXO",
+                        "Sales Head",
+                        "Proposal Head",
+                        "Operations",
+                        "Quality/Compliance",
+                        "HR/Talent",
+                        "Other",
+                      ].map((role) => (
+                        <option key={role}>{role}</option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Confidence">
+                    <select
+                      className="growth-input"
+                      value={contactDraft.confidence}
+                      onChange={(event) =>
+                        setContactDrafts((current) => ({
+                          ...current,
+                          [selectedAccount.id]: {
+                            ...contactDraft,
+                            confidence: event.target
+                              .value as GrowthContactCandidate["confidence"],
+                          },
+                        }))
+                      }
+                    >
+                      <option>High</option>
+                      <option>Medium</option>
+                      <option>Low</option>
+                    </select>
+                  </Field>
+                  <Field label="Email">
+                    <input
+                      className="growth-input"
+                      type="email"
+                      value={contactDraft.email}
+                      placeholder="Not found / needs manual verification"
+                      onChange={(event) =>
+                        setContactDrafts((current) => ({
+                          ...current,
+                          [selectedAccount.id]: {
+                            ...contactDraft,
+                            email: event.target.value,
+                          },
+                        }))
+                      }
+                    />
+                  </Field>
+                  <Field label="Phone">
+                    <input
+                      className="growth-input"
+                      value={contactDraft.phone}
+                      placeholder="Not found / needs manual verification"
+                      onChange={(event) =>
+                        setContactDrafts((current) => ({
+                          ...current,
+                          [selectedAccount.id]: {
+                            ...contactDraft,
+                            phone: event.target.value,
+                          },
+                        }))
+                      }
+                    />
+                  </Field>
+                  <Field label="LinkedIn URL">
+                    <input
+                      className="growth-input"
+                      type="url"
+                      value={contactDraft.linkedInUrl}
+                      onChange={(event) =>
+                        setContactDrafts((current) => ({
+                          ...current,
+                          [selectedAccount.id]: {
+                            ...contactDraft,
+                            linkedInUrl: event.target.value,
+                          },
+                        }))
+                      }
+                    />
+                  </Field>
+                  <Field label="Source URL">
+                    <input
+                      className="growth-input"
+                      type="url"
+                      value={contactDraft.sourceUrl}
+                      onChange={(event) =>
+                        setContactDrafts((current) => ({
+                          ...current,
+                          [selectedAccount.id]: {
+                            ...contactDraft,
+                            sourceUrl: event.target.value,
+                          },
+                        }))
+                      }
+                    />
+                  </Field>
+                  <Field label="Last Checked Date">
+                    <input
+                      className="growth-input"
+                      type="date"
+                      value={contactDraft.lastCheckedDate}
+                      onChange={(event) =>
+                        setContactDrafts((current) => ({
+                          ...current,
+                          [selectedAccount.id]: {
+                            ...contactDraft,
+                            lastCheckedDate: event.target.value,
+                          },
+                        }))
+                      }
+                    />
+                  </Field>
+                </div>
+                <Field label="Verification Note">
+                  <textarea
+                    className="growth-input min-h-20 py-2"
+                    value={contactDraft.verificationNote}
+                    onChange={(event) =>
+                      setContactDrafts((current) => ({
+                        ...current,
+                        [selectedAccount.id]: {
+                          ...contactDraft,
+                          verificationNote: event.target.value,
+                        },
+                      }))
+                    }
+                  />
+                </Field>
+                <label className="flex items-start gap-3 rounded-lg border border-border-subtle bg-background-alt p-3 text-sm text-foreground-secondary">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={contactDraft.allowedToContact}
+                    onChange={(event) =>
+                      setContactDrafts((current) => ({
+                        ...current,
+                        [selectedAccount.id]: {
+                          ...contactDraft,
+                          allowedToContact: event.target.checked,
+                        },
+                      }))
+                    }
+                  />
+                  <span>
+                    Allowed to contact after manual verification. This does not
+                    approve or send an email.
+                  </span>
+                </label>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={saveContact}
+                  disabled={!persistenceAvailable || isSaving}
+                >
+                  Save verified contact
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-accent" />
+                      Email Execution Pack
+                    </CardTitle>
+                    <CardDescription className="mt-1">
+                      Diagnostic-led copy with explicit approval and execution
+                      gates.
+                    </CardDescription>
+                  </div>
+                  <ApprovalStatusBadge status={executionApprovalStatus} />
+                </div>
+              </CardHeader>
+              <CardContent className="mt-5 space-y-4">
+                <IntelligenceItem
+                  label="Subject Option 1"
+                  value={executionPack.email.subjectLineOption1}
+                />
+                <IntelligenceItem
+                  label="Subject Option 2"
+                  value={executionPack.email.subjectLineOption2}
+                />
+                <IntelligenceItem
+                  label="Selected Subject"
+                  value={executionPack.email.selectedSubject}
+                />
+                <ExecutionMessage
+                  label="Email Body"
+                  value={executionPack.email.emailBody}
+                />
+                <ExecutionMessage
+                  label="Short Follow-up Email"
+                  value={executionPack.email.shortFollowUpEmail}
+                />
+                <ExecutionMessage
+                  label="LinkedIn Note"
+                  value={executionPack.email.linkedInNote}
+                />
+                <ExecutionMessage
+                  label="WhatsApp-style Message"
+                  value={executionPack.email.whatsappMessage}
+                />
+                <ExecutionMessage
+                  label="30-Second Call Opener"
+                  value={executionPack.email.callOpener}
+                />
+                <IntelligenceList
+                  label="Discovery Questions"
+                  values={executionPack.email.discoveryQuestions}
+                />
+              </CardContent>
+            </Card>
+          </section>
+
+          <section className="grid gap-5 xl:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Sample 48-Hour Diagnostic Output</CardTitle>
+                <CardDescription>
+                  Illustrative hypotheses only. Each finding requires approved
+                  evidence before it can be treated as factual.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="mt-5 space-y-4">
+                {executionPack.diagnosticSample.findings.map(
+                  (finding, index) => (
+                    <div
+                      key={finding.finding}
+                      className="rounded-xl border border-border-subtle bg-background-alt p-4"
+                    >
+                      <div className="text-xs font-semibold uppercase tracking-wider text-accent">
+                        Critical finding hypothesis {index + 1}
+                      </div>
+                      <p className="mt-2 text-sm font-medium text-foreground">
+                        {finding.finding}
+                      </p>
+                      <div className="mt-3 space-y-2 text-xs leading-relaxed text-foreground-secondary">
+                        <p>
+                          <strong>Why it matters:</strong>{" "}
+                          {finding.whyItMatters}
+                        </p>
+                        <p>
+                          <strong>Evidence needed:</strong>{" "}
+                          {finding.evidenceNeeded}
+                        </p>
+                        <p>
+                          <strong>Likely pillar:</strong>{" "}
+                          {finding.likelyDiagnosticPillar}
+                        </p>
+                        <p>
+                          <strong>Recommended next step:</strong>{" "}
+                          {finding.recommendedNextStep}
+                        </p>
+                      </div>
+                    </div>
+                  ),
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Link2 className="h-4 w-4 text-accent" />
+                  Collateral Pack
+                </CardTitle>
+                <CardDescription>
+                  Metadata references only; no binary deck files were created.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="mt-5 space-y-3">
+                {executionPack.collateral.map((item) => (
+                  <div
+                    key={item.title}
+                    className="rounded-xl border border-border-subtle bg-background-alt p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="font-medium text-foreground">
+                          {item.title}
+                        </div>
+                        <p className="mt-1 text-xs leading-relaxed text-muted">
+                          {item.description}
+                        </p>
+                      </div>
+                      <Badge
+                        variant={item.status === "Ready" ? "success" : "warning"}
+                      >
+                        {item.status}
+                      </Badge>
+                    </div>
+                    <p className="mt-3 text-xs text-foreground-secondary">
+                      Intended audience: {item.intendedAudience}
+                    </p>
+                    <a
+                      href={item.suggestedLink}
+                      target={item.suggestedLink.startsWith("http") ? "_blank" : undefined}
+                      rel={
+                        item.suggestedLink.startsWith("http")
+                          ? "noreferrer"
+                          : undefined
+                      }
+                      className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
+                    >
+                      <Link2 className="h-3 w-3" />
+                      {item.suggestedLink}
+                    </a>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </section>
+
+          <section className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+            <Card>
+              <CardHeader>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <SendHorizontal className="h-4 w-4 text-accent" />
+                      Send & Track
+                    </CardTitle>
+                    <CardDescription className="mt-1">
+                      Provider sending is unavailable until a supported email
+                      integration is configured.
+                    </CardDescription>
+                  </div>
+                  <RiskStatusBadge status={executionPack.risk.status} />
+                </div>
+              </CardHeader>
+              <CardContent className="mt-5 space-y-4">
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <ContactDatum
+                    icon={Mail}
+                    label="Recipient"
+                    value={
+                      executionPack.preferredContact?.email ||
+                      "Not found / needs manual verification"
+                    }
+                  />
+                  <ContactDatum
+                    icon={Phone}
+                    label="Phone"
+                    value={
+                      executionPack.preferredContact?.phone ||
+                      "Not found / needs manual verification"
+                    }
+                  />
+                  <ContactDatum
+                    icon={Link2}
+                    label="LinkedIn"
+                    value={
+                      executionPack.preferredContact?.linkedInUrl ||
+                      "Not found / needs manual verification"
+                    }
+                  />
+                </div>
+                <div className="rounded-xl border border-border-subtle bg-background-alt p-4">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted">
+                    Safety checks
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {executionPack.risk.flags.map((flag) => (
+                      <Badge
+                        key={flag}
+                        variant={
+                          executionPack.risk.status === "Pass"
+                            ? "success"
+                            : "warning"
+                        }
+                      >
+                        {flag}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {(executionApprovalStatus === "Draft" ||
+                    executionApprovalStatus === "Needs Review") && (
+                    <Button
+                      type="button"
+                      disabled={!persistenceAvailable || isSaving}
+                      onClick={() =>
+                        updateControlDraft(
+                          selectedAccount.id,
+                          executionDraftType,
+                          "Approved",
+                        )
+                      }
+                    >
+                      Approve execution email
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    disabled={
+                      !persistenceAvailable ||
+                      isSaving ||
+                      executionApprovalStatus !== "Approved" ||
+                      executionPack.risk.status !== "Pass" ||
+                      !executionPack.preferredContact?.email ||
+                      !executionPack.preferredContact.allowedToContact
+                    }
+                    onClick={attemptApprovedEmailSend}
+                  >
+                    <Mail className="h-4 w-4" />
+                    Send approved email
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={
+                      !persistenceAvailable ||
+                      isSaving ||
+                      executionApprovalStatus !== "Approved"
+                    }
+                    onClick={() =>
+                      updateControlDraft(
+                        selectedAccount.id,
+                        executionDraftType,
+                        "Sent Manually",
+                      )
+                    }
+                  >
+                    Mark as sent manually
+                  </Button>
+                  {[
+                    "Sent by Email",
+                    "Sent Manually",
+                    "Follow-up Due",
+                  ].includes(executionPack.tracking.status) && (
+                    <>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        disabled={!persistenceAvailable || isSaving}
+                        onClick={() => updateEmailTracking("Follow-up Due")}
+                      >
+                        Mark follow-up due
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        disabled={!persistenceAvailable || isSaving}
+                        onClick={() => updateEmailTracking("Bounced")}
+                      >
+                        Mark bounced
+                      </Button>
+                    </>
+                  )}
+                </div>
+                <div className="rounded-lg border border-info/20 bg-info-muted px-3 py-2 text-xs text-foreground-secondary">
+                  Email sending not configured. No SMTP credentials or secrets
+                  are stored in this application.
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CalendarClock className="h-4 w-4 text-accent" />
+                  Follow-up Timeline
+                </CardTitle>
+                <CardDescription>
+                  Execution and diagnostic progress recorded for this account.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="mt-5 space-y-3">
+                <TimelineItem
+                  label="Approval"
+                  value={executionApprovalStatus}
+                />
+                <TimelineItem
+                  label="Send status"
+                  value={executionPack.tracking.status}
+                />
+                <TimelineItem
+                  label="Sent timestamp"
+                  value={executionPack.tracking.sentAt ?? "Not sent"}
+                />
+                <TimelineItem
+                  label="Follow-up due"
+                  value={
+                    executionPack.tracking.followUpDueAt ??
+                    executionPack.followUp.suggestedFollowUpDate
+                  }
+                />
+                <TimelineItem
+                  label="Reply classification"
+                  value={
+                    executionPack.tracking.replyClassification ??
+                    "No reply logged"
+                  }
+                />
+                <TimelineItem
+                  label="Pipeline tracking"
+                  value={selectedAccount.outcome.status}
+                />
+                <TimelineItem
+                  label="Diagnostic proposed"
+                  value={
+                    [
+                      "Human Outreach Approved",
+                      "Discovery Scheduled",
+                      "Diagnostic Completed",
+                      "Product Route Recommended",
+                      "Pilot Proposed",
+                      "Pilot / Deal Won",
+                    ].includes(selectedAccount.outcome.status)
+                      ? "Logged"
+                      : "Not yet logged"
+                  }
+                />
+                <TimelineItem
+                  label="Next action"
+                  value={selectedAccount.outcome.nextAction}
+                />
+              </CardContent>
+            </Card>
+          </section>
+        </>
+      )}
 
       <section>
         <SectionHeading
@@ -1654,6 +2336,72 @@ function ControlMetric({ label, value }: { label: string; value: string }) {
   );
 }
 
+function ExecutionMessage({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-border-subtle bg-background-alt p-4">
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-muted">
+        {label}
+      </div>
+      <div className="mt-2 whitespace-pre-line text-sm leading-relaxed text-foreground-secondary">
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function ContactDatum({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-xl border border-border-subtle bg-background-alt p-4">
+      <div className="flex items-center gap-2 text-xs font-medium text-muted">
+        <Icon className="h-3.5 w-3.5" />
+        {label}
+      </div>
+      <div className="mt-2 break-words text-sm font-medium text-foreground">
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function TimelineItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-start justify-between gap-4 border-b border-border-subtle pb-3 last:border-0 last:pb-0">
+      <span className="text-sm text-muted">{label}</span>
+      <span className="max-w-64 text-right text-sm font-medium text-foreground">
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function RiskStatusBadge({
+  status,
+}: {
+  status: "Pass" | "Needs Review" | "Blocked";
+}) {
+  return (
+    <Badge
+      variant={
+        status === "Pass"
+          ? "success"
+          : status === "Blocked"
+            ? "destructive"
+            : "warning"
+      }
+    >
+      {status}
+    </Badge>
+  );
+}
+
 function ApprovalStatusBadge({ status }: { status: GrowthApprovalStatus }) {
   const variant =
     status === "Approved" || status === "Replied"
@@ -1673,6 +2421,9 @@ function auditEventLabel(event: GrowthAuditLog["event"]): string {
     INTELLIGENCE_GENERATED: "Intelligence generated",
     OUTREACH_DRAFTED: "Outreach drafted",
     OUTREACH_APPROVED: "Outreach approved",
+    CONTACT_UPDATED: "Contact updated",
+    EMAIL_SEND_ATTEMPTED: "Email send attempted",
+    EMAIL_SENT: "Email sent",
     MANUAL_SEND_LOGGED: "Manual send logged",
     REPLY_CLASSIFIED: "Reply classified",
     OUTCOME_UPDATED: "Outcome updated",

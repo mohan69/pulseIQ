@@ -1,14 +1,23 @@
 import { describe, expect, it } from "vitest";
 import {
+  assessExecutionRisk,
   buildApprovalQueue,
+  buildDiagnosticSampleOutput,
   buildDiscoveryBrief,
+  buildEmailExecutionPack,
   buildFollowUpPlan,
+  contactCandidatesFor,
   calculateControlMetrics,
   canTransitionApprovalStatus,
   classifyGrowthReply,
+  getExecutionSendEligibility,
   getDraftRiskFlags,
+  normalizeGrowthControlState,
+  recommendedDraftType,
 } from "@/lib/growth-intelligence/control-center";
+import { sendApprovedEmail } from "@/lib/growth-intelligence/email-sender";
 import { demoGrowthAccounts } from "@/lib/growth-intelligence/seed";
+import type { GrowthAccount } from "@/lib/growth-intelligence/types";
 
 describe("growth control center", () => {
   it("builds a review-first approval queue for every account", () => {
@@ -95,4 +104,120 @@ describe("growth control center", () => {
     expect(metrics.bestDiagnosticAngle).toBeTruthy();
     expect(metrics.bestProductRoute).toContain("Likely product route");
   });
+
+  it("does not fabricate unknown contact email or phone values", () => {
+    const contacts = contactCandidatesFor(demoGrowthAccounts[0]);
+
+    expect(contacts[0].email).toBe("");
+    expect(contacts[0].phone).toBe("");
+    expect(contacts[0].verificationNote).toContain(
+      "needs manual verification",
+    );
+  });
+
+  it("keeps legacy version-one queue state compatible", () => {
+    const normalized = normalizeGrowthControlState({
+      version: 1,
+      drafts: {
+        cxoEmail: {
+          status: "Approved",
+          updatedAt: "2026-06-01T00:00:00.000Z",
+        },
+      },
+    });
+
+    expect(normalized.version).toBe(2);
+    expect(normalized.drafts.cxoEmail?.status).toBe("Approved");
+    expect(normalized.contacts).toEqual([]);
+  });
+
+  it("blocks sending when the execution draft is not approved", () => {
+    const result = getExecutionSendEligibility(demoGrowthAccounts[0]);
+
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toContain("approved");
+  });
+
+  it("blocks sending when contact or risk verification is incomplete", () => {
+    const account = withApprovedExecutionDraft(demoGrowthAccounts[0]);
+    const email = buildEmailExecutionPack(account);
+
+    expect(assessExecutionRisk(account, email).status).toBe("Blocked");
+    expect(getExecutionSendEligibility(account).allowed).toBe(false);
+  });
+
+  it("allows sending only after approval and high-confidence contact verification", () => {
+    const account = withApprovedExecutionDraft(demoGrowthAccounts[0], true);
+
+    expect(getExecutionSendEligibility(account)).toEqual({
+      allowed: true,
+      reason: "Approved email is eligible for sending.",
+    });
+  });
+
+  it("uses hypothesis language throughout sample diagnostic findings", () => {
+    const sample = buildDiagnosticSampleOutput(demoGrowthAccounts[0]);
+
+    expect(sample.title).toBe("Sample 48-Hour Diagnostic Output");
+    expect(sample.findings).toHaveLength(3);
+    for (const finding of sample.findings) {
+      expect(finding.finding).toMatch(/likely|hypothesis|to be validated/i);
+      expect(finding.evidenceNeeded).toMatch(/evidence needed/i);
+      expect(finding.finding).not.toMatch(/confirmed|certified|approved fact/i);
+    }
+  });
+
+  it("returns a safe not-configured result from the email provider stub", async () => {
+    await expect(
+      sendApprovedEmail({
+        recipient: "verified@example.com",
+        subject: "Approved subject",
+        body: "Approved body",
+      }),
+    ).resolves.toEqual({
+      ok: false,
+      code: "NOT_CONFIGURED",
+      message: "Email sending not configured",
+    });
+  });
 });
+
+function withApprovedExecutionDraft(
+  source: GrowthAccount,
+  verifiedContact = false,
+): GrowthAccount {
+  const draftType = recommendedDraftType(source);
+  return {
+    ...source,
+    controlState: {
+      version: 2,
+      drafts: {
+        [draftType]: {
+          status: "Approved",
+          updatedAt: "2026-06-12T00:00:00.000Z",
+        },
+      },
+      contacts: verifiedContact
+        ? [
+            {
+              id: `${source.id}-verified`,
+              name: source.contactName,
+              title: source.contactRole,
+              roleCategory: "CXO",
+              email: "verified@example.com",
+              phone: "",
+              linkedInUrl: source.linkedInUrl,
+              sourceUrl: source.linkedInUrl,
+              confidence: "High",
+              verificationNote: "Verified manually against the supplied source.",
+              lastCheckedDate: "2026-06-12",
+              allowedToContact: true,
+            },
+          ]
+        : [],
+      preferredContactId: verifiedContact
+        ? `${source.id}-verified`
+        : undefined,
+    },
+  };
+}

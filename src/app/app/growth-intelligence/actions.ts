@@ -8,20 +8,29 @@ import {
 import {
   createGrowthAccount,
   regenerateGrowthAccount,
+  sendGrowthApprovedEmail,
+  updateGrowthEmailTrackingStatus,
   updateGrowthOutcome,
   updateGrowthControlDraft,
+  updateGrowthContact,
   updateGrowthStatus,
 } from "@/lib/growth-intelligence/store";
 import type {
   GrowthAccountInput,
   GrowthApprovalStatus,
+  GrowthContactCandidate,
   GrowthDraftType,
+  GrowthEmailTrackingStatus,
   GrowthPipelineStatus,
   GrowthWorkspaceSnapshot,
 } from "@/lib/growth-intelligence/types";
 
 type GrowthActionResult =
   | { ok: true; snapshot: GrowthWorkspaceSnapshot; message: string }
+  | { ok: false; message: string };
+
+type GrowthEmailActionResult =
+  | { ok: true; message: string }
   | { ok: false; message: string };
 
 const PIPELINE_STATUSES: GrowthPipelineStatus[] = [
@@ -194,6 +203,72 @@ export async function updateGrowthControlDraftAction(
         patch.status === "Sent Manually"
           ? "Manual send logged. PulseIQ did not send a message."
           : "Outreach review status persisted.",
+    };
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+export async function updateGrowthContactAction(
+  accountId: string,
+  contact: GrowthContactCandidate,
+  preferred: boolean,
+): Promise<GrowthActionResult> {
+  try {
+    const snapshot = await updateGrowthContact(await identity(), accountId, {
+      ...contact,
+      name: contact.name.trim().slice(0, 160),
+      title: contact.title.trim().slice(0, 160),
+      email: contact.email.trim().toLowerCase().slice(0, 320),
+      phone: contact.phone.trim().slice(0, 80),
+      linkedInUrl: contact.linkedInUrl.trim().slice(0, 500),
+      sourceUrl: contact.sourceUrl.trim().slice(0, 500),
+      verificationNote: contact.verificationNote.trim().slice(0, 500),
+      lastCheckedDate: contact.lastCheckedDate.trim().slice(0, 10),
+      preferred,
+    });
+    revalidatePath("/app/growth-intelligence");
+    return {
+      ok: true,
+      snapshot,
+      message: "Contact verification metadata persisted.",
+    };
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+export async function sendApprovedGrowthEmailAction(
+  accountId: string,
+): Promise<GrowthEmailActionResult> {
+  try {
+    const result = await sendGrowthApprovedEmail(await identity(), accountId);
+    revalidatePath("/app/growth-intelligence");
+    return result;
+  } catch (error) {
+    const failed = failure(error);
+    return { ok: false, message: failed.message };
+  }
+}
+
+export async function updateGrowthEmailTrackingAction(
+  accountId: string,
+  status: Extract<GrowthEmailTrackingStatus, "Bounced" | "Follow-up Due">,
+): Promise<GrowthActionResult> {
+  if (status !== "Bounced" && status !== "Follow-up Due") {
+    return { ok: false, message: "Invalid email tracking status." };
+  }
+  try {
+    const snapshot = await updateGrowthEmailTrackingStatus(
+      await identity(),
+      accountId,
+      status,
+    );
+    revalidatePath("/app/growth-intelligence");
+    return {
+      ok: true,
+      snapshot,
+      message: `Email tracking updated to ${status}.`,
     };
   } catch (error) {
     return failure(error);

@@ -6,6 +6,7 @@ import type {
 import { Prisma } from "@prisma/client";
 import {
   approvalStatusFor,
+  buildGrowthExecutionPack,
   canTransitionApprovalStatus,
   classifyGrowthReply,
   emptyGrowthControlState,
@@ -22,7 +23,9 @@ import type {
   GrowthAccountInput,
   GrowthApprovalStatus,
   GrowthAuditLog,
+  GrowthContactCandidate,
   GrowthDraftType,
+  GrowthEmailTrackingStatus,
   GrowthOutcome,
   GrowthPipelineStatus,
 } from "@/lib/growth-intelligence/types";
@@ -42,6 +45,10 @@ export type GrowthControlDraftPatch = {
   draftType: GrowthDraftType;
   status: GrowthApprovalStatus;
   replyText?: string;
+};
+
+export type GrowthContactPatch = GrowthContactCandidate & {
+  preferred: boolean;
 };
 
 export type GrowthRepository = ReturnType<typeof createGrowthRepository>;
@@ -193,6 +200,16 @@ export function createGrowthRepository(client: PrismaClient) {
         orderBy: { updatedAt: "desc" },
       });
       return rows.map(mapAccount);
+    },
+
+    async getAccount(
+      orgId: string,
+      accountId: string,
+    ): Promise<GrowthAccount | undefined> {
+      const row = await client.growthAccount.findFirst({
+        where: { id: accountId, ...activeTenantWhere(orgId) },
+      });
+      return row ? mapAccount(row) : undefined;
     },
 
     async listAuditLogs(orgId: string, take = 12): Promise<GrowthAuditLog[]> {
@@ -517,6 +534,29 @@ export function createGrowthRepository(client: PrismaClient) {
           updatedAt: now,
           ...(replyClassification ? { replyClassification } : {}),
         };
+        if (patch.status === "Sent Manually") {
+          const executionPack = buildGrowthExecutionPack({
+            ...account,
+            controlState,
+          });
+          controlState.emailTracking = {
+            status: "Sent Manually",
+            sentAt: now,
+            subject: executionPack.email.selectedSubject,
+            followUpDueAt: executionPack.followUp.suggestedFollowUpDate,
+            ...(executionPack.preferredContact?.email
+              ? { recipient: executionPack.preferredContact.email }
+              : {}),
+          };
+        }
+        if (patch.status === "Replied") {
+          controlState.emailTracking = {
+            ...(controlState.emailTracking ?? { status: "Replied" }),
+            status: "Replied",
+            replyClassification,
+            replySummary: `Reply classified as ${replyClassification}.`,
+          };
+        }
         await tx.growthAccount.update({
           where: { id: existing.id },
           data: {
@@ -553,6 +593,186 @@ export function createGrowthRepository(client: PrismaClient) {
               status: patch.status,
               ...(replyClassification ? { replyClassification } : {}),
             }),
+          },
+        });
+        return true;
+      });
+    },
+
+    async updateContact(
+      identity: GrowthIdentity,
+      accountId: string,
+      patch: GrowthContactPatch,
+    ): Promise<boolean> {
+      return client.$transaction(async (tx) => {
+        const existing = await tx.growthAccount.findFirst({
+          where: { id: accountId, ...activeTenantWhere(identity.orgId) },
+        });
+        if (!existing) return false;
+        const controlState = normalizeGrowthControlState(existing.experiment);
+        const contacts = controlState.contacts.filter(
+          (contact) => contact.id !== patch.id,
+        );
+        contacts.push({
+          id: patch.id,
+          name: patch.name,
+          title: patch.title,
+          roleCategory: patch.roleCategory,
+          email: patch.email,
+          phone: patch.phone,
+          linkedInUrl: patch.linkedInUrl,
+          sourceUrl: patch.sourceUrl,
+          confidence: patch.confidence,
+          verificationNote: patch.verificationNote,
+          lastCheckedDate: patch.lastCheckedDate,
+          allowedToContact: patch.allowedToContact,
+        });
+        controlState.contacts = contacts;
+        if (patch.preferred) controlState.preferredContactId = patch.id;
+        await tx.growthAccount.update({
+          where: { id: existing.id },
+          data: {
+            experiment: json(controlState),
+            updatedBy: identity.userId,
+          },
+        });
+        await tx.growthAuditLog.create({
+          data: {
+            accountId: existing.id,
+            orgId: identity.orgId,
+            createdBy: identity.userId,
+            updatedBy: identity.userId,
+            event: "CONTACT_UPDATED",
+            summary:
+              "Contact verification metadata updated for the execution pack.",
+            metadata: json({
+              contactId: patch.id,
+              confidence: patch.confidence,
+              allowedToContact: patch.allowedToContact,
+              preferred: patch.preferred,
+            }),
+          },
+        });
+        return true;
+      });
+    },
+
+    async logEmailSendAttempt(
+      identity: GrowthIdentity,
+      accountId: string,
+      configured: boolean,
+    ): Promise<boolean> {
+      return client.$transaction(async (tx) => {
+        const existing = await tx.growthAccount.findFirst({
+          where: { id: accountId, ...activeTenantWhere(identity.orgId) },
+        });
+        if (!existing) return false;
+        await tx.growthAuditLog.create({
+          data: {
+            accountId: existing.id,
+            orgId: identity.orgId,
+            createdBy: identity.userId,
+            updatedBy: identity.userId,
+            event: "EMAIL_SEND_ATTEMPTED",
+            summary: configured
+              ? "Approved email send requested through the configured provider."
+              : "Approved email send requested, but email sending is not configured.",
+            metadata: json({ configured }),
+          },
+        });
+        return true;
+      });
+    },
+
+    async recordEmailSent(
+      identity: GrowthIdentity,
+      accountId: string,
+      data: {
+        recipient: string;
+        subject: string;
+        providerMessageId: string;
+        threadId?: string;
+      },
+    ): Promise<boolean> {
+      return client.$transaction(async (tx) => {
+        const existing = await tx.growthAccount.findFirst({
+          where: { id: accountId, ...activeTenantWhere(identity.orgId) },
+        });
+        if (!existing) return false;
+        const now = new Date();
+        const controlState = normalizeGrowthControlState(existing.experiment);
+        const followUp = new Date(now);
+        followUp.setUTCDate(followUp.getUTCDate() + 3);
+        controlState.emailTracking = {
+          status: "Sent by Email",
+          sentAt: now.toISOString(),
+          recipient: data.recipient,
+          subject: data.subject,
+          providerMessageId: data.providerMessageId,
+          followUpDueAt: followUp.toISOString().slice(0, 10),
+          ...(data.threadId ? { threadId: data.threadId } : {}),
+        };
+        await tx.growthAccount.update({
+          where: { id: existing.id },
+          data: {
+            experiment: json(controlState),
+            updatedBy: identity.userId,
+          },
+        });
+        await tx.growthAuditLog.create({
+          data: {
+            accountId: existing.id,
+            orgId: identity.orgId,
+            createdBy: identity.userId,
+            updatedBy: identity.userId,
+            event: "EMAIL_SENT",
+            summary: "Approved email sent through the configured provider.",
+            metadata: json({
+              recipient: data.recipient,
+              subject: data.subject,
+              providerMessageId: data.providerMessageId,
+              ...(data.threadId ? { threadId: data.threadId } : {}),
+            }),
+          },
+        });
+        return true;
+      });
+    },
+
+    async updateEmailTrackingStatus(
+      identity: GrowthIdentity,
+      accountId: string,
+      status: Extract<GrowthEmailTrackingStatus, "Bounced" | "Follow-up Due">,
+    ): Promise<boolean> {
+      return client.$transaction(async (tx) => {
+        const existing = await tx.growthAccount.findFirst({
+          where: { id: accountId, ...activeTenantWhere(identity.orgId) },
+        });
+        if (!existing) return false;
+        const controlState = normalizeGrowthControlState(existing.experiment);
+        controlState.emailTracking = {
+          ...(controlState.emailTracking ?? { status }),
+          status,
+          ...(status === "Follow-up Due"
+            ? { followUpDueAt: new Date().toISOString().slice(0, 10) }
+            : {}),
+        };
+        await tx.growthAccount.update({
+          where: { id: existing.id },
+          data: {
+            experiment: json(controlState),
+            updatedBy: identity.userId,
+          },
+        });
+        await tx.growthAuditLog.create({
+          data: {
+            accountId: existing.id,
+            orgId: identity.orgId,
+            createdBy: identity.userId,
+            updatedBy: identity.userId,
+            event: "ACCOUNT_UPDATED",
+            summary: `Email tracking status updated to ${status}.`,
+            metadata: json({ status }),
           },
         });
         return true;

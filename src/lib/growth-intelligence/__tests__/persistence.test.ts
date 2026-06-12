@@ -268,6 +268,8 @@ describe("growth persistence", () => {
       "PRIVATE-REPLY",
     );
     expect(JSON.stringify(experiment)).toContain("Meeting requested");
+    expect(JSON.stringify(experiment)).toContain("sentAt");
+    expect(JSON.stringify(experiment)).not.toContain("PRIVATE-REPLY");
   });
 
   it("updates learning from outcomes without exposing private notes", () => {

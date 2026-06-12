@@ -76,6 +76,53 @@ export type GrowthReplyClassification =
   | "Not interested"
   | "Meeting requested";
 
+export type GrowthContactRoleCategory =
+  | "CXO"
+  | "Sales Head"
+  | "Proposal Head"
+  | "Operations"
+  | "Quality/Compliance"
+  | "HR/Talent"
+  | "Other";
+
+export type GrowthContactConfidence = "High" | "Medium" | "Low";
+
+export type GrowthContactCandidate = {
+  id: string;
+  name: string;
+  title: string;
+  roleCategory: GrowthContactRoleCategory;
+  email: string;
+  phone: string;
+  linkedInUrl: string;
+  sourceUrl: string;
+  confidence: GrowthContactConfidence;
+  verificationNote: string;
+  lastCheckedDate: string;
+  allowedToContact: boolean;
+};
+
+export type GrowthEmailTrackingStatus =
+  | "Not Ready"
+  | "Approved"
+  | "Sent by Email"
+  | "Sent Manually"
+  | "Bounced"
+  | "Replied"
+  | "Follow-up Due";
+
+export type GrowthEmailTracking = {
+  status: GrowthEmailTrackingStatus;
+  sentAt?: string;
+  recipient?: string;
+  subject?: string;
+  providerMessageId?: string;
+  threadId?: string;
+  followUpDueAt?: string;
+  replyClassification?: GrowthReplyClassification;
+  replySummary?: string;
+};
+
 export type GrowthControlDraftState = {
   status: GrowthApprovalStatus;
   updatedAt: string;
@@ -83,8 +130,11 @@ export type GrowthControlDraftState = {
 };
 
 export type GrowthControlState = {
-  version: 1;
+  version: 2;
   drafts: Partial<Record<GrowthDraftType, GrowthControlDraftState>>;
+  contacts: GrowthContactCandidate[];
+  preferredContactId?: string;
+  emailTracking?: GrowthEmailTracking;
 };
 
 export type GrowthApprovalQueueItem = {
@@ -129,6 +179,65 @@ export type GrowthControlMetrics = {
   bestDiagnosticAngle: string;
   bestSegment: string;
   bestProductRoute: string;
+};
+
+export type GrowthRiskStatus = "Pass" | "Needs Review" | "Blocked";
+
+export type GrowthRiskAssessment = {
+  status: GrowthRiskStatus;
+  flags: string[];
+};
+
+export type GrowthEmailExecutionPack = {
+  subjectLineOption1: string;
+  subjectLineOption2: string;
+  selectedSubject: string;
+  emailBody: string;
+  shortFollowUpEmail: string;
+  linkedInNote: string;
+  whatsappMessage: string;
+  callOpener: string;
+  discoveryQuestions: string[];
+};
+
+export type GrowthDiagnosticSampleFinding = {
+  finding: string;
+  whyItMatters: string;
+  evidenceNeeded: string;
+  likelyDiagnosticPillar: string;
+  recommendedNextStep: string;
+};
+
+export type GrowthDiagnosticSampleOutput = {
+  title: "Sample 48-Hour Diagnostic Output";
+  findings: GrowthDiagnosticSampleFinding[];
+};
+
+export type GrowthCollateralReference = {
+  title: string;
+  description: string;
+  intendedAudience: string;
+  status: "Draft needed" | "Ready";
+  suggestedLink: string;
+};
+
+export type GrowthExecutionPack = {
+  accountProfile: {
+    companyName: string;
+    industry: string;
+    location: string;
+    segment: string;
+    diagnosticAngle: string;
+    recommendedProductRouteAfterDiagnostic: string;
+  };
+  contacts: GrowthContactCandidate[];
+  preferredContact?: GrowthContactCandidate;
+  email: GrowthEmailExecutionPack;
+  diagnosticSample: GrowthDiagnosticSampleOutput;
+  collateral: GrowthCollateralReference[];
+  risk: GrowthRiskAssessment;
+  tracking: GrowthEmailTracking;
+  followUp: GrowthFollowUpPlan;
 };
 
 export type GrowthOutcome = {
@@ -180,6 +289,9 @@ export type GrowthAuditLog = {
     | "INTELLIGENCE_GENERATED"
     | "OUTREACH_DRAFTED"
     | "OUTREACH_APPROVED"
+    | "CONTACT_UPDATED"
+    | "EMAIL_SEND_ATTEMPTED"
+    | "EMAIL_SENT"
     | "MANUAL_SEND_LOGGED"
     | "REPLY_CLASSIFIED"
     | "OUTCOME_UPDATED";

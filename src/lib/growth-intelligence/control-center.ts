@@ -3,10 +3,13 @@ import type {
   GrowthAccount,
   GrowthApprovalQueueItem,
   GrowthApprovalStatus,
+  GrowthContactCandidate,
+  GrowthContactRoleCategory,
   GrowthControlMetrics,
   GrowthControlState,
   GrowthDiscoveryBrief,
   GrowthDraftType,
+  GrowthExecutionPack,
   GrowthFollowUpPlan,
   GrowthReplyClassification,
 } from "@/lib/growth-intelligence/types";
@@ -23,19 +26,75 @@ const UNSAFE_CLAIMS =
   /certification guaranteed|customer approved|regulatory approved|statutory approved|fully compliant|compliance built-in|guaranteed acceptance|tender-ready/i;
 
 export function emptyGrowthControlState(): GrowthControlState {
-  return { version: 1, drafts: {} };
+  return { version: 2, drafts: {}, contacts: [] };
 }
 
 export function normalizeGrowthControlState(value: unknown): GrowthControlState {
   if (!value || typeof value !== "object") return emptyGrowthControlState();
   const candidate = value as Partial<GrowthControlState>;
   return {
-    version: 1,
+    version: 2,
     drafts:
       candidate.drafts && typeof candidate.drafts === "object"
         ? candidate.drafts
         : {},
+    contacts: Array.isArray(candidate.contacts) ? candidate.contacts : [],
+    preferredContactId:
+      typeof candidate.preferredContactId === "string"
+        ? candidate.preferredContactId
+        : undefined,
+    emailTracking:
+      candidate.emailTracking && typeof candidate.emailTracking === "object"
+        ? candidate.emailTracking
+        : undefined,
   };
+}
+
+function contactRoleCategory(account: GrowthAccount): GrowthContactRoleCategory {
+  const role = `${account.targetPersona} ${account.contactRole}`.toLowerCase();
+  if (/ceo|md|founder|chief|managing director/.test(role)) return "CXO";
+  if (/proposal|bid|tender/.test(role)) return "Proposal Head";
+  if (/sales|business development|commercial/.test(role)) return "Sales Head";
+  if (/operations|coo|plant/.test(role)) return "Operations";
+  if (/quality|compliance|standards/.test(role)) return "Quality/Compliance";
+  if (/hr|talent|recruit|people/.test(role)) return "HR/Talent";
+  return "Other";
+}
+
+export function contactCandidatesFor(
+  account: GrowthAccount,
+): GrowthContactCandidate[] {
+  if (account.controlState.contacts.length > 0) {
+    return account.controlState.contacts;
+  }
+  return [
+    {
+      id: `${account.id}-primary-contact`,
+      name: account.contactName,
+      title: account.contactRole || account.targetPersona,
+      roleCategory: contactRoleCategory(account),
+      email: "",
+      phone: "",
+      linkedInUrl: account.linkedInUrl,
+      sourceUrl: account.linkedInUrl || account.website,
+      confidence: account.linkedInUrl ? "Medium" : "Low",
+      verificationNote:
+        "Email and phone not found; needs manual verification before contact.",
+      lastCheckedDate: account.updatedAt.slice(0, 10),
+      allowedToContact: false,
+    },
+  ];
+}
+
+export function preferredContactFor(
+  account: GrowthAccount,
+): GrowthContactCandidate | undefined {
+  const contacts = contactCandidatesFor(account);
+  return (
+    contacts.find(
+      (contact) => contact.id === account.controlState.preferredContactId,
+    ) ?? contacts[0]
+  );
 }
 
 export function recommendedDraftType(account: GrowthAccount): GrowthDraftType {
@@ -98,6 +157,230 @@ export function getDraftRiskFlags(
   }
   if (flags.length === 0) flags.push("Public-context assumptions require review");
   return flags;
+}
+
+const UNSUPPORTED_METRIC =
+  /\b(?:guarantee|guaranteed|promise)\b|\b\d{2,3}%\b|\b\d+x\b/i;
+const COMPETITOR_ATTACK =
+  /\b(?:inferior|obsolete|replace your vendor|competitor failure|their product fails)\b/i;
+
+export function buildEmailExecutionPack(
+  account: GrowthAccount,
+): GrowthExecutionPack["email"] {
+  const contact = preferredContactFor(account);
+  const greeting = contact?.name
+    ? `Hi ${contact.name.split(" ")[0]},`
+    : "Hello,";
+  const pillar = account.intelligence.bestDiagnosticPillar;
+  return {
+    subjectLineOption1: `48-Hour diagnostic for ${account.companyName}`,
+    subjectLineOption2: `${pillar} readiness review for ${account.companyName}`,
+    selectedSubject: `48-Hour diagnostic for ${account.companyName}`,
+    emailBody: `${greeting}
+
+RightSense 48-Hour Enterprise Intelligence, Compliance & Standards Diagnostic helps industrial and project-driven teams map likely readiness gaps across operating intelligence, proposals, standards, suppliers, and trusted AI workflows.
+
+For ${account.companyName}, a useful hypothesis to validate is ${account.intelligence.diagnosticEntryAngle.toLowerCase()}
+
+Would a 20-minute conversation be useful to decide whether the diagnostic is relevant? Any finding would remain a hypothesis until supported by approved evidence.
+
+If this is not relevant, please let me know and I will not follow up.
+
+Mohan Babu
+Co-Founder, RightSense Technologies
+https://www.rightsense.in/48-hour-diagnostic`,
+    shortFollowUpEmail: `${greeting}
+
+Following up on the RightSense 48-Hour Enterprise Intelligence, Compliance & Standards Diagnostic. I can share a short sample of the likely ${pillar.toLowerCase()} gaps we would validate before recommending any product route.
+
+If this is not relevant, please let me know and I will not follow up.
+
+Mohan Babu
+Co-Founder, RightSense Technologies
+https://www.rightsense.in/48-hour-diagnostic`,
+    linkedInNote: `Hello${contact?.name ? ` ${contact.name.split(" ")[0]}` : ""} - I work with industrial teams on the RightSense 48-Hour Enterprise Intelligence, Compliance & Standards Diagnostic. I would value connecting to compare notes on ${pillar.toLowerCase()} readiness at ${account.companyName}.`,
+    whatsappMessage: `${greeting} I prepared a short public-context hypothesis for ${account.companyName} around ${pillar.toLowerCase()}. May I share the RightSense 48-Hour Diagnostic overview?`,
+    callOpener: `I am calling from RightSense about our 48-Hour Enterprise Intelligence, Compliance & Standards Diagnostic. We help teams validate readiness gaps before recommending a product or pilot. I wanted to test whether ${pillar.toLowerCase()} is a current priority for ${account.companyName}.`,
+    discoveryQuestions: buildDiscoveryBrief(account).discoveryQuestions,
+  };
+}
+
+export function assessExecutionRisk(
+  account: GrowthAccount,
+  email: GrowthExecutionPack["email"],
+): GrowthExecutionPack["risk"] {
+  const contact = preferredContactFor(account);
+  const body = email.emailBody;
+  const flags: string[] = [];
+  let blocked = false;
+  if (!contact?.email) {
+    flags.push("Contact email not found; needs manual verification");
+    blocked = true;
+  }
+  if (!contact?.allowedToContact) {
+    flags.push("Contact is not marked allowed-to-contact");
+    blocked = true;
+  }
+  if (contact?.confidence !== "High") {
+    flags.push("Contact verification is below High confidence");
+  }
+  if (UNSAFE_CLAIMS.test(body)) {
+    flags.push("Certification or approval claim detected");
+    blocked = true;
+  }
+  if (UNSUPPORTED_METRIC.test(body)) {
+    flags.push("Unsupported metric or guarantee detected");
+    blocked = true;
+  }
+  if (/confidential (?:data|information|assumption)/i.test(body)) {
+    flags.push("Confidential-data assumption detected");
+    blocked = true;
+  }
+  if (!body.includes("RightSense 48-Hour Enterprise Intelligence, Compliance & Standards Diagnostic")) {
+    flags.push("Diagnostic CTA missing");
+    blocked = true;
+  }
+  if (
+    !body.includes("Mohan Babu") ||
+    !body.includes("Co-Founder, RightSense Technologies")
+  ) {
+    flags.push("Human signature missing");
+    blocked = true;
+  }
+  if (COMPETITOR_ATTACK.test(body)) {
+    flags.push("Aggressive competitor language detected");
+    blocked = true;
+  }
+  if (!/not relevant|not follow up|opt out/i.test(body)) {
+    flags.push("Cold-email opt-out line missing");
+  }
+  if (flags.length === 0) flags.push("All configured execution checks passed");
+  return {
+    status: blocked ? "Blocked" : flags.length > 1 ? "Needs Review" : "Pass",
+    flags,
+  };
+}
+
+export function buildDiagnosticSampleOutput(
+  account: GrowthAccount,
+): GrowthExecutionPack["diagnosticSample"] {
+  const fallbacks = [
+    "Proposal and standards mapping evidence may be fragmented across spreadsheets, email, and documents.",
+    "ISO and customer prequalification evidence may not be centrally mapped to customer and vendor requirements.",
+    "AI-assisted analysis may need stronger source traceability, human approval, and audit trail before enterprise use.",
+  ];
+  const source = [
+    ...account.intelligence.likelyReadinessGaps,
+    ...fallbacks,
+  ].slice(0, 3);
+  return {
+    title: "Sample 48-Hour Diagnostic Output",
+    findings: source.map((gap) => ({
+      finding: `Likely readiness-gap hypothesis: ${gap}. To be validated through approved evidence.`,
+      whyItMatters:
+        "A mapping gap can slow decisions, weaken traceability, or create avoidable execution risk.",
+      evidenceNeeded:
+        "Evidence needed: current workflow, approved source documents, system records, ownership, and recent review examples.",
+      likelyDiagnosticPillar: account.intelligence.bestDiagnosticPillar,
+      recommendedNextStep:
+        "Validate the hypothesis in the 48-hour diagnostic and agree a low-risk 30-day action path.",
+    })),
+  };
+}
+
+export function collateralReferences(): GrowthExecutionPack["collateral"] {
+  return [
+    {
+      title: "RightSense company overview",
+      description: "Company positioning, capabilities, and engagement model.",
+      intendedAudience: "CXO and functional leaders",
+      status: "Ready",
+      suggestedLink: "https://www.rightsense.in/",
+    },
+    {
+      title: "RightSense 48-Hour Diagnostic pitch deck",
+      description: "Diagnostic scope, outputs, evidence model, and next steps.",
+      intendedAudience: "CXO, proposal, operations, and compliance leaders",
+      status: "Ready",
+      suggestedLink: "https://www.rightsense.in/48-hour-diagnostic",
+    },
+    {
+      title: "PulseIQ overview",
+      description: "Operating intelligence, truth-map, cockpit, and execution planning.",
+      intendedAudience: "CXO, COO, finance, and operations",
+      status: "Draft needed",
+      suggestedLink: "/offerings",
+    },
+    {
+      title: "WinsProposal overview",
+      description: "Proposal, RFP, standards mapping, TBE, and workflow readiness.",
+      intendedAudience: "Sales, proposal, and commercial teams",
+      status: "Draft needed",
+      suggestedLink: "/offerings",
+    },
+    {
+      title: "TalentPulse overview",
+      description: "Hiring, staffing, skills, capacity, and delivery readiness.",
+      intendedAudience: "HR, talent acquisition, and delivery leaders",
+      status: "Draft needed",
+      suggestedLink: "/offerings",
+    },
+  ];
+}
+
+export function buildGrowthExecutionPack(
+  account: GrowthAccount,
+): GrowthExecutionPack {
+  const contacts = contactCandidatesFor(account);
+  const preferredContact = preferredContactFor(account);
+  const email = buildEmailExecutionPack(account);
+  return {
+    accountProfile: {
+      companyName: account.companyName,
+      industry: account.industry,
+      location: account.location,
+      segment: account.segment,
+      diagnosticAngle: account.intelligence.diagnosticEntryAngle,
+      recommendedProductRouteAfterDiagnostic:
+        account.intelligence.recommendedProductRouteAfterDiagnostic,
+    },
+    contacts,
+    preferredContact,
+    email,
+    diagnosticSample: buildDiagnosticSampleOutput(account),
+    collateral: collateralReferences(),
+    risk: assessExecutionRisk(account, email),
+    tracking: account.controlState.emailTracking ?? { status: "Not Ready" },
+    followUp: buildFollowUpPlan(account),
+  };
+}
+
+export function getExecutionSendEligibility(account: GrowthAccount): {
+  allowed: boolean;
+  reason: string;
+} {
+  const draftType = recommendedDraftType(account);
+  const approval = approvalStatusFor(account, draftType);
+  if (approval !== "Approved") {
+    return {
+      allowed: false,
+      reason: "Email cannot be sent until the execution draft is approved.",
+    };
+  }
+  const executionPack = buildGrowthExecutionPack(account);
+  if (executionPack.risk.status !== "Pass") {
+    return {
+      allowed: false,
+      reason: `Email cannot be sent while risk status is ${executionPack.risk.status}.`,
+    };
+  }
+  if (!executionPack.preferredContact?.email) {
+    return {
+      allowed: false,
+      reason: "Email cannot be sent without a verified recipient.",
+    };
+  }
+  return { allowed: true, reason: "Approved email is eligible for sending." };
 }
 
 export function buildApprovalQueue(
