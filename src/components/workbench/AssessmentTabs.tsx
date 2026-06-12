@@ -10,6 +10,12 @@ import {
   GitBranch,
   ListChecks,
   FileText,
+  ShieldCheck,
+  UserCheck,
+  Landmark,
+  Network,
+  BrainCircuit,
+  PackageCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +30,42 @@ const TABS = [
     label: "Recommendations",
     icon: ListChecks,
     path: "recommendations",
+  },
+  {
+    key: "standards-readiness",
+    label: "Standards Readiness",
+    icon: ShieldCheck,
+    path: "standards-readiness",
+  },
+  {
+    key: "customer-qualification",
+    label: "Customer Qualification",
+    icon: UserCheck,
+    path: "customer-qualification",
+  },
+  {
+    key: "statutory-readiness",
+    label: "Statutory Readiness",
+    icon: Landmark,
+    path: "statutory-readiness",
+  },
+  {
+    key: "supplier-ecosystem",
+    label: "Supplier Ecosystem",
+    icon: Network,
+    path: "supplier-ecosystem",
+  },
+  {
+    key: "ai-governance",
+    label: "AI Governance",
+    icon: BrainCircuit,
+    path: "ai-governance",
+  },
+  {
+    key: "readiness-pack",
+    label: "Readiness Pack",
+    icon: PackageCheck,
+    path: "readiness-pack",
   },
   { key: "report", label: "Report", icon: FileText, path: "report" },
 ] as const;

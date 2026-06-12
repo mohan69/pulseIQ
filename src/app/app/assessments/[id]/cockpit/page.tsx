@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import {
   getAssessment,
   getCockpit,
+  getSources,
 } from "@/lib/assessment/store";
 import {
   Card,
@@ -32,6 +33,8 @@ import {
   isMicrofinishPublicDomain,
   metricRequiresInternalData,
 } from "@/lib/assessment/presentation";
+import { getAssessmentReadiness } from "@/lib/readiness";
+import { ComplianceCockpitCards } from "@/components/readiness/ReadinessViews";
 
 export default async function CockpitPage({
   params,
@@ -41,7 +44,11 @@ export default async function CockpitPage({
   const { id } = await params;
   const assessment = await getAssessment(id);
   if (!assessment) notFound();
-  const cockpit = await getCockpit(id);
+  const [cockpit, sources] = await Promise.all([
+    getCockpit(id),
+    getSources(id),
+  ]);
+  const readiness = getAssessmentReadiness(assessment, sources);
   const isMicrofinishSample = isMicrofinishPublicDomain(assessment);
 
   return (
@@ -59,6 +66,20 @@ export default async function CockpitPage({
             : "Headline commercial and operating metrics plus standards, audit evidence, supplier, prequalification, source traceability, and approval workflow readiness indicators."}
         </p>
       </div>
+
+      <section className="space-y-3">
+        <div>
+          <h3 className="text-base font-semibold text-foreground">
+            Compliance readiness cockpit
+          </h3>
+          <p className="mt-1 text-sm text-muted">
+            Evidence health, qualification readiness, critical gaps, and
+            revenue exposure. Readiness does not imply certification or
+            compliance.
+          </p>
+        </div>
+        <ComplianceCockpitCards cockpit={readiness.cockpit} />
+      </section>
 
       <div className="grid lg:grid-cols-3 gap-4">
         <Card className="lg:col-span-2">

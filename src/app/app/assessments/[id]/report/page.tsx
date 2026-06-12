@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getReport, getAssessment } from "@/lib/assessment/store";
+import { getReport, getAssessment, getSources } from "@/lib/assessment/store";
 import { Badge } from "@/components/ui/badge";
 import { formatExecutiveCurrency, getGapLabel, isRiskMetric } from "@/lib/utils";
 import {
@@ -25,6 +25,11 @@ import {
   DIAGNOSTIC_POSITIONING,
   READINESS_AREAS,
 } from "@/lib/diagnostic-positioning";
+import {
+  buildReadinessReportSections,
+  getAssessmentReadiness,
+} from "@/lib/readiness";
+import { ComplianceCockpitCards } from "@/components/readiness/ReadinessViews";
 
 const PRIORITY_LABEL: Record<string, string> = {
   P0: "Critical",
@@ -39,9 +44,15 @@ export default async function ReportPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const report = await getReport(id);
+  const [report, assessment, sources] = await Promise.all([
+    getReport(id),
+    getAssessment(id),
+    getSources(id),
+  ]);
   if (!report) notFound();
-  const assessment = await getAssessment(id);
+  if (!assessment) notFound();
+  const readiness = getAssessmentReadiness(assessment, sources);
+  const readinessSections = buildReadinessReportSections(readiness);
   const isDemo = assessment?.id === "asm-bharat-heavy-fabrications";
   const isMicrofinishSample = isMicrofinishPublicDomain(assessment);
 
@@ -129,6 +140,28 @@ export default async function ReportPage({
               {area.items.map((item) => (
                 <li key={item} className="flex items-start gap-2">
                   <CheckCircle2 className="h-3.5 w-3.5 text-accent shrink-0 mt-0.5" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+
+        <section>
+          <SectionTitle icon={Shield}>Compliance readiness cockpit</SectionTitle>
+          <ComplianceCockpitCards cockpit={readiness.cockpit} />
+        </section>
+
+        {readinessSections.map((section) => (
+          <section key={section.title}>
+            <SectionTitle icon={CheckCircle2}>{section.title}</SectionTitle>
+            <p className="text-sm leading-relaxed text-foreground-secondary">
+              {section.summary}
+            </p>
+            <ul className="mt-3 space-y-1.5 text-sm text-foreground-secondary">
+              {section.items.map((item) => (
+                <li key={item} className="flex items-start gap-2">
+                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
                   {item}
                 </li>
               ))}
