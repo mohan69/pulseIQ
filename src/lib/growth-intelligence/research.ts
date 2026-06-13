@@ -148,6 +148,22 @@ export async function researchAccount(
     segment: input.segment.trim(),
     sizeBand: sizeBandFor(input.segment),
     productsOrServices: productsFor(input),
+    financialSignals: {
+      state: "Requires internal validation",
+      revenue: "Not confirmed",
+      sourceName: "Public-source research",
+      sourceUrl: input.website.trim(),
+      financialYear: "Not confirmed",
+      confidence: "Low",
+      entityMatchStatus: "Unconfirmed",
+      validationNote:
+        "No reliable entity-matched public financial baseline has been confirmed. Revenue, margin, order book, working capital, and profitability require internal validation.",
+      guidance: [
+        "Do not use similarly named company financials unless entity match is confirmed.",
+        "Request revenue, margin, order book, working capital, and proposal pipeline data under approved engagement terms.",
+      ],
+    },
+    publicContextProfile: generated.intelligence.publicContextProfile,
     likelyBusinessModel: generated.intelligence.likelyBusinessModel,
     publicSignals,
     likelyReadinessGaps: generated.intelligence.likelyReadinessGaps,
