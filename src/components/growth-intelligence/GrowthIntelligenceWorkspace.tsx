@@ -74,10 +74,12 @@ import type {
   GrowthAuditLog,
   GrowthContactCandidate,
   GrowthDraftType,
+  GrowthFinancialSignals,
   GrowthFitScores,
   GrowthLearningInsight,
   GrowthMode,
   GrowthPipelineStatus,
+  GrowthPublicContextProfile,
   GrowthResearchInput,
   GrowthResearchResult,
   RightSenseFitScores,
@@ -145,7 +147,7 @@ export function GrowthIntelligenceWorkspace({
 }: Props) {
   const [accounts, setAccounts] = useState(initialAccounts);
   const [selectedId, setSelectedId] = useState(
-    initialAccounts.find((account) => account.id === "growth-microfinish-valves")
+    initialAccounts.find((account) => account.id === "growth-decon-technologies")
       ?.id ?? initialAccounts[0]?.id,
   );
   const [form, setForm] = useState<GrowthAccountInput>(EMPTY_FORM);
@@ -805,6 +807,10 @@ export function GrowthIntelligenceWorkspace({
                       values={researchResult.evidenceNeeded}
                     />
                   </div>
+                  <FinancialSignalsSection
+                    financials={researchResult.financialSignals}
+                    publicContext={researchResult.publicContextProfile}
+                  />
                   <div className="rounded-xl border border-border-subtle bg-background-alt p-4">
                     <div className="text-[11px] font-semibold uppercase tracking-wider text-muted">
                       Public Signals
@@ -1222,58 +1228,66 @@ export function GrowthIntelligenceWorkspace({
                 confidential data access is assumed.
               </CardDescription>
             </CardHeader>
-            <CardContent className="mt-5 grid gap-4 md:grid-cols-2">
-              <IntelligenceItem
-                label="Company Summary"
-                value={selectedAccount.intelligence.companySummary}
-              />
-              <IntelligenceItem
-                label="Likely Business Model"
-                value={selectedAccount.intelligence.likelyBusinessModel}
-              />
-              <IntelligenceList
-                label="Business Priorities"
-                values={selectedAccount.intelligence.businessPriorities}
-              />
-              <IntelligenceList
-                label="Pain Signals"
-                values={selectedAccount.intelligence.painSignals}
-              />
-              <IntelligenceItem
-                label="Diagnostic Entry Angle"
-                value={selectedAccount.intelligence.diagnosticEntryAngle}
-              />
-              <IntelligenceList
-                label="Likely Readiness Gaps"
-                values={selectedAccount.intelligence.likelyReadinessGaps}
-              />
-              <IntelligenceItem
-                label="Best Diagnostic Pillar"
-                value={selectedAccount.intelligence.bestDiagnosticPillar}
-              />
-              <IntelligenceItem
-                label="Recommended Product Route After Diagnostic"
-                value={
-                  selectedAccount.intelligence
-                    .recommendedProductRouteAfterDiagnostic
+            <CardContent className="mt-5 space-y-5">
+              <FinancialSignalsSection
+                financials={selectedAccount.intelligence.financialSignals}
+                publicContext={
+                  selectedAccount.intelligence.publicContextProfile
                 }
               />
-              <IntelligenceItem
-                label="Buying Trigger Hypothesis"
-                value={selectedAccount.intelligence.buyingTriggerHypothesis}
-              />
-              <IntelligenceItem
-                label="Best Persona to Approach"
-                value={selectedAccount.intelligence.bestPersonaToApproach}
-              />
-              <IntelligenceItem
-                label="Conversation Angle"
-                value={selectedAccount.intelligence.conversationAngle}
-              />
-              <IntelligenceItem
-                label="Recommended Next Action"
-                value={selectedAccount.intelligence.recommendedNextAction}
-              />
+              <div className="grid gap-4 md:grid-cols-2">
+                <IntelligenceItem
+                  label="Company Summary"
+                  value={selectedAccount.intelligence.companySummary}
+                />
+                <IntelligenceItem
+                  label="Likely Business Model"
+                  value={selectedAccount.intelligence.likelyBusinessModel}
+                />
+                <IntelligenceList
+                  label="Business Priorities"
+                  values={selectedAccount.intelligence.businessPriorities}
+                />
+                <IntelligenceList
+                  label="Pain Signals"
+                  values={selectedAccount.intelligence.painSignals}
+                />
+                <IntelligenceItem
+                  label="Diagnostic Entry Angle"
+                  value={selectedAccount.intelligence.diagnosticEntryAngle}
+                />
+                <IntelligenceList
+                  label="Likely Readiness Gaps"
+                  values={selectedAccount.intelligence.likelyReadinessGaps}
+                />
+                <IntelligenceItem
+                  label="Best Diagnostic Pillar"
+                  value={selectedAccount.intelligence.bestDiagnosticPillar}
+                />
+                <IntelligenceItem
+                  label="Recommended Product Route After Diagnostic"
+                  value={
+                    selectedAccount.intelligence
+                      .recommendedProductRouteAfterDiagnostic
+                  }
+                />
+                <IntelligenceItem
+                  label="Buying Trigger Hypothesis"
+                  value={selectedAccount.intelligence.buyingTriggerHypothesis}
+                />
+                <IntelligenceItem
+                  label="Best Persona to Approach"
+                  value={selectedAccount.intelligence.bestPersonaToApproach}
+                />
+                <IntelligenceItem
+                  label="Conversation Angle"
+                  value={selectedAccount.intelligence.conversationAngle}
+                />
+                <IntelligenceItem
+                  label="Recommended Next Action"
+                  value={selectedAccount.intelligence.recommendedNextAction}
+                />
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -2617,6 +2631,143 @@ export function GrowthIntelligenceWorkspace({
           color: var(--muted);
         }
       `}</style>
+    </div>
+  );
+}
+
+export function FinancialSignalsSection({
+  financials,
+  publicContext,
+}: {
+  financials: GrowthFinancialSignals;
+  publicContext?: GrowthPublicContextProfile;
+}) {
+  const stateVariant =
+    financials.state === "Financials found"
+      ? "success"
+      : financials.state === "Entity ambiguity detected"
+        ? "destructive"
+        : "warning";
+
+  return (
+    <section
+      className="rounded-xl border border-border-subtle bg-background-alt p-4"
+      data-testid="financial-signals"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <TrendingUp className="h-4 w-4 text-accent" />
+            Financial Signals
+          </div>
+          <p className="mt-1 text-xs leading-relaxed text-muted">
+            Public financial context is shown only when the source identity
+            matches the target account.
+          </p>
+        </div>
+        <Badge variant={stateVariant}>{financials.state}</Badge>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <FinancialDetail label="Revenue value or range" value={financials.revenue} />
+        <FinancialDetail label="Financial year" value={financials.financialYear} />
+        <FinancialDetail label="Confidence" value={financials.confidence} />
+        <FinancialDetail
+          label="Entity-match status"
+          value={financials.entityMatchStatus}
+        />
+        <FinancialDetail
+          label="Source"
+          value={financials.sourceName}
+          href={financials.sourceUrl}
+        />
+        <div className="sm:col-span-2 xl:col-span-3">
+          <FinancialDetail
+            label="Validation note"
+            value={financials.validationNote}
+          />
+        </div>
+      </div>
+
+      {financials.state === "Entity ambiguity detected" && (
+        <div
+          className="mt-4 rounded-lg border border-error/25 bg-error-muted px-3 py-2.5 text-xs leading-relaxed text-foreground-secondary"
+          role="alert"
+        >
+          Similarly named company financials are excluded until website, CIN,
+          location, directors, or source identity confirms the entity match.
+        </div>
+      )}
+
+      {publicContext && (
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <IntelligenceItem
+            label="Manual Public Context"
+            value={`${publicContext.industry} · ${publicContext.location}`}
+          />
+          <FinancialDetail
+            label="Website"
+            value={publicContext.website}
+            href={publicContext.website}
+          />
+          <IntelligenceItem
+            label="Employee Signal"
+            value={`${publicContext.employeeSignal} · ${publicContext.employeeSource}`}
+          />
+          <IntelligenceList
+            label="Certification Signals"
+            values={[
+              ...publicContext.certifications,
+              `${publicContext.certificationSource}. ${publicContext.certificationValidationNote}`,
+            ]}
+          />
+          <div className="md:col-span-2">
+            <IntelligenceList
+              label="Recommended Internal Data Request"
+              values={publicContext.recommendedInternalDataRequest}
+            />
+          </div>
+        </div>
+      )}
+
+      <div className="mt-4 space-y-2 rounded-lg border border-info/20 bg-info-muted px-3 py-3 text-sm leading-relaxed text-foreground-secondary">
+        {financials.guidance.map((message) => (
+          <p key={message}>{message}</p>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function FinancialDetail({
+  label,
+  value,
+  href,
+}: {
+  label: string;
+  value: string;
+  href?: string;
+}) {
+  return (
+    <div>
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-muted">
+        {label}
+      </div>
+      {href ? (
+        <a
+          className="mt-1 inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline"
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {value}
+          <Link2 className="h-3.5 w-3.5" />
+        </a>
+      ) : (
+        <div className="mt-1 text-sm leading-relaxed text-foreground-secondary">
+          {value}
+        </div>
+      )}
     </div>
   );
 }

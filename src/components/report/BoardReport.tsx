@@ -14,9 +14,11 @@ import {
   DIAGNOSTIC_POSITIONING,
 } from "@/lib/diagnostic-positioning";
 import {
+  isPublicDomainAssessment,
   isMicrofinishPublicDomain,
   metricRequiresInternalData,
   MICROFINISH_DISCLAIMER,
+  PUBLIC_DOMAIN_DISCLAIMER,
 } from "@/lib/assessment/presentation";
 import type {
   Assessment,
@@ -101,6 +103,7 @@ export function BoardReport({
   readiness,
 }: BoardReportProps) {
   const isMicrofinish = isMicrofinishPublicDomain(assessment);
+  const isPublicDomain = isPublicDomainAssessment(assessment);
   const postureScore = average([
     readiness.cockpit.standardsReadinessScore,
     readiness.cockpit.customerQualificationReadiness,
@@ -151,7 +154,7 @@ export function BoardReport({
             {assessment.companyName}
           </h1>
           <p className="mt-4 text-xl leading-relaxed text-white/85">
-            {isMicrofinish
+            {isPublicDomain
               ? "Public-domain Enterprise Intelligence, Compliance & Standards Diagnostic"
               : "Enterprise Intelligence, Compliance & Standards Diagnostic"}
           </p>
@@ -175,7 +178,7 @@ export function BoardReport({
           className="mt-7 rounded-xl border border-white/25 bg-white/10 p-4 text-sm leading-relaxed text-white/85"
           data-testid="cover-note"
         >
-          {isMicrofinish
+          {isPublicDomain
             ? "Public-domain sample / internal validation required. Readiness indicators do not constitute certification, audit, statutory, regulatory, or customer approval."
             : "Decision-support diagnostic based on indexed evidence. Readiness indicators require human validation and do not constitute certification, audit, statutory, regulatory, or customer approval."}
         </div>
@@ -483,9 +486,11 @@ export function BoardReport({
           <p className="text-sm leading-7 text-foreground-secondary">
             {DIAGNOSTIC_DISCLAIMER}
           </p>
-          {isMicrofinish && (
+          {isPublicDomain && (
             <p className="mt-4 text-sm leading-7 text-foreground-secondary">
-              {MICROFINISH_DISCLAIMER}
+              {isMicrofinish
+                ? MICROFINISH_DISCLAIMER
+                : PUBLIC_DOMAIN_DISCLAIMER}
             </p>
           )}
           <p className="mt-4 text-sm leading-7 text-foreground-secondary">
@@ -840,7 +845,7 @@ function buildTopRisks(
   report: Report,
   readiness: AssessmentReadiness,
 ): string[] {
-  if (isMicrofinishPublicDomain(assessment)) {
+  if (isPublicDomainAssessment(assessment)) {
     return [
       "Public financial signals require internal validation before Board decisions.",
       "Standards, statutory, and customer qualification evidence is not yet indexed.",
@@ -865,7 +870,7 @@ function buildTopOpportunities(
   report: Report,
   readiness: AssessmentReadiness,
 ): string[] {
-  if (isMicrofinishPublicDomain(assessment)) {
+  if (isPublicDomainAssessment(assessment)) {
     return [
       "Convert public-domain diagnostic into a 48-hour internal validated diagnostic.",
       "Build a customer qualification and standards evidence pack.",
@@ -898,7 +903,7 @@ function buildPriorityRows(
   gaps: string[],
   evidenceRequests: string[],
 ): PriorityDecisionRow[] {
-  if (isMicrofinishPublicDomain(assessment)) {
+  if (isPublicDomainAssessment(assessment)) {
     return [
       {
         priority: 1,

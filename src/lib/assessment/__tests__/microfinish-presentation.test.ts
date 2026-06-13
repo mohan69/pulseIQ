@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  isMicrofinishPublicDomain,
+  isPublicDomainAssessment,
   MICROFINISH_DISCLAIMER,
   presentCockpit,
   presentRecommendations,
@@ -54,6 +56,31 @@ const cockpit: Cockpit = {
 };
 
 describe("Microfinish public-domain presentation", () => {
+  it("identifies public-domain samples without classifying the protected demo", () => {
+    const deconAssessment: Assessment = {
+      ...assessment,
+      id: "asm-decon-public-domain",
+      companyName: "DECON Technologies Public-Domain Sample Diagnostic",
+    };
+    const spacedPublicDomain: Assessment = {
+      ...assessment,
+      id: "asm-public-domain-spaced",
+      companyName: "Example Public Domain Assessment",
+    };
+    const bharatAssessment: Assessment = {
+      ...assessment,
+      id: "asm-bharat-heavy-fabrications",
+      companyName: "Bharat Heavy Fabrications",
+    };
+
+    expect(isMicrofinishPublicDomain(assessment)).toBe(true);
+    expect(isPublicDomainAssessment(assessment)).toBe(true);
+    expect(isPublicDomainAssessment(deconAssessment)).toBe(true);
+    expect(isPublicDomainAssessment(spacedPublicDomain)).toBe(true);
+    expect(isPublicDomainAssessment(bharatAssessment)).toBe(false);
+    expect(isMicrofinishPublicDomain(deconAssessment)).toBe(false);
+  });
+
   it("replaces zero and estimated cockpit metrics with internal-data framing", () => {
     const result = presentCockpit(assessment, cockpit);
 
