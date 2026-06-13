@@ -1,7 +1,12 @@
 import { notFound } from "next/navigation";
 import { getReport, getAssessment, getSources } from "@/lib/assessment/store";
 import { Badge } from "@/components/ui/badge";
-import { formatExecutiveCurrency, getGapLabel, isRiskMetric } from "@/lib/utils";
+import {
+  formatCount,
+  formatExecutiveCurrency,
+  getGapLabel,
+  isRiskMetric,
+} from "@/lib/utils";
 import {
   FileText,
   CheckCircle2,
@@ -15,9 +20,11 @@ import {
 } from "lucide-react";
 import { ReportViewNav } from "@/components/report/ReportViewNav";
 import {
+  isPublicDomainAssessment,
   isMicrofinishPublicDomain,
   metricRequiresInternalData,
   MICROFINISH_DISCLAIMER,
+  PUBLIC_DOMAIN_DISCLAIMER,
 } from "@/lib/assessment/presentation";
 import {
   DIAGNOSTIC_DISCLAIMER,
@@ -55,6 +62,7 @@ export default async function ReportPage({
   const readinessSections = buildReadinessReportSections(readiness);
   const isDemo = assessment?.id === "asm-bharat-heavy-fabrications";
   const isMicrofinishSample = isMicrofinishPublicDomain(assessment);
+  const isPublicDomain = isPublicDomainAssessment(assessment);
 
   return (
     <div className="space-y-6 print:space-y-4">
@@ -98,17 +106,21 @@ export default async function ReportPage({
             </div>
           )}
           <div className="text-sm text-muted mt-2">
-            Generated {new Date(report.generatedAt).toLocaleString("en-IN", { dateStyle: "long", timeStyle: "short" })} · {report.sourceCount} sources · {report.factCount} facts
+            Generated {new Date(report.generatedAt).toLocaleString("en-IN", { dateStyle: "long", timeStyle: "short" })} ·{" "}
+            {formatCount(report.sourceCount, "source")} ·{" "}
+            {formatCount(report.factCount, "fact")}
           </div>
         </header>
 
-        {isMicrofinishSample && (
+        {isPublicDomain && (
           <section className="rounded-xl border border-warning/30 bg-warning-muted/30 p-4">
             <div className="text-xs font-semibold uppercase tracking-wider text-warning mb-1">
               Public-domain sample disclaimer
             </div>
             <p className="text-sm leading-relaxed text-foreground-secondary">
-              {MICROFINISH_DISCLAIMER}
+              {isMicrofinishSample
+                ? MICROFINISH_DISCLAIMER
+                : PUBLIC_DOMAIN_DISCLAIMER}
             </p>
           </section>
         )}
@@ -275,7 +287,9 @@ export default async function ReportPage({
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-bold text-success">
-                        {formatExecutiveCurrency(o.impactInr)}
+                        {isPublicDomain
+                          ? "Requires internal validation"
+                          : formatExecutiveCurrency(o.impactInr)}
                       </div>
                       <div className="text-[10px] text-muted">
                         {o.timeframeDays} days
@@ -469,7 +483,9 @@ export default async function ReportPage({
 
         <footer className="pt-6 border-t border-border text-[11px] text-muted print:mt-8">
           <p>
-            {isMicrofinishSample ? `${MICROFINISH_DISCLAIMER} ` : ""}
+            {isPublicDomain
+              ? `${isMicrofinishSample ? MICROFINISH_DISCLAIMER : PUBLIC_DOMAIN_DISCLAIMER} `
+              : ""}
             {DIAGNOSTIC_DISCLAIMER}
           </p>
           <p className="mt-2">

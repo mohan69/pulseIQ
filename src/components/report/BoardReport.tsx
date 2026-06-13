@@ -8,16 +8,18 @@ import {
   Target,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { formatExecutiveCurrency } from "@/lib/utils";
+import { formatCount, formatExecutiveCurrency } from "@/lib/utils";
 import {
   DIAGNOSTIC_DISCLAIMER,
   DIAGNOSTIC_POSITIONING,
 } from "@/lib/diagnostic-positioning";
 import {
+  isBharatDemoAssessment,
   isPublicDomainAssessment,
   isMicrofinishPublicDomain,
   metricRequiresInternalData,
   MICROFINISH_DISCLAIMER,
+  presentReport,
   PUBLIC_DOMAIN_DISCLAIMER,
 } from "@/lib/assessment/presentation";
 import type {
@@ -99,11 +101,13 @@ const PROFESSIONAL_ROADMAP = [
 
 export function BoardReport({
   assessment,
-  report,
+  report: sourceReport,
   readiness,
 }: BoardReportProps) {
+  const report = presentReport(assessment, sourceReport) ?? sourceReport;
   const isMicrofinish = isMicrofinishPublicDomain(assessment);
   const isPublicDomain = isPublicDomainAssessment(assessment);
+  const isBharatDemo = isBharatDemoAssessment(assessment);
   const postureScore = average([
     readiness.cockpit.standardsReadinessScore,
     readiness.cockpit.customerQualificationReadiness,
@@ -127,7 +131,7 @@ export function BoardReport({
     readiness,
   );
   const scorecard = buildScorecard(assessment, report, readiness);
-  const readinessRows = buildReadinessRows(readiness);
+  const readinessRows = buildReadinessRows(assessment, readiness);
   const priorityRows = buildPriorityRows(
     assessment,
     readiness,
@@ -156,6 +160,8 @@ export function BoardReport({
           <p className="mt-4 text-xl leading-relaxed text-white/85">
             {isPublicDomain
               ? "Public-domain Enterprise Intelligence, Compliance & Standards Diagnostic"
+              : isBharatDemo
+                ? "Internal Demo Enterprise Intelligence, Compliance & Standards Diagnostic"
               : "Enterprise Intelligence, Compliance & Standards Diagnostic"}
           </p>
         </div>
@@ -167,11 +173,15 @@ export function BoardReport({
           />
           <CoverDetail
             label="Evidence base"
-            value={`${report.sourceCount} indexed sources · ${report.factCount} facts`}
+            value={`${formatCount(report.sourceCount, "indexed source")} · ${formatCount(report.factCount, "fact")}`}
           />
           <CoverDetail
             label="Confidentiality"
-            value="Confidential · Internal leadership and approved advisers only"
+            value={
+              isBharatDemo
+                ? "Internal demo · Seeded assumptions · Not customer evidence"
+                : "Confidential · Internal leadership and approved advisers only"
+            }
           />
         </div>
         <div
@@ -180,6 +190,8 @@ export function BoardReport({
         >
           {isPublicDomain
             ? "Public-domain sample / internal validation required. Readiness indicators do not constitute certification, audit, statutory, regulatory, or customer approval."
+            : isBharatDemo
+              ? "Internal demo using seeded assumptions and illustrative evidence. Do not present as customer data or externally validated performance. Readiness indicators do not constitute certification, audit, statutory, regulatory, or customer approval."
             : "Decision-support diagnostic based on indexed evidence. Readiness indicators require human validation and do not constitute certification, audit, statutory, regulatory, or customer approval."}
         </div>
         <BoardPageFooter inverse />
@@ -205,10 +217,18 @@ export function BoardReport({
           />
           <DecisionMetric
             label="Revenue blocked by evidence gaps"
-            value={formatExecutiveCurrency(
-              readiness.cockpit.revenueBlockedByGaps,
-            )}
-            detail="Illustrative exposure, not a forecast"
+            value={
+              isPublicDomain
+                ? "Requires internal validation"
+                : formatExecutiveCurrency(
+                    readiness.cockpit.revenueBlockedByGaps,
+                  )
+            }
+            detail={
+              isPublicDomain
+                ? "Public signal — requires internal validation"
+                : "Illustrative exposure, not a forecast"
+            }
           />
         </div>
 
@@ -296,11 +316,11 @@ export function BoardReport({
             Board interpretation
           </h3>
           <p className="mt-2 text-sm leading-relaxed text-foreground-secondary">
-            The current public-domain evidence base is useful for opportunity
-            identification, but not yet sufficient for management decisioning.
-            The first 30 days should focus on internal baseline validation,
-            evidence ownership, customer qualification readiness, and operating
-            cadence.
+            {isPublicDomain
+              ? "The current public-domain evidence base is useful for opportunity identification, but not yet sufficient for management decisioning. The first 30 days should focus on internal baseline validation, evidence ownership, customer qualification readiness, and operating cadence."
+              : isBharatDemo
+                ? "Bharat is an internal demo built from seeded assumptions and illustrative evidence. Use it to demonstrate the workbench flow, not as customer data or externally validated performance."
+                : "The evidence base supports a structured leadership review, subject to accountable source validation and human approval before management action."}
           </p>
         </div>
         <BoardPageFooter />
@@ -493,6 +513,13 @@ export function BoardReport({
                 : PUBLIC_DOMAIN_DISCLAIMER}
             </p>
           )}
+          {isBharatDemo && (
+            <p className="mt-4 text-sm leading-7 text-foreground-secondary">
+              Bharat Heavy Fabrications is an internal demo using seeded
+              assumptions and illustrative evidence. It is not customer data
+              and must not be presented as externally validated performance.
+            </p>
+          )}
           <p className="mt-4 text-sm leading-7 text-foreground-secondary">
             Scores and revenue exposure are diagnostic prioritization aids,
             not forecasts, audit opinions, legal advice, certification
@@ -567,9 +594,15 @@ function buildScorecard(
     ),
     {
       label: "Revenue blocked by evidence gaps",
-      value: formatExecutiveCurrency(readiness.cockpit.revenueBlockedByGaps),
+      value: isPublicDomainAssessment(assessment)
+        ? "Requires internal validation"
+        : formatExecutiveCurrency(readiness.cockpit.revenueBlockedByGaps),
       status:
-        readiness.cockpit.revenueBlockedByGaps > 0 ? "At risk" : "On track",
+        isPublicDomainAssessment(assessment)
+          ? "Needs review"
+          : readiness.cockpit.revenueBlockedByGaps > 0
+            ? "At risk"
+            : "On track",
       confidence: "low",
       action: "Validate opportunity-level exposure before Board forecasting.",
     },
@@ -621,6 +654,7 @@ function readinessScorecard(
 }
 
 function buildReadinessRows(
+  assessment: Assessment,
   readiness: AssessmentReadiness,
 ): ReadinessTableRow[] {
   const missingStandard = readiness.standards.find((item) =>
@@ -650,7 +684,9 @@ function buildReadinessRows(
       area: "Customer qualification",
       status: `${readiness.cockpit.customerQualificationReadiness}% readiness`,
       impact:
-        customer && customer.revenueAtRisk > 0
+        isPublicDomainAssessment(assessment)
+          ? "Revenue exposure requires internal validation"
+          : customer && customer.revenueAtRisk > 0
           ? `${formatExecutiveCurrency(customer.revenueAtRisk)} illustrative exposure`
           : "May delay customer or vendor registration",
       owner: customer?.owner ?? "Commercial Operations",

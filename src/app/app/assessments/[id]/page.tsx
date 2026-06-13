@@ -35,7 +35,7 @@ import {
   Building2,
   Clock,
 } from "lucide-react";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCount, formatCurrency, formatDate } from "@/lib/utils";
 import { DeleteAssessmentButton } from "@/components/workbench/DeleteAssessmentButton";
 import { isMicrofinishPublicDomain } from "@/lib/assessment/presentation";
 import { DiagnosticScope } from "@/components/workbench/DiagnosticScope";
@@ -77,7 +77,8 @@ export default async function AssessmentOverviewPage({
                 Executive snapshot
               </CardTitle>
               <CardDescription className="mt-1">
-                Synthesised from {sources.length} source{sources.length === 1 ? "" : "s"} and {facts.length} extracted fact{facts.length === 1 ? "" : "s"}.
+                Synthesised from {formatCount(sources.length, "source")} and{" "}
+                {formatCount(facts.length, "extracted fact")}.
               </CardDescription>
             </div>
             <Badge variant="outline" className="bg-white">

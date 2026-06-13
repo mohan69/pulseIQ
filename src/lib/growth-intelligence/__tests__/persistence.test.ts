@@ -110,7 +110,7 @@ describe("growth persistence", () => {
   });
 
   it("does not duplicate demo seed records on later loads", async () => {
-    const count = vi.fn().mockResolvedValueOnce(0).mockResolvedValueOnce(8);
+    const count = vi.fn().mockResolvedValueOnce(0).mockResolvedValueOnce(9);
     const auditCount = vi.fn().mockResolvedValueOnce(0).mockResolvedValueOnce(4);
     const tx = {
       growthAccount: {
@@ -130,8 +130,8 @@ describe("growth persistence", () => {
     expect(await repository.ensureDemoSeed(identity)).toBe(true);
     expect(await repository.ensureDemoSeed(identity)).toBe(false);
     expect(transaction).toHaveBeenCalledTimes(1);
-    expect(tx.growthAccount.upsert).toHaveBeenCalledTimes(8);
-    expect(tx.growthOutcome.upsert).toHaveBeenCalledTimes(8);
+    expect(tx.growthAccount.upsert).toHaveBeenCalledTimes(9);
+    expect(tx.growthOutcome.upsert).toHaveBeenCalledTimes(9);
     expect(tx.growthAuditLog.upsert).toHaveBeenCalledTimes(4);
   });
 
@@ -278,7 +278,11 @@ describe("growth persistence", () => {
   });
 
   it("persists approval, manual-send, and reply audit events without reply text", async () => {
-    const row = dbRow(demoGrowthAccounts[2]);
+    const account = demoGrowthAccounts.find(
+      (candidate) => candidate.id === "growth-generic-epc",
+    );
+    expect(account).toBeDefined();
+    const row = dbRow(account);
     let experiment = row.experiment;
     const auditCreate = vi.fn().mockResolvedValue({});
     const tx = {

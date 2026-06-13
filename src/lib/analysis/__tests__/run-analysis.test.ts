@@ -396,7 +396,11 @@ describe("assessment analysis pipeline", () => {
     expect(JSON.stringify(scenarios)).not.toContain("Reduce headcount by 15%");
     expect(
       scenarios.find((scenario) => scenario.key === "margin_plus_10")?.label,
-    ).toContain("2–3 percentage points");
+    ).toBe("Margin and profitability evidence case");
+    expect(
+      scenarios.find((scenario) => scenario.key === "margin_plus_10")
+        ?.expectedImpact,
+    ).toBe("Requires approved internal data before quantification.");
     expect(recommendations[0]?.evidence).toContain("Public-domain");
     expect(plan).toHaveLength(4);
     expect(

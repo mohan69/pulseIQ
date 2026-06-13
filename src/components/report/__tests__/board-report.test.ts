@@ -23,6 +23,8 @@ describe("Board report", () => {
     expect(markup).toContain("Board Scorecard");
     expect(markup).toContain("Readiness action table");
     expect(markup).toContain("Evidence Boundary Summary");
+    expect(markup).toContain("Internal Demo Enterprise Intelligence");
+    expect(markup).toContain("seeded assumptions");
   });
 
   it("keeps app and assessment chrome print-hidden before the cover", async () => {
@@ -139,7 +141,7 @@ describe("Board report", () => {
 
     expect(markup).toContain("Board interpretation");
     expect(markup).toContain(
-      "The current public-domain evidence base is useful for opportunity identification, but not yet sufficient for management decisioning.",
+      "Bharat is an internal demo built from seeded assumptions and illustrative evidence.",
     );
     expect(markup).toContain(
       "This indicates the evidence base is not yet sufficient for customer qualification, audit readiness, or board-level performance decisions without internal validation.",
@@ -218,6 +220,71 @@ describe("Board report", () => {
     expect(DIAGNOSTIC_DISCLAIMER).toContain("statutory audit");
     expect(DIAGNOSTIC_DISCLAIMER).toContain("regulatory approval");
     expect(DIAGNOSTIC_DISCLAIMER).toContain("formal customer approval");
+  });
+
+  it("masks public-domain financial values and high confidence", async () => {
+    const report = (await getReport(DEMO_ID))!;
+    const assessment: Assessment = {
+      ...(await getAssessment(DEMO_ID))!,
+      id: "asm-public-prospect",
+      companyName: "Prospect Public-Domain Sample Diagnostic",
+    };
+    const unsafeReport = {
+      ...report,
+      truthLayers: report.truthLayers.map((layer) => ({
+        ...layer,
+        confidence: "high" as const,
+        description:
+          layer.key === "financial"
+            ? "Revenue ₹566Cr, margin 22%, high confidence."
+            : layer.description,
+      })),
+      cockpit: {
+        ...report.cockpit,
+        metrics: report.cockpit.metrics.map((metric) =>
+          metric.key === "revenue"
+            ? {
+                ...metric,
+                value: 5_660_000_000,
+                note: "High confidence public revenue signal.",
+              }
+            : metric,
+        ),
+      },
+    };
+    const markup = renderToStaticMarkup(
+      BoardReport({
+        assessment,
+        report: unsafeReport,
+        readiness: getAssessmentReadiness(assessment, []),
+      }),
+    );
+
+    expect(markup).toContain("Requires internal validation");
+    expect(markup).toContain("Public signal — requires internal validation");
+    expect(markup).not.toContain("₹566Cr");
+    expect(markup).not.toContain(">high<");
+  });
+
+  it("preserves DECON public-domain safety wording", async () => {
+    const report = (await getReport(DEMO_ID))!;
+    const assessment: Assessment = {
+      ...(await getAssessment(DEMO_ID))!,
+      id: "asm-decon-public-domain",
+      companyName: "DECON Technologies Public-Domain Sample Diagnostic",
+    };
+    const markup = renderToStaticMarkup(
+      BoardReport({
+        assessment,
+        report,
+        readiness: getAssessmentReadiness(assessment, []),
+      }),
+    );
+
+    expect(markup).toContain("Public-domain sample / internal validation required");
+    expect(markup).toContain(
+      "do not constitute certification, audit, statutory, regulatory, or customer approval",
+    );
   });
 });
 

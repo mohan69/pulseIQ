@@ -5,6 +5,7 @@ import type {
   Recommendation,
   Report,
   Scenario,
+  TruthLayer,
 } from "./types";
 import { DIAGNOSTIC_DISCLAIMER } from "@/lib/diagnostic-positioning";
 
@@ -16,6 +17,14 @@ export const MICROFINISH_DISCLAIMER =
 
 export const PUBLIC_DOMAIN_DISCLAIMER =
   "This is a public-domain sample diagnostic. It is not an audit, valuation, credit report, or assessment of actual internal performance. Financial and operational baselines require approved internal data and human validation.";
+
+export const BHARAT_DEMO_ID = "asm-bharat-heavy-fabrications";
+
+export function isBharatDemoAssessment(
+  assessment: Assessment | undefined,
+): boolean {
+  return assessment?.id === BHARAT_DEMO_ID;
+}
 
 export function isMicrofinishPublicDomain(
   assessment: Assessment | undefined,
@@ -40,6 +49,7 @@ export function isPublicDomainAssessment(
     /\bpublic source(?:d)?\b/,
     /\bpublic sample\b/,
     /\bsample diagnostic\b/,
+    /\bprospect diagnostic\b/,
   ].some((marker) => marker.test(name));
 }
 
@@ -48,18 +58,17 @@ export function presentCockpit(
   cockpit: Cockpit,
 ): Cockpit {
   if (!isPublicDomainAssessment(assessment)) return cockpit;
-  const isMicrofinish = isMicrofinishPublicDomain(assessment);
   return {
     ...cockpit,
     metrics: cockpit.metrics.map((metric) => {
-      if (!isMicrofinish && isRevenueMetric(metric)) {
+      if (isRevenueMetric(metric)) {
         return internalDataMetric(
           metric,
           "Revenue actual",
-          "Requires internal validation. No confirmed public financial baseline is available.",
+          "Public-domain signal — Requires internal validation. No confirmed public financial baseline is available.",
         );
       }
-      if (!isMicrofinish && isMarginMetric(metric)) {
+      if (isMarginMetric(metric)) {
         return internalDataMetric(
           metric,
           "Margin actual",
@@ -77,13 +86,52 @@ export function presentCockpit(
         return internalDataMetric(
           metric,
           "Revenue per employee / productivity",
-          isMicrofinish
-            ? "Requires confirmed headcount and consolidated revenue. Public headcount signals must not be presented as a firm productivity metric."
-            : "Requires internal data. Confirmed headcount and revenue are required before calculating RPE.",
+          "Requires internal data. Confirmed headcount and revenue are required before calculating RPE.",
+        );
+      }
+      if (isOrderBookMetric(metric)) {
+        return internalDataMetric(
+          metric,
+          "Order book / backlog value",
+          "Requires internal validation. Open orders, backlog ageing, holds, and conversion status require approved internal data.",
+        );
+      }
+      if (isProfitabilityMetric(metric)) {
+        return internalDataMetric(
+          metric,
+          "Profitability",
+          "Requires internal validation. No confirmed public profitability baseline is available.",
+        );
+      }
+      if (isRevenueExposureMetric(metric)) {
+        return internalDataMetric(
+          metric,
+          "Revenue exposure",
+          "Illustrative only — requires internal validation.",
         );
       }
       return metric;
     }),
+    topRisks: [
+      {
+        id: "public-financial-validation",
+        title: "Financial baseline requires validation",
+        description:
+          "Public financial signals are directional and require approved internal evidence before management use.",
+        likelihood: "medium",
+        impact: "high",
+      },
+    ],
+    topOpportunities: [
+      {
+        id: "public-internal-diagnostic",
+        title: "Run a validated internal diagnostic",
+        description:
+          "Replace public assumptions with approved financial, commercial, operating, and readiness evidence.",
+        impactInr: 0,
+        timeframeDays: 30,
+      },
+    ],
   };
 }
 
@@ -91,16 +139,48 @@ export function presentScenarios(
   assessment: Assessment | undefined,
   scenarios: Scenario[],
 ): Scenario[] {
-  if (!isMicrofinishPublicDomain(assessment)) return scenarios;
-  return MICROFINISH_SCENARIOS;
+  if (!isPublicDomainAssessment(assessment)) return scenarios;
+  return PUBLIC_DOMAIN_SCENARIOS;
 }
 
 export function presentRecommendations(
   assessment: Assessment | undefined,
   recommendations: Recommendation[],
 ): Recommendation[] {
-  if (!isMicrofinishPublicDomain(assessment)) return recommendations;
-  return MICROFINISH_RECOMMENDATIONS;
+  if (!isPublicDomainAssessment(assessment)) return recommendations;
+  const presented = isMicrofinishPublicDomain(assessment)
+    ? MICROFINISH_RECOMMENDATIONS
+    : recommendations;
+  return presented.map((recommendation) => ({
+    ...recommendation,
+    businessImpact: "Requires internal validation.",
+    evidence: recommendation.evidence.includes("internal validation")
+      ? recommendation.evidence
+      : `${recommendation.evidence} Internal validation required.`,
+    confidence: "low",
+  }));
+}
+
+export function presentTruthLayers(
+  assessment: Assessment | undefined,
+  layers: TruthLayer[],
+): TruthLayer[] {
+  if (!isPublicDomainAssessment(assessment)) return layers;
+  return layers.map((layer) => ({
+    ...layer,
+    description: maskPublicFinancialText(layer.description),
+    findings: layer.findings.map((finding) => ({
+      ...finding,
+      text: maskPublicFinancialText(finding.text),
+    })),
+    evidence: layer.evidence.map((evidence) => ({
+      ...evidence,
+      excerpt: maskPublicFinancialText(evidence.excerpt),
+    })),
+    gaps: layer.gaps.map(maskPublicFinancialText),
+    contradictions: layer.contradictions.map(maskPublicFinancialText),
+    confidence: "low",
+  }));
 }
 
 export function presentReport(
@@ -108,16 +188,13 @@ export function presentReport(
   report: Report | undefined,
 ): Report | undefined {
   if (!report || !isPublicDomainAssessment(assessment)) return report;
-  if (!isMicrofinishPublicDomain(assessment)) {
-    return {
-      ...report,
-      executiveSummary: `${PUBLIC_DOMAIN_DISCLAIMER} The diagnostic synthesises ${report.sourceCount} registered public-domain source${report.sourceCount === 1 ? "" : "s"} into company-context findings, evidence-readiness gaps, and an internal data request without asserting a confirmed financial baseline. ${DIAGNOSTIC_DISCLAIMER}`,
-      cockpit: presentCockpit(assessment, report.cockpit),
-    };
-  }
+  const executiveSummary = isMicrofinishPublicDomain(assessment)
+    ? `${MICROFINISH_DISCLAIMER} The sample synthesises ${report.sourceCount} public-domain source${report.sourceCount === 1 ? "" : "s"} into directional operating hypotheses, compliance and standards readiness gaps, supplier and prequalification evidence needs, AI governance controls, validation priorities, and a practical internal data request. ${DIAGNOSTIC_DISCLAIMER}`
+    : `${PUBLIC_DOMAIN_DISCLAIMER} The diagnostic synthesises ${report.sourceCount} registered public-domain source${report.sourceCount === 1 ? "" : "s"} into company-context findings, evidence-readiness gaps, and an internal data request without asserting a confirmed financial baseline. ${DIAGNOSTIC_DISCLAIMER}`;
   return {
     ...report,
-    executiveSummary: `${MICROFINISH_DISCLAIMER} The sample synthesises ${report.sourceCount} public-domain sources into directional operating hypotheses, compliance and standards readiness gaps, supplier and prequalification evidence needs, AI governance controls, validation priorities, and a practical internal data request. ${DIAGNOSTIC_DISCLAIMER}`,
+    executiveSummary,
+    truthLayers: presentTruthLayers(assessment, report.truthLayers),
     cockpit: presentCockpit(assessment, report.cockpit),
     scenarios: presentScenarios(assessment, report.scenarios),
     recommendations: presentRecommendations(
@@ -131,16 +208,7 @@ export function metricRequiresInternalData(
   assessment: Assessment | undefined,
   metric: CockpitMetric,
 ): boolean {
-  if (isMicrofinishPublicDomain(assessment)) {
-    return isCashVisibilityMetric(metric) || isProductivityMetric(metric);
-  }
-  return (
-    isPublicDomainAssessment(assessment) &&
-    (isRevenueMetric(metric) ||
-      isMarginMetric(metric) ||
-      isCashVisibilityMetric(metric) ||
-      isProductivityMetric(metric))
-  );
+  return isPublicDomainAssessment(assessment) && isPublicFinancialMetric(metric);
 }
 
 function internalDataMetric(
@@ -169,9 +237,12 @@ function isMarginMetric(metric: CockpitMetric): boolean {
 }
 
 function isCashVisibilityMetric(metric: CockpitMetric): boolean {
+  const value = metricText(metric);
   return (
-    metric.key.toLowerCase().includes("cash") ||
-    metric.label.toLowerCase().includes("cash")
+    value.includes("cash") ||
+    value.includes("working capital") ||
+    value.includes("receivable") ||
+    value.includes("payable")
   );
 }
 
@@ -184,108 +255,158 @@ function isProductivityMetric(metric: CockpitMetric): boolean {
   );
 }
 
-const MICROFINISH_SCENARIOS: Scenario[] = [
+function isOrderBookMetric(metric: CockpitMetric): boolean {
+  const value = metricText(metric);
+  return value.includes("order book") || value.includes("backlog");
+}
+
+function isProfitabilityMetric(metric: CockpitMetric): boolean {
+  const value = metricText(metric);
+  return (
+    value.includes("profit") ||
+    value.includes("ebitda") ||
+    value.includes("contribution")
+  );
+}
+
+function isRevenueExposureMetric(metric: CockpitMetric): boolean {
+  return metricText(metric).includes("exposure");
+}
+
+function isPublicFinancialMetric(metric: CockpitMetric): boolean {
+  return (
+    isRevenueMetric(metric) ||
+    isMarginMetric(metric) ||
+    isCashVisibilityMetric(metric) ||
+    isProductivityMetric(metric) ||
+    isOrderBookMetric(metric) ||
+    isProfitabilityMetric(metric) ||
+    isRevenueExposureMetric(metric)
+  );
+}
+
+function metricText(metric: CockpitMetric): string {
+  return `${metric.key} ${metric.label} ${metric.note}`.toLowerCase();
+}
+
+function maskPublicFinancialText(value: string): string {
+  if (
+    !/\b(revenue|margin|cash|working capital|receivable|payable|rpe|revenue per employee|order book|backlog|exposure|profit|ebitda)\b/i.test(
+      value,
+    )
+  ) {
+    return value;
+  }
+  return value
+    .replace(
+      /₹\s*[\d,.]+(?:\s*(?:Cr|crore|L|lakh|million|billion))?/gi,
+      "Requires internal validation",
+    )
+    .replace(
+      /\b\d+(?:\.\d+)?\s*(?:Cr|crore|L|lakh|million|billion)\b/gi,
+      "Requires internal validation",
+    )
+    .replace(/\b\d+(?:\.\d+)?\s*%/g, "Requires internal validation")
+    .replace(/\bhigh confidence\b/gi, "Requires validation");
+}
+
+const PUBLIC_DOMAIN_SCENARIOS: Scenario[] = [
   {
     key: "revenue_plus_10",
-    label: "Revenue growth toward an illustrative ₹650Cr ambition",
-      description:
-        "Explore the operating requirements to move from the directional ₹566Cr public-domain signal toward a ₹650Cr illustrative ambition.",
-    currentBaseline:
-      "₹566Cr directional public signal; not audited consolidated group revenue.",
-    target:
-      "₹650Cr illustrative ambition for scenario planning, not a Microfinish management target.",
+    label: "Revenue visibility case",
+    description:
+      "Public-domain scenario. Test revenue and order-book visibility only after approved internal financial and commercial evidence is available.",
+    currentBaseline: "Requires internal validation.",
+    target: "Validated revenue, order-book, and conversion baseline.",
     options: [
-      "Validate entity and product-family revenue",
-      "Prioritise severe-service, refining, pharma/API, and export opportunities",
-      "Improve proposal conversion and order velocity",
+      "Validate entity and product-family revenue.",
+      "Reconcile order book, backlog, and proposal pipeline.",
+      "Confirm conversion and shipment assumptions.",
     ],
-    pros: ["Creates a measurable growth discussion", "Links growth to pipeline evidence"],
-    shortfalls: ["Requires internal revenue, backlog, and pipeline validation"],
-    expectedImpact: "Directional growth case only; financial impact requires internal data.",
-    risks: ["Treating public signals as consolidated audited revenue"],
+    pros: ["Creates a controlled evidence baseline."],
+    shortfalls: ["Requires approved internal revenue, backlog, and pipeline data."],
+    expectedImpact: "Requires approved internal data before quantification.",
+    risks: ["Treating public signals as audited or internally validated revenue."],
     recommendation:
-      "Validate the revenue baseline and opportunity pipeline before setting a formal growth target.",
+      "Validate the internal baseline before approving revenue or growth actions.",
     confidence: "low",
   },
   {
     key: "margin_plus_10",
-    label: "Margin improvement by 2–3 percentage points",
+    label: "Margin and profitability evidence case",
     description:
-      "Test a realistic margin improvement range through product mix, pricing discipline, sourcing, and proposal quality.",
-    currentBaseline:
-      "22% illustrative sample signal; requires entity-level and product-family validation.",
-    target: "Illustrative 24–25% range, subject to internal validation.",
+      "Test product, customer, and channel profitability only after reconciled cost and revenue evidence is available.",
+    currentBaseline: "Requires internal validation.",
+    target: "Validated product-family and customer profitability baseline.",
     options: [
-      "Build product-family and customer margin views",
-      "Review severe-service and engineered-order pricing",
-      "Track proposal revision and compliance effort",
+      "Build product-family and customer margin views.",
+      "Reconcile pricing, material, labour, overhead, and cost-to-serve.",
+      "Track proposal revisions and exception costs.",
     ],
-    pros: ["More realistic than a ten-point jump", "Supports focused operating actions"],
-    shortfalls: ["Requires cost, pricing, and mix data"],
-    expectedImpact: "Potential 2–3 percentage-point improvement after validation.",
-    risks: ["Margin estimates may not be comparable across entities"],
+    pros: ["Supports evidence-led pricing and portfolio decisions."],
+    shortfalls: ["Requires approved cost, pricing, and mix data."],
+    expectedImpact: "Requires approved internal data before quantification.",
+    risks: ["Public or cross-entity margin signals may not be comparable."],
     recommendation:
       "Establish a validated margin baseline before approving pricing or cost actions.",
     confidence: "low",
   },
   {
     key: "cost_minus_10",
-    label: "Quote and proposal cycle-time reduction by 20%",
+    label: "Proposal and operating cycle-time case",
     description:
-      "Improve proposal velocity while protecting technical standards, documentation, and compliance review quality.",
+      "Assess proposal velocity while protecting technical, standards, documentation, and approval quality.",
     currentBaseline: "Cycle time, revision count, and win/loss data are not available.",
-    target: "Illustrative 20% cycle-time reduction after baseline measurement.",
+    target: "Validated cycle-time and conversion baseline.",
     options: [
-      "Create a quote and proposal register",
-      "Track revisions, approvals, and compliance effort",
-      "Standardise reusable technical standards and readiness evidence content",
+      "Create a quote and proposal register.",
+      "Track revisions, approvals, and compliance effort.",
+      "Standardise reusable evidence content after human review.",
     ],
-    pros: ["Can improve responsiveness", "Creates process evidence quickly"],
-    shortfalls: ["Requires timestamped quote and proposal records"],
-    expectedImpact: "Faster proposal throughput and clearer conversion analysis.",
-    risks: ["Speed improvements must not weaken engineering review"],
+    pros: ["Creates process evidence and identifies avoidable delay."],
+    shortfalls: ["Requires timestamped quote and proposal records."],
+    expectedImpact: "Requires approved internal data before quantification.",
+    risks: ["Speed improvements must not weaken engineering review."],
     recommendation:
-      "Baseline proposal cycle time for four weeks, then target the largest avoidable delays.",
-    confidence: "medium",
+      "Validate the internal baseline before approving cycle-time targets.",
+    confidence: "low",
   },
   {
     key: "cash_improvement",
-    label: "Working-capital visibility and improvement",
+    label: "Working-capital visibility case",
     description:
       "Build an evidence-based view of receivables, inventory, payables, and open order backlog before setting cash targets.",
     currentBaseline: "Requires internal AR, inventory, AP, and backlog exports.",
     target: "Validated working-capital baseline and prioritised improvement actions.",
     options: [
-      "Review AR ageing and overdue collections",
-      "Segment inventory by movement and project linkage",
-      "Connect open orders, billing milestones, and supplier commitments",
+      "Review AR ageing and overdue collections.",
+      "Segment inventory by movement and project linkage.",
+      "Connect open orders, billing milestones, and supplier commitments.",
     ],
-    pros: ["Improves cash visibility", "Supports weekly operating cadence"],
-    shortfalls: ["No reliable public working-capital baseline"],
-    expectedImpact: "Cash opportunity can be quantified only after internal validation.",
-    risks: ["Premature targets may distort customer or supplier decisions"],
+    pros: ["Improves cash visibility.", "Supports a controlled operating cadence."],
+    shortfalls: ["No reliable public working-capital baseline."],
+    expectedImpact: "Requires approved internal data before quantification.",
+    risks: ["Premature targets may distort customer or supplier decisions."],
     recommendation:
       "Start with read-only AR, AP, inventory, and backlog exports.",
     confidence: "low",
   },
   {
     key: "headcount_minus_15",
-    label: "Revenue per employee improvement without headcount reduction",
+    label: "Productivity evidence case without assumed workforce action",
     description:
       "Explore productivity gains through automation, proposal velocity, workflow clarity, and better commercial focus, not workforce reduction.",
-    currentBaseline:
-      "Requires confirmed headcount and audited or consolidated revenue.",
-    target:
-      "A validated productivity baseline and measurable improvement plan without an assumed headcount reduction.",
+    currentBaseline: "Requires confirmed headcount and internally validated revenue.",
+    target: "Validated productivity baseline without an assumed workforce action.",
     options: [
-      "Automate repetitive reporting and proposal administration",
-      "Reduce proposal rework and approval delays",
-      "Improve product, customer, and channel focus",
+      "Automate repetitive reporting and proposal administration.",
+      "Reduce proposal rework and approval delays.",
+      "Improve product, customer, and channel focus.",
     ],
-    pros: ["Improves throughput without presuming workforce action", "Supports respectful operating review"],
-    shortfalls: ["Public headcount signals are not a reliable baseline"],
-    expectedImpact: "Higher proposal and execution throughput per confirmed employee.",
-    risks: ["Using unverified public headcount as a performance judgment"],
+    pros: ["Supports respectful operating review."],
+    shortfalls: ["Public headcount signals are not a reliable baseline."],
+    expectedImpact: "Requires approved internal data before quantification.",
+    risks: ["Using unverified public headcount as a performance judgment."],
     recommendation:
       "Confirm headcount and revenue first, then measure productivity by workflow and output.",
     confidence: "low",

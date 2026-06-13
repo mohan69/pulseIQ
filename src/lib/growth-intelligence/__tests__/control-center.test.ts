@@ -162,7 +162,10 @@ describe("growth control center", () => {
     expect(sample.findings).toHaveLength(3);
     for (const finding of sample.findings) {
       expect(finding.finding).toMatch(/likely|hypothesis|to be validated/i);
-      expect(finding.evidenceNeeded).toMatch(/evidence needed/i);
+      expect(finding.evidenceNeeded).not.toMatch(/^evidence needed\s*:/i);
+      expect(`Evidence needed: ${finding.evidenceNeeded}`).not.toMatch(
+        /Evidence needed:\s*Evidence needed:/i,
+      );
       expect(finding.finding).not.toMatch(/confirmed|certified|approved fact/i);
     }
   });

@@ -210,10 +210,15 @@ describe("growth intelligence generator", () => {
     );
   });
 
-  it("seeds eight tenant-scoped demo accounts", () => {
-    expect(demoGrowthAccounts).toHaveLength(8);
-    expect(getDemoGrowthAccounts(DEMO_GROWTH_ORG_ID)).toHaveLength(8);
+  it("seeds nine tenant-scoped demo accounts including Decon", () => {
+    expect(demoGrowthAccounts).toHaveLength(9);
+    expect(getDemoGrowthAccounts(DEMO_GROWTH_ORG_ID)).toHaveLength(9);
     expect(getDemoGrowthAccounts("another-org")).toEqual([]);
+    expect(
+      demoGrowthAccounts.some(
+        (account) => account.id === "growth-decon-technologies",
+      ),
+    ).toBe(true);
     expect(
       demoGrowthAccounts.every(
         (account) =>

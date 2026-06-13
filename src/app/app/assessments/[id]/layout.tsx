@@ -8,10 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Building2, IndianRupee, Target, Users } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { AssessmentTabs } from "@/components/workbench/AssessmentTabs";
-import {
-  isMicrofinishPublicDomain,
-  isPublicDomainAssessment,
-} from "@/lib/assessment/presentation";
+import { isPublicDomainAssessment } from "@/lib/assessment/presentation";
 
 export default async function AssessmentLayout({
   children,
@@ -57,7 +54,6 @@ export default async function AssessmentLayout({
       : atRisk > 0
         ? `${atRisk} at risk`
         : "broadly on plan";
-  const isMicrofinishSample = isMicrofinishPublicDomain(assessment);
   const isPublicDomain = isPublicDomainAssessment(assessment);
 
   return (
@@ -94,48 +90,32 @@ export default async function AssessmentLayout({
             <div>
               <div className="text-[11px] text-muted flex items-center justify-end gap-1">
                 <IndianRupee className="h-3 w-3" />
-                {isMicrofinishSample
-                  ? "Revenue ambition"
-                  : isPublicDomain
-                    ? "Revenue actual"
-                    : "Revenue target"}
+                {isPublicDomain ? "Revenue actual" : "Revenue target"}
               </div>
               <div className="text-sm font-semibold text-foreground">
-                {isMicrofinishSample
-                  ? `${formatCurrency(assessment.revenueTarget)} illustrative`
-                  : isPublicDomain
-                    ? "Requires internal validation"
-                    : formatCurrency(assessment.revenueTarget)}
+                {isPublicDomain
+                  ? "Requires internal validation"
+                  : formatCurrency(assessment.revenueTarget)}
               </div>
             </div>
             <div>
               <div className="text-[11px] text-muted flex items-center justify-end gap-1">
                 <Target className="h-3 w-3" />
-                {isMicrofinishSample
-                  ? "Margin scenario"
-                  : isPublicDomain
-                    ? "Margin actual"
-                    : "Margin target"}
+                {isPublicDomain ? "Margin actual" : "Margin target"}
               </div>
               <div className="text-sm font-semibold text-foreground">
-                {isMicrofinishSample
-                  ? `${assessment.marginTarget}% illustrative`
-                  : isPublicDomain
-                    ? "Requires internal data"
-                    : `${assessment.marginTarget}%`}
+                {isPublicDomain
+                  ? "Requires internal data"
+                  : `${assessment.marginTarget}%`}
               </div>
             </div>
             <div>
               <div className="text-[11px] text-muted flex items-center justify-end gap-1">
                 <Users className="h-3 w-3" />
-                {isMicrofinishSample
-                  ? "Productivity"
-                  : isPublicDomain
-                    ? "RPE"
-                    : "RPE target"}
+                {isPublicDomain ? "RPE" : "RPE target"}
               </div>
               <div className="text-sm font-semibold text-foreground">
-                {isMicrofinishSample || isPublicDomain
+                {isPublicDomain
                   ? "Requires internal data"
                   : `${formatCurrency(assessment.headcountProductivityTarget)}/emp`}
               </div>

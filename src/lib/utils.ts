@@ -28,6 +28,14 @@ export function formatDate(iso: string | null | undefined): string {
   }
 }
 
+export function formatCount(
+  count: number,
+  singular: string,
+  plural = `${singular}s`,
+): string {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
 export function formatExecutiveCurrency(
   value: number | null | undefined,
   options?: { suffix?: string },

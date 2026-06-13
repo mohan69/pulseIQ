@@ -1,7 +1,9 @@
 import type { Assessment, Source } from "@/lib/assessment/types";
 import {
   isMicrofinishPublicDomain,
+  isPublicDomainAssessment,
   MICROFINISH_DISCLAIMER,
+  PUBLIC_DOMAIN_DISCLAIMER,
 } from "@/lib/assessment/presentation";
 import { DIAGNOSTIC_DISCLAIMER } from "@/lib/diagnostic-positioning";
 import type {
@@ -92,12 +94,41 @@ export function getAssessmentReadiness(
   sources: Source[],
 ): AssessmentReadiness {
   if (isMicrofinishPublicDomain(assessment)) {
-    return buildMicrofinishReadiness(assessment);
+    return maskPublicFinancialReadiness(
+      assessment,
+      buildMicrofinishReadiness(assessment),
+    );
   }
   if (assessment.id === "asm-bharat-heavy-fabrications") {
     return buildBharatReadiness(assessment, sources);
   }
-  return buildConservativeReadiness(assessment);
+  return maskPublicFinancialReadiness(
+    assessment,
+    buildConservativeReadiness(assessment),
+  );
+}
+
+function maskPublicFinancialReadiness(
+  assessment: Assessment,
+  readiness: AssessmentReadiness,
+): AssessmentReadiness {
+  if (!isPublicDomainAssessment(assessment)) return readiness;
+  return {
+    ...readiness,
+    disclaimer: `${PUBLIC_DOMAIN_DISCLAIMER} internal validation required. ${DIAGNOSTIC_DISCLAIMER}`,
+    standardsEvidence: readiness.standardsEvidence.map((item) => ({
+      ...item,
+      revenueImpact: 0,
+    })),
+    customerQualification: readiness.customerQualification.map((item) => ({
+      ...item,
+      revenueAtRisk: 0,
+    })),
+    cockpit: {
+      ...readiness.cockpit,
+      revenueBlockedByGaps: 0,
+    },
+  };
 }
 
 export function buildReadinessReportSections(
@@ -148,7 +179,9 @@ export function buildReadinessReportSections(
     },
     {
       title: "Revenue Risk from Readiness Gaps",
-      summary: `${formatCrores(cockpit.revenueBlockedByGaps)} is illustratively linked to missing or review-pending readiness evidence.`,
+      summary: /public-domain/i.test(readiness.disclaimer)
+        ? "Revenue exposure requires approved internal opportunity and financial evidence before quantification."
+        : `${formatCrores(cockpit.revenueBlockedByGaps)} is illustratively linked to missing or review-pending readiness evidence.`,
       items: readiness.criticalGaps,
     },
   ];
@@ -693,4 +726,3 @@ function slug(value: string): string {
 function formatCrores(value: number): string {
   return `₹${(value / CR).toFixed(1).replace(/\.0$/, "")} Cr`;
 }
-

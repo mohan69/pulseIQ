@@ -19,6 +19,7 @@ import {
   Shield,
   Trash2,
 } from "lucide-react";
+import { formatCount } from "@/lib/utils";
 import { AddSourceForm } from "@/components/workbench/AddSourceForm";
 import { AnalyzeAssessmentForm } from "@/components/workbench/AnalyzeAssessmentForm";
 import { Button } from "@/components/ui/button";
@@ -88,7 +89,9 @@ export default async function SourcesPage({
           <CardHeader>
             <CardTitle className="text-base">Registered sources</CardTitle>
             <CardDescription>
-              {sources.length} source{sources.length === 1 ? "" : "s"} · {sources.filter((s) => s.status === "parsed").length} parsed · {sources.filter((s) => s.status === "failed").length} failed
+              {formatCount(sources.length, "source")} ·{" "}
+              {sources.filter((s) => s.status === "parsed").length} parsed ·{" "}
+              {sources.filter((s) => s.status === "failed").length} failed
             </CardDescription>
           </CardHeader>
           <CardContent className="overflow-x-auto">

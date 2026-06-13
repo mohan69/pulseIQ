@@ -7,6 +7,7 @@ import {
   presentRecommendations,
   presentReport,
   presentScenarios,
+  presentTruthLayers,
 } from "@/lib/assessment/presentation";
 import type {
   Assessment,
@@ -14,6 +15,7 @@ import type {
   Recommendation,
   Report,
   Scenario,
+  TruthLayer,
 } from "@/lib/assessment/types";
 
 const assessment: Assessment = {
@@ -72,28 +74,69 @@ describe("Microfinish public-domain presentation", () => {
       id: "asm-bharat-heavy-fabrications",
       companyName: "Bharat Heavy Fabrications",
     };
+    const prospectAssessment: Assessment = {
+      ...assessment,
+      id: "asm-prospect",
+      companyName: "Example Prospect Diagnostic",
+    };
 
     expect(isMicrofinishPublicDomain(assessment)).toBe(true);
     expect(isPublicDomainAssessment(assessment)).toBe(true);
     expect(isPublicDomainAssessment(deconAssessment)).toBe(true);
     expect(isPublicDomainAssessment(spacedPublicDomain)).toBe(true);
     expect(isPublicDomainAssessment(bharatAssessment)).toBe(false);
+    expect(isPublicDomainAssessment(prospectAssessment)).toBe(true);
     expect(isMicrofinishPublicDomain(deconAssessment)).toBe(false);
   });
 
   it("replaces zero and estimated cockpit metrics with internal-data framing", () => {
-    const result = presentCockpit(assessment, cockpit);
+    const result = presentCockpit(assessment, {
+      ...cockpit,
+      metrics: [
+        {
+          key: "revenue",
+          label: "Revenue signal",
+          value: 5_660_000_000,
+          target: 6_500_000_000,
+          unit: "₹",
+          status: "on_track",
+          note: "High confidence public signal.",
+        },
+        {
+          key: "margin",
+          label: "Margin signal",
+          value: 22,
+          target: 25,
+          unit: "%",
+          status: "on_track",
+          note: "Public margin estimate.",
+        },
+        ...cockpit.metrics,
+      ],
+    });
 
     expect(result.metrics[0]).toMatchObject({
+      label: "Revenue actual",
+      value: 0,
+      target: 0,
+      note: expect.stringContaining("Requires internal validation"),
+    });
+    expect(result.metrics[1]).toMatchObject({
+      label: "Margin actual",
+      value: 0,
+      target: 0,
+    });
+    expect(result.metrics[2]).toMatchObject({
       label: "Working capital visibility",
       note: expect.stringContaining("AR, AP, inventory"),
     });
-    expect(result.metrics[1]).toMatchObject({
+    expect(result.metrics[3]).toMatchObject({
       label: "Revenue per employee / productivity",
       value: 0,
       target: 0,
-      note: expect.stringContaining("Requires confirmed headcount"),
+      note: expect.stringContaining("Requires internal data"),
     });
+    expect(result.topOpportunities[0]?.impactInr).toBe(0);
   });
 
   it("returns ten distinct, diversified recommendations", () => {
@@ -108,19 +151,48 @@ describe("Microfinish public-domain presentation", () => {
     );
   });
 
-  it("uses respectful scenarios and realistic margin improvement", () => {
+  it("uses non-numeric, low-confidence public-domain scenarios", () => {
     const result = presentScenarios(assessment, []);
     const text = JSON.stringify(result);
-    const margin = result.find((scenario) => scenario.key === "margin_plus_10");
     const productivity = result.find(
       (scenario) => scenario.key === "headcount_minus_15",
     );
 
     expect(result).toHaveLength(5);
     expect(text).not.toContain("Reduce headcount by 15%");
-    expect(productivity?.label).toContain("without headcount reduction");
-    expect(margin?.label).toContain("2–3 percentage points");
-    expect(margin?.target).toContain("24–25%");
+    expect(text).not.toMatch(/₹\s*[\d,.]+|\b\d+(?:\.\d+)?%/);
+    expect(productivity?.label).toContain("without assumed workforce action");
+    expect(result.every((scenario) => scenario.confidence === "low")).toBe(
+      true,
+    );
+  });
+
+  it("masks public financial truth and confidence", () => {
+    const layers: TruthLayer[] = [
+      {
+        key: "financial",
+        title: "Financial Truth",
+        description: "Revenue ₹566Cr with high confidence and margin 22%.",
+        findings: [
+          {
+            id: "finding-1",
+            text: "Profit ₹40Cr and order book ₹120Cr.",
+            impact: "high",
+            factIds: [],
+          },
+        ],
+        evidence: [],
+        confidence: "high",
+        gaps: [],
+        contradictions: [],
+      },
+    ];
+    const result = presentTruthLayers(assessment, layers);
+    const text = JSON.stringify(result);
+
+    expect(result[0]?.confidence).toBe("low");
+    expect(text).not.toMatch(/₹566Cr|₹40Cr|₹120Cr|high confidence/i);
+    expect(text).toContain("Requires internal validation");
   });
 
   it("strengthens report framing without changing unrelated assessments", () => {

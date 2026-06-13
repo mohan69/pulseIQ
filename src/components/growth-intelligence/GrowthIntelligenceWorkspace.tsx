@@ -67,6 +67,12 @@ import {
   recommendedDraftType,
 } from "@/lib/growth-intelligence/control-center";
 import { assessResearchRisk } from "@/lib/growth-intelligence/research";
+import {
+  contactVerificationLabel,
+  formatFollowUpDate,
+  normalizeGrowthProductNames,
+  removeRepeatedEvidenceLabel,
+} from "@/lib/growth-intelligence/presentation";
 import type {
   GrowthAccount,
   GrowthAccountInput,
@@ -475,7 +481,11 @@ export function GrowthIntelligenceWorkspace({
   };
 
   if (!selectedAccount) {
-    return <Card className="text-sm text-muted">No demo accounts available.</Card>;
+    return (
+      <Card className="text-sm text-muted">
+        No internal sample accounts available.
+      </Card>
+    );
   }
 
   return (
@@ -506,7 +516,7 @@ export function GrowthIntelligenceWorkspace({
                 Review-first by design
               </div>
               <div className="mt-1 text-xs text-white/70">
-                Demo org · deterministic data · no outbound sending
+                Internal sandbox · illustrative records · no outbound sending
               </div>
               <div className="mt-2 flex items-center gap-1.5 text-xs text-white/80">
                 <BadgeCheck className="h-3.5 w-3.5 text-cyan" />
@@ -849,6 +859,9 @@ export function GrowthIntelligenceWorkspace({
                         <div className="font-medium text-foreground">
                           {contact.name} · {contact.title}
                         </div>
+                        <Badge variant="warning" className="mt-1">
+                          {contactVerificationLabel(contact)}
+                        </Badge>
                         <div className="mt-1 grid gap-1 text-xs text-foreground-secondary">
                           <span>
                             Email:{" "}
@@ -1692,7 +1705,7 @@ export function GrowthIntelligenceWorkspace({
                         </p>
                         <p>
                           <strong>Evidence needed:</strong>{" "}
-                          {finding.evidenceNeeded}
+                          {removeRepeatedEvidenceLabel(finding.evidenceNeeded)}
                         </p>
                         <p>
                           <strong>Likely pillar:</strong>{" "}
@@ -1933,8 +1946,10 @@ export function GrowthIntelligenceWorkspace({
                 <TimelineItem
                   label="Follow-up due"
                   value={
-                    executionPack.tracking.followUpDueAt ??
-                    executionPack.followUp.suggestedFollowUpDate
+                    formatFollowUpDate(
+                      executionPack.tracking.followUpDueAt ??
+                        executionPack.followUp.suggestedFollowUpDate,
+                    )
                   }
                 />
                 <TimelineItem
@@ -2059,7 +2074,7 @@ export function GrowthIntelligenceWorkspace({
                     </div>
                   </div>
                   <div className="max-h-52 overflow-auto whitespace-pre-line rounded-lg border border-border-subtle bg-background-alt p-3 text-xs leading-relaxed text-foreground-secondary">
-                    {item.messagePreview}
+                    {normalizeGrowthProductNames(item.messagePreview)}
                   </div>
                   <div className="flex min-w-48 flex-col gap-2">
                     {(item.status === "Draft" ||
@@ -2178,7 +2193,9 @@ export function GrowthIntelligenceWorkspace({
             <CardContent className="mt-5 space-y-4">
               <IntelligenceItem
                 label="Suggested Follow-up Date"
-                value={followUpPlan.suggestedFollowUpDate}
+                value={formatFollowUpDate(
+                  followUpPlan.suggestedFollowUpDate,
+                )}
               />
               <IntelligenceItem
                 label="Follow-up Reason"
@@ -2189,7 +2206,9 @@ export function GrowthIntelligenceWorkspace({
                 value={followUpPlan.previousTouchSummary}
               />
               <div className="whitespace-pre-line rounded-xl border border-border-subtle bg-background-alt p-4 text-sm leading-relaxed text-foreground-secondary">
-                {followUpPlan.draftFollowUpMessage}
+                {normalizeGrowthProductNames(
+                  followUpPlan.draftFollowUpMessage,
+                )}
               </div>
               <Badge variant="warning">Human approval required</Badge>
             </CardContent>
@@ -2271,7 +2290,9 @@ export function GrowthIntelligenceWorkspace({
                 </CardHeader>
                 <CardContent className="mt-4 flex flex-1 flex-col">
                   <div className="flex-1 whitespace-pre-line rounded-lg border border-border-subtle bg-background-alt p-3 text-sm leading-relaxed text-foreground-secondary">
-                    {selectedAccount.outreachDrafts[key]}
+                    {normalizeGrowthProductNames(
+                      selectedAccount.outreachDrafts[key],
+                    )}
                   </div>
                   {isOutreachDraft &&
                     (status === "Draft" || status === "Needs Review") && (
@@ -2814,7 +2835,7 @@ function IntelligenceItem({ label, value }: { label: string; value: string }) {
         {label}
       </div>
       <p className="mt-2 text-sm leading-relaxed text-foreground-secondary">
-        {value}
+        {normalizeGrowthProductNames(value)}
       </p>
     </div>
   );
@@ -2839,7 +2860,7 @@ function IntelligenceList({
             className="flex items-start gap-2 text-sm leading-relaxed text-foreground-secondary"
           >
             <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" />
-            <span>{value}</span>
+            <span>{normalizeGrowthProductNames(value)}</span>
           </div>
         ))}
       </div>
@@ -2986,7 +3007,7 @@ function ExecutionMessage({ label, value }: { label: string; value: string }) {
         {label}
       </div>
       <div className="mt-2 whitespace-pre-line text-sm leading-relaxed text-foreground-secondary">
-        {value}
+        {normalizeGrowthProductNames(value)}
       </div>
     </div>
   );

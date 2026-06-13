@@ -26,6 +26,7 @@ import {
   presentRecommendations,
   presentReport,
   presentScenarios,
+  presentTruthLayers,
 } from "./presentation";
 
 type DataMode = "memory" | "database";
@@ -151,7 +152,12 @@ export async function addFacts(
 }
 
 export async function getTruthLayers(assessmentId: string) {
-  return (await getRepository()).getTruthLayers(assessmentId);
+  const repository = await getRepository();
+  const [assessment, layers] = await Promise.all([
+    repository.getAssessment(assessmentId),
+    repository.getTruthLayers(assessmentId),
+  ]);
+  return presentTruthLayers(assessment, layers);
 }
 
 export async function setTruthLayers(
