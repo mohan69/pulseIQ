@@ -78,6 +78,31 @@ describe("growth control center", () => {
     expect(brief.pilotSuccessCriteria).toHaveLength(3);
   });
 
+  it("builds a natural and safely framed DECON email hypothesis", () => {
+    const decon: GrowthAccount = {
+      ...demoGrowthAccounts[0],
+      companyName: "DECON Technologies",
+      intelligence: {
+        ...demoGrowthAccounts[0].intelligence,
+        diagnosticEntryAngle:
+          "Offer the RightSense 48-Hour Enterprise Intelligence, Compliance & Standards Diagnostic to validate operating visibility and evidence readiness.",
+      },
+    };
+
+    const body = buildEmailExecutionPack(decon).emailBody;
+
+    expect(body).toContain(
+      "this public-context diagnostic angle may be useful to validate:",
+    );
+    expect(body).toContain("Offer the RightSense");
+    expect(body).not.toContain(
+      "a useful hypothesis to validate is offer the RightSense",
+    );
+    expect(body).toContain(
+      "Any finding would remain a hypothesis until supported by approved evidence.",
+    );
+  });
+
   it("flags missing safeguards and unsupported assurance claims", () => {
     const account = { ...demoGrowthAccounts[0], contactName: "" };
     const flags = getDraftRiskFlags(

@@ -1,4 +1,5 @@
 import { getCompositeFitScore } from "@/lib/growth-intelligence/generator";
+import { formatDiagnosticEmailHypothesis } from "@/lib/growth-intelligence/presentation";
 import type {
   GrowthAccount,
   GrowthApprovalQueueItem,
@@ -192,7 +193,10 @@ export function buildEmailExecutionPack(
 
 RightSense 48-Hour Enterprise Intelligence, Compliance & Standards Diagnostic helps industrial and project-driven teams map likely readiness gaps across operating intelligence, proposals, standards, suppliers, and trusted AI workflows.
 
-For ${account.companyName}, a useful hypothesis to validate is ${account.intelligence.diagnosticEntryAngle.toLowerCase()}
+${formatDiagnosticEmailHypothesis(
+  account.companyName,
+  account.intelligence.diagnosticEntryAngle,
+)}
 
 Would a 20-minute conversation be useful to decide whether the diagnostic is relevant? Any finding would remain a hypothesis until supported by approved evidence.
 

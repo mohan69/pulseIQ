@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   contactVerificationLabel,
+  formatDiagnosticEmailHypothesis,
   formatFollowUpDate,
   GROWTH_INTERNAL_WORKSPACE_NOTICE,
   normalizeGrowthProductNames,
@@ -32,6 +33,17 @@ describe("growth intelligence presentation", () => {
         "Evidence needed: approved workflow and source records.",
       ),
     ).toBe("approved workflow and source records.");
+  });
+
+  it("formats a natural, public-context diagnostic angle for email", () => {
+    expect(
+      formatDiagnosticEmailHypothesis(
+        "DECON Technologies",
+        "Offer the rightsense 48-Hour Diagnostic using pulseiq evidence.",
+      ),
+    ).toBe(
+      "For DECON Technologies, this public-context diagnostic angle may be useful to validate:\n\nOffer the RightSense 48-Hour Diagnostic using PulseIQ evidence.",
+    );
   });
 
   it("uses internal, review-first workspace wording", () => {

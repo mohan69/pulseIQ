@@ -18,6 +18,16 @@ export function normalizeGrowthProductNames(value: string): string {
   );
 }
 
+export function formatDiagnosticEmailHypothesis(
+  companyName: string,
+  diagnosticEntryAngle: string,
+): string {
+  const angle = normalizeGrowthProductNames(diagnosticEntryAngle.trim());
+  return `For ${companyName}, this public-context diagnostic angle may be useful to validate:
+
+${angle}`;
+}
+
 export function removeRepeatedEvidenceLabel(value: string): string {
   return value.replace(/^\s*evidence needed\s*:\s*/i, "").trim();
 }
