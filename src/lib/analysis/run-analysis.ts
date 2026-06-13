@@ -37,13 +37,18 @@ import type {
   Recommendation,
   Scenario,
   Source,
+  TruthLayer,
 } from "@/lib/assessment/types";
 import type { AddFactInput } from "@/lib/assessment/repository";
+import { isPublicDomainAssessment } from "@/lib/assessment/presentation";
 import { buildFacts } from "@/lib/extraction/facts";
+import { getAssessmentReadiness } from "@/lib/readiness";
 import { buildReport } from "@/lib/report/build";
 import { buildTruthLayers } from "@/lib/truth-map/build";
 
 const DEMO_ASSESSMENT_ID = "asm-bharat-heavy-fabrications";
+export const FALLBACK_ANALYSIS_LABEL =
+  "Analysis generated from fallback deterministic engine; requires human review.";
 
 export type AnalysisResult = {
   ok: boolean;
@@ -63,6 +68,19 @@ type SourceCorpus = {
   source: Source;
   text: string;
 };
+
+type AnalysisTelemetry = {
+  fallbackUsed: boolean;
+  fallbackStages: string[];
+};
+
+type AnalysisErrorCode =
+  | "no_parsed_source_text"
+  | "model_call_failed"
+  | "model_output_invalid"
+  | "save_failed"
+  | "timeout"
+  | "unknown_server_error";
 
 export async function runAssessmentAnalysis(
   assessmentId: string,
@@ -134,16 +152,19 @@ export async function runAssessmentAnalysis(
     const existingFacts = await getFacts(assessmentId);
     const corpusResult = await loadAnalyzableCorpus(sources);
     const corpus = corpusResult.rows;
-    analysisLog("analysis_inputs_loaded", {
+    analysisLog("source_loading_completed", {
       assessmentId,
-      sourceCount: sources.length,
-      extractedDocumentCount: corpusResult.documentCount,
-      textCharacterCount: corpusResult.textCharacterCount,
+      registeredSourceCount: sources.length,
+      parsedSourceCount: corpus.length,
+      parsedDocumentCount: corpusResult.documentCount,
+      extractedTextCharacterCount: corpusResult.textCharacterCount,
+      notesOnlySourceCount: corpusResult.notesOnlySourceCount,
       existingFactCount: existingFacts.length,
     });
     if (corpus.length === 0) {
       throw new AnalysisInputError(
-        "No extracted source text is available. Upload and parse at least one source before analysis.",
+        "no_parsed_source_text",
+        "No parsed source text. Upload and parse at least one source before analysis.",
       );
     }
 
@@ -158,16 +179,24 @@ export async function runAssessmentAnalysis(
 
     let currentFacts = [...existingFacts];
     let factsAdded = 0;
+    const telemetry: AnalysisTelemetry = {
+      fallbackUsed: false,
+      fallbackStages: [],
+    };
     const allowFallback =
       options.allowDeterministicFallback ??
       deterministicFallbackAllowed(engine.provider);
+    const publicDomain = isPublicDomainAssessment(assessment);
+    const confirmedFinancials = hasConfirmedFinancialSource(sources);
 
     const extractedBySource = await Promise.all(
       corpus.map(async (item) => {
         const aiDrafts = await withProviderFallback(
           "extract_business_facts",
+          assessmentId,
           engine,
           allowFallback,
+          telemetry,
           () =>
             engine.extractBusinessFacts(
               { ...ctxBase, facts: existingFacts },
@@ -176,15 +205,17 @@ export async function runAssessmentAnalysis(
             ),
           { facts: [] },
         );
-      const deterministicDrafts = deterministicFactsFromText(
-        assessment,
-        item.source,
-        item.text,
-      );
-      const drafts =
-        aiDrafts.facts.length > 0
-          ? buildFacts(item.source, aiDrafts.facts)
-          : deterministicDrafts;
+        const deterministicDrafts = deterministicFactsFromText(
+          assessment,
+          item.source,
+          item.text,
+        );
+        const drafts =
+          publicDomain
+            ? deterministicDrafts
+            : aiDrafts.facts.length > 0
+              ? buildFacts(item.source, aiDrafts.facts)
+              : deterministicDrafts;
         return { item, drafts };
       }),
     );
@@ -192,15 +223,13 @@ export async function runAssessmentAnalysis(
     for (const { item, drafts } of extractedBySource) {
       const fresh = dedupeFactDrafts(drafts, currentFacts, item.source.id);
       if (fresh.length === 0) continue;
-      const created = await saveExtractedFacts(
-        assessmentId,
-        item.source.id,
-        fresh,
+      const created = await saveStage("fact_generation", assessmentId, () =>
+        saveExtractedFacts(assessmentId, item.source.id, fresh),
       );
       factsAdded += created.length;
       currentFacts = [...created, ...currentFacts];
     }
-    analysisLog("facts_extracted", {
+    analysisLog("fact_generation_completed", {
       assessmentId,
       factsAdded,
       totalFactCount: currentFacts.length,
@@ -208,6 +237,7 @@ export async function runAssessmentAnalysis(
     });
 
     const ctx: AIContext = { ...ctxBase, facts: currentFacts };
+    const usePublicDomainEngine = publicDomain && !confirmedFinancials;
     const [
       truthDraft,
       cockpitDraft,
@@ -215,88 +245,142 @@ export async function runAssessmentAnalysis(
       recommendationsDraft,
       planDraft,
       reportSnapshot,
-    ] = await Promise.all([
-      withProviderFallback(
-        "generate_truth_map",
-        engine,
-        allowFallback,
-        () => engine.generateTruthMap(ctx),
-        { layers: [] },
-      ),
-      withProviderFallback(
-        "generate_cockpit",
-        engine,
-        allowFallback,
-        () => engine.generateCockpitMetrics(ctx),
-        { metrics: [], topRisks: [], topOpportunities: [] },
-      ),
-      withProviderFallback(
-        "generate_scenarios",
-        engine,
-        allowFallback,
-        () => engine.generateWhatIfScenarios(ctx),
-        { scenarios: [] },
-      ),
-      withProviderFallback(
-        "generate_recommendations",
-        engine,
-        allowFallback,
-        () => engine.generateRecommendations(ctx),
-        { recommendations: [] },
-      ),
-      withProviderFallback(
-        "generate_plan",
-        engine,
-        allowFallback,
-        () => engine.buildPlan(ctx),
-        { phases: [] },
-      ),
-      withProviderFallback(
-        "generate_report",
-        engine,
-        allowFallback,
-        () => engine.generateReportSnapshot(ctx),
-        {
-          executiveSummary: `Assessment of ${assessment.companyName} is ready for review.`,
-          dataGaps: [],
-          confidence: "medium" as const,
-        },
-      ),
-    ]);
+    ] = usePublicDomainEngine
+      ? [
+          { layers: [] },
+          { metrics: [], topRisks: [], topOpportunities: [] },
+          { scenarios: [] },
+          { recommendations: [] },
+          { phases: [] },
+          {
+            executiveSummary: `${assessment.companyName} public-domain diagnostic requires internal validation.`,
+            dataGaps: publicDomainInternalDataRequests(),
+            confidence: "low" as const,
+          },
+        ]
+      : await Promise.all([
+          withProviderFallback(
+            "truth_map_generation",
+            assessmentId,
+            engine,
+            allowFallback,
+            telemetry,
+            () => engine.generateTruthMap(ctx),
+            { layers: [] },
+          ),
+          withProviderFallback(
+            "cockpit_generation",
+            assessmentId,
+            engine,
+            allowFallback,
+            telemetry,
+            () => engine.generateCockpitMetrics(ctx),
+            { metrics: [], topRisks: [], topOpportunities: [] },
+          ),
+          withProviderFallback(
+            "scenario_generation",
+            assessmentId,
+            engine,
+            allowFallback,
+            telemetry,
+            () => engine.generateWhatIfScenarios(ctx),
+            { scenarios: [] },
+          ),
+          withProviderFallback(
+            "recommendation_generation",
+            assessmentId,
+            engine,
+            allowFallback,
+            telemetry,
+            () => engine.generateRecommendations(ctx),
+            { recommendations: [] },
+          ),
+          withProviderFallback(
+            "plan_generation",
+            assessmentId,
+            engine,
+            allowFallback,
+            telemetry,
+            () => engine.buildPlan(ctx),
+            { phases: [] },
+          ),
+          withProviderFallback(
+            "report_generation",
+            assessmentId,
+            engine,
+            allowFallback,
+            telemetry,
+            () => engine.generateReportSnapshot(ctx),
+            {
+              executiveSummary: `Assessment of ${assessment.companyName} is ready for review.`,
+              dataGaps: [],
+              confidence: "medium" as const,
+            },
+          ),
+        ]);
 
-    const truthLayers =
-      truthDraft.layers.length === 5
+    const truthLayersBase =
+      usePublicDomainEngine
+        ? deterministicPublicDomainTruthLayers(currentFacts, sources)
+        : truthDraft.layers.length === 5
         ? truthDraftsToLayers(truthDraft.layers)
         : buildTruthLayers(currentFacts, sources);
+    const truthLayers = telemetry.fallbackUsed
+      ? truthLayersBase.map((layer) => ({
+          ...layer,
+          description: `${FALLBACK_ANALYSIS_LABEL} ${layer.description}`,
+        }))
+      : truthLayersBase;
 
     const cockpit =
-      cockpitDraft.metrics.length > 0
+      usePublicDomainEngine
+        ? deterministicPublicDomainCockpit()
+        : cockpitDraft.metrics.length > 0
         ? cockDraftToCockpit(cockpitDraft)
         : deterministicCockpit(assessment, currentFacts);
 
     const scenarios =
-      scenariosDraft.scenarios.length === 5
+      usePublicDomainEngine
+        ? deterministicPublicDomainScenarios()
+        : scenariosDraft.scenarios.length === 5
         ? scenarioDraftsToScenarios(scenariosDraft.scenarios)
         : deterministicScenarios(assessment, currentFacts);
 
     const recommendations =
-      recommendationsDraft.recommendations.length > 0
+      usePublicDomainEngine
+        ? deterministicPublicDomainRecommendations()
+        : recommendationsDraft.recommendations.length > 0
         ? recDraftsToRecs(recommendationsDraft.recommendations)
         : deterministicRecommendations(assessment, currentFacts, cockpit);
 
-    const plan =
+    const planBase =
       planDraft.phases.length > 0
         ? planDraftToPhases(planDraft)
         : deterministicPlan(recommendations);
+    const plan = usePublicDomainEngine
+      ? planBase.map((phase) => ({
+          ...phase,
+          description: `Public-domain diagnostic; ${phase.description} All conclusions require internal validation.`,
+        }))
+      : planBase;
 
-    await Promise.all([
-      setTruthLayers(assessmentId, truthLayers),
-      setCockpit(assessmentId, cockpit),
-      setScenarios(assessmentId, scenarios),
-      setRecommendations(assessmentId, recommendations),
-      setPlan(assessmentId, plan),
-    ]);
-    analysisLog("outputs_saved", {
+    logGeneratedOutputs(assessmentId, {
+      truthLayers,
+      cockpit,
+      scenarios,
+      recommendations,
+      plan,
+    });
+    await saveStage("database_save", assessmentId, () =>
+      Promise.all([
+        setTruthLayers(assessmentId, truthLayers),
+        setCockpit(assessmentId, cockpit),
+        setScenarios(assessmentId, scenarios),
+        setRecommendations(assessmentId, recommendations),
+        setPlan(assessmentId, plan),
+      ]),
+    );
+    analysisLog("database_save_completed", {
       assessmentId,
       outputCount: 5,
       outputTypes: [
@@ -320,6 +404,20 @@ export async function runAssessmentAnalysis(
       plan,
     });
     await getReport(assessmentId);
+    analysisLog("report_generation_completed", {
+      assessmentId,
+      confidence: reportSnapshot.confidence,
+      dataGapCount: reportSnapshot.dataGaps.length,
+    });
+    const readiness = getAssessmentReadiness(assessment, sources);
+    analysisLog("readiness_profile_generation_completed", {
+      assessmentId,
+      standardsReadinessScore: readiness.cockpit.standardsReadinessScore,
+      customerQualificationReadiness:
+        readiness.cockpit.customerQualificationReadiness,
+      supplierQualificationHealth:
+        readiness.cockpit.supplierQualificationHealth,
+    });
     await safeAuditEvent({
       action: "report_generated",
       entityType: "assessment",
@@ -350,6 +448,8 @@ export async function runAssessmentAnalysis(
         model: engine.model,
         factsAdded,
         sourcesAnalyzed: corpus.length,
+        fallbackUsed: telemetry.fallbackUsed,
+        fallbackStages: telemetry.fallbackStages,
       },
     });
     analysisLog("analysis_finished", {
@@ -357,6 +457,8 @@ export async function runAssessmentAnalysis(
       finalStatus: "analysis_ready",
       provider: engine.provider,
       model: engine.model,
+      fallbackUsed: telemetry.fallbackUsed,
+      fallbackStages: telemetry.fallbackStages,
     });
     return {
       ok: true,
@@ -364,10 +466,13 @@ export async function runAssessmentAnalysis(
       provider: engine.provider,
       factsAdded,
       sourcesAnalyzed: corpus.length,
-      message: "Analysis ready.",
+      message: telemetry.fallbackUsed
+        ? FALLBACK_ANALYSIS_LABEL
+        : "Analysis ready.",
     };
   } catch (error) {
-    const safeMessage = safeAnalysisError(error);
+    const failure = classifyAnalysisError(error);
+    const safeMessage = failure.message;
     await Promise.allSettled([
       markAssessmentAnalysisFailed(assessmentId),
       setAnalysisState(assessmentId, {
@@ -387,6 +492,7 @@ export async function runAssessmentAnalysis(
         provider: engine.provider,
         model: engine.model,
         error: safeMessage,
+        errorCode: failure.code,
       },
     });
     analysisLog("analysis_failed", {
@@ -395,6 +501,8 @@ export async function runAssessmentAnalysis(
       model: engine.model,
       finalStatus: "analysis_failed",
       error: safeMessage,
+      errorCode: failure.code,
+      detail: errorDetail(error),
     });
     return {
       ok: false,
@@ -411,10 +519,12 @@ async function loadAnalyzableCorpus(sources: Source[]): Promise<{
   rows: SourceCorpus[];
   documentCount: number;
   textCharacterCount: number;
+  notesOnlySourceCount: number;
 }> {
   const rows: SourceCorpus[] = [];
   let documentCount = 0;
   let textCharacterCount = 0;
+  let notesOnlySourceCount = 0;
   for (const source of sources) {
     const documents = await getSourceDocuments(source.id);
     documentCount += documents.length;
@@ -422,47 +532,120 @@ async function loadAnalyzableCorpus(sources: Source[]): Promise<{
       .map((doc) => doc.content)
       .filter((content): content is string => Boolean(content?.trim()))
       .join("\n\n");
-    const notes = source.notes.trim();
-    const canUsePendingNotes =
-      source.extractionStatus === "extraction_pending" && notes.length > 0;
-    const text = [extractedText, canUsePendingNotes ? notes : ""]
-      .filter(Boolean)
-      .join("\n\n")
-      .trim();
+    const text = extractedText.trim();
+    if (!text && source.notes.trim()) notesOnlySourceCount += 1;
     if (!text) continue;
     textCharacterCount += text.length;
     rows.push({ source, text });
   }
-  return { rows, documentCount, textCharacterCount };
+  return {
+    rows,
+    documentCount,
+    textCharacterCount,
+    notesOnlySourceCount,
+  };
 }
 
-class AnalysisInputError extends Error {}
+class AnalysisInputError extends Error {
+  constructor(
+    readonly code: AnalysisErrorCode,
+    message: string,
+  ) {
+    super(message);
+    this.name = "AnalysisInputError";
+  }
+}
+
+class AnalysisSaveError extends Error {
+  constructor(
+    readonly stage: string,
+    cause: unknown,
+  ) {
+    super(`Save failed during ${stage}.`);
+    this.name = "AnalysisSaveError";
+    this.cause = cause;
+  }
+}
 
 function deterministicFallbackAllowed(provider: string): boolean {
   if (provider === "mock") return true;
-  if (process.env.PULSEIQ_ALLOW_AI_FALLBACK === "true") return true;
   if (process.env.PULSEIQ_ALLOW_AI_FALLBACK === "false") return false;
-  return process.env.NODE_ENV !== "production";
+  return true;
 }
 
 async function withProviderFallback<T>(
   stage: string,
+  assessmentId: string,
   engine: AIEngine,
   allowFallback: boolean,
+  telemetry: AnalysisTelemetry,
   run: () => Promise<T>,
   fallback: T,
 ): Promise<T> {
+  const startedAt = Date.now();
+  analysisLog("model_request_started", {
+    assessmentId,
+    provider: engine.provider,
+    model: engine.model,
+    stage,
+  });
   try {
-    return await run();
-  } catch (error) {
-    if (!allowFallback || engine.provider === "mock") throw error;
-    analysisLog("provider_fallback", {
+    const result = await run();
+    analysisLog("model_request_completed", {
+      assessmentId,
       provider: engine.provider,
       model: engine.model,
       stage,
-      error: safeAnalysisError(error),
+      durationMs: Date.now() - startedAt,
+      responseStatus: "success",
+      jsonParseStatus: "success",
+    });
+    return result;
+  } catch (error) {
+    const failure = classifyAnalysisError(error);
+    analysisLog("model_request_failed", {
+      assessmentId,
+      provider: engine.provider,
+      model: engine.model,
+      stage,
+      durationMs: Date.now() - startedAt,
+      responseStatus: "failed",
+      jsonParseStatus:
+        failure.code === "model_output_invalid" ? "failed" : "not_available",
+      errorCode: failure.code,
+      error: failure.message,
+      detail: errorDetail(error),
+    });
+    if (!allowFallback || engine.provider === "mock") throw error;
+    telemetry.fallbackUsed = true;
+    telemetry.fallbackStages.push(stage);
+    analysisLog("provider_fallback", {
+      assessmentId,
+      provider: engine.provider,
+      model: engine.model,
+      stage,
+      errorCode: failure.code,
+      error: failure.message,
     });
     return fallback;
+  }
+}
+
+async function saveStage<T>(
+  stage: string,
+  assessmentId: string,
+  save: () => Promise<T>,
+): Promise<T> {
+  analysisLog("database_save_started", { assessmentId, stage });
+  try {
+    return await save();
+  } catch (error) {
+    analysisLog("database_save_failed", {
+      assessmentId,
+      stage,
+      detail: errorDetail(error),
+    });
+    throw new AnalysisSaveError(stage, error);
   }
 }
 
@@ -483,11 +666,49 @@ async function safeAuditEvent(
   }
 }
 
-function safeAnalysisError(error: unknown): string {
-  if (error instanceof AIProviderError || error instanceof AnalysisInputError) {
-    return error.message;
+function classifyAnalysisError(error: unknown): {
+  code: AnalysisErrorCode;
+  message: string;
+} {
+  if (error instanceof AnalysisInputError) {
+    return { code: error.code, message: error.message };
   }
-  return "Analysis could not be completed. Check server logs and retry.";
+  if (error instanceof AnalysisSaveError) {
+    return { code: "save_failed", message: "Save failed. Retry analysis." };
+  }
+  if (error instanceof AIProviderError) {
+    const value = error.message.toLowerCase();
+    if (value.includes("timed out")) {
+      return { code: "timeout", message: "Timeout. The model request timed out." };
+    }
+    if (
+      value.includes("invalid json") ||
+      value.includes("required schema") ||
+      value.includes("match required schema")
+    ) {
+      return {
+        code: "model_output_invalid",
+        message: "Model output invalid. A deterministic fallback could not be completed.",
+      };
+    }
+    return {
+      code: "model_call_failed",
+      message: "Model call failed. A deterministic fallback could not be completed.",
+    };
+  }
+  return {
+    code: "unknown_server_error",
+    message: "Unknown server error. Check server logs and retry.",
+  };
+}
+
+function errorDetail(error: unknown): string {
+  if (error instanceof Error) {
+    const cause =
+      error.cause instanceof Error ? ` Cause: ${error.cause.message}` : "";
+    return `${error.name}: ${error.message}${cause}`.slice(0, 500);
+  }
+  return "Unknown non-Error exception";
 }
 
 function analysisLog(
@@ -526,6 +747,9 @@ function deterministicFactsFromText(
   source: Source,
   text: string,
 ): AddFactInput[] {
+  if (isPublicDomainAssessment(assessment)) {
+    return deterministicPublicDomainFacts(source, text);
+  }
   const lines = text
     .split(/\r?\n/)
     .map((line) => line.trim())
@@ -566,6 +790,420 @@ function deterministicFactsFromText(
     });
   }
   return facts;
+}
+
+function deterministicPublicDomainFacts(
+  source: Source,
+  text: string,
+): AddFactInput[] {
+  const evidence = (pattern: RegExp, fallback: string) =>
+    text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .find((line) => pattern.test(line))
+      ?.slice(0, 240) ?? fallback;
+  return [
+    {
+      kind: "product",
+      label: "Company and capability context",
+      value:
+        "Public sources provide directional company, product, market, and manufacturing-capability context.",
+      evidence: evidence(
+        /public positioning|public capability|manufactur|product/i,
+        source.notes || source.name,
+      ),
+      confidence: "low",
+    },
+    {
+      kind: "sop_rule",
+      label: "Standards and certification evidence readiness",
+      value:
+        "Public standards or certification signals require indexed certificates, validity dates, scope, and human review.",
+      evidence: evidence(
+        /standards|certification|iso|asme/i,
+        source.notes || source.name,
+      ),
+      confidence: "low",
+    },
+    {
+      kind: "risk",
+      label: "Customer qualification evidence gap",
+      value:
+        "Customer qualification, vendor registration, approvals, and past-performance evidence are not confirmed from public sources.",
+      evidence: evidence(
+        /customer qualification|vendor-qualification|customer/i,
+        source.notes || source.name,
+      ),
+      confidence: "low",
+    },
+    {
+      kind: "supplier",
+      label: "Supplier and manufacturing readiness gap",
+      value:
+        "Supplier qualification, subcontractor controls, capacity, machine loading, bottlenecks, and quality evidence require internal validation.",
+      evidence: evidence(
+        /supplier|subcontractor|capacity|machine|manufacturing/i,
+        source.notes || source.name,
+      ),
+      confidence: "low",
+    },
+    {
+      kind: "risk",
+      label: "No confirmed financial baseline",
+      value:
+        "Revenue actual requires internal validation; margin, working capital, and RPE require internal data.",
+      evidence: evidence(
+        /financial boundary|no reliable audited|internal validation/i,
+        "No confirmed public financial baseline was supplied.",
+      ),
+      confidence: "low",
+    },
+    {
+      kind: "action_item",
+      label: "Internal data request",
+      value: publicDomainInternalDataRequests().join("; "),
+      evidence: evidence(
+        /internal data required/i,
+        "Approved internal evidence is required for a validated diagnostic.",
+      ),
+      confidence: "low",
+    },
+  ];
+}
+
+function hasConfirmedFinancialSource(sources: Source[]): boolean {
+  return sources.some(
+    (source) =>
+      (source.type === "financial_filing" ||
+        source.type === "erp_export") &&
+      source.status === "parsed" &&
+      !`${source.name} ${source.notes}`.toLowerCase().includes("public-domain"),
+  );
+}
+
+function publicDomainInternalDataRequests(): string[] {
+  return [
+    "Approved revenue and margin statements",
+    "Order book, enquiries, RFQ/proposal register, and win/loss data",
+    "AR, AP, inventory, and working-capital summary",
+    "Confirmed headcount and productivity data",
+    "Customer qualification and past-performance evidence",
+    "Current standards certificates with scope and validity dates",
+    "Supplier, subcontractor, capacity, bottleneck, and quality evidence",
+  ];
+}
+
+function deterministicPublicDomainTruthLayers(
+  facts: ExtractedFact[],
+  sources: Source[],
+): TruthLayer[] {
+  const factByLabel = new Map(facts.map((fact) => [fact.label, fact]));
+  const layer = (
+    key: TruthLayer["key"],
+    title: string,
+    description: string,
+    labels: string[],
+    gaps: string[],
+  ): TruthLayer => {
+    const selected = labels
+      .map((label) => factByLabel.get(label))
+      .filter((fact): fact is ExtractedFact => Boolean(fact));
+    return {
+      key,
+      title,
+      description,
+      findings: selected.map((fact, index) => ({
+        id: `fnd-${key}-${index + 1}`,
+        text: `${fact.label} — ${fact.value}`,
+        impact: fact.kind === "risk" ? "high" : "medium",
+        factIds: [fact.id],
+      })),
+      evidence: selected.map((fact) => ({
+        sourceId: fact.sourceId,
+        factId: fact.id,
+        excerpt: fact.evidence,
+      })),
+      confidence: "low",
+      gaps,
+      contradictions: [],
+    };
+  };
+  return [
+    layer(
+      "financial",
+      "Financial Truth",
+      "Public-domain evidence does not provide a confirmed financial baseline. Financial confidence is low.",
+      ["No confirmed financial baseline"],
+      [
+        "Revenue actual requires internal validation.",
+        "Margin actual requires internal data.",
+        "Working capital requires internal data.",
+        "Revenue per employee requires internal data.",
+      ],
+    ),
+    layer(
+      "strategic",
+      "Proposal and Revenue Truth",
+      "Public-domain sources support company context only; customer qualification and commercial performance require approved internal evidence.",
+      ["Company and capability context", "Customer qualification evidence gap"],
+      [
+        "Order book, RFQ/proposal register, win/loss, cycle-time, and customer qualification evidence required.",
+      ],
+    ),
+    layer(
+      "operational",
+      "Operational, Vendor, and Capacity Truth",
+      "Public-domain manufacturing and supplier capability signals are directional and do not establish readiness or approval.",
+      ["Supplier and manufacturing readiness gap"],
+      [
+        "Supplier qualification, subcontractor controls, capacity, bottleneck, and quality evidence required.",
+      ],
+    ),
+    layer(
+      "process",
+      "Compliance and Standards Truth",
+      "Public-domain standards and certification references are evidence-readiness signals only, not certification or compliance determinations.",
+      ["Standards and certification evidence readiness"],
+      [
+        "Index certificate documents, scope, validity dates, statutory evidence, and human review.",
+      ],
+    ),
+    layer(
+      "collaboration",
+      "AI Governance and Accountability Truth",
+      `Public-domain diagnostic uses ${sources.length} registered source${sources.length === 1 ? "" : "s"} and requires source-linked human review before management action.`,
+      ["Internal data request"],
+      [
+        "Record source, model, output review, confidence, and approval history.",
+      ],
+    ),
+  ];
+}
+
+function deterministicPublicDomainCockpit(): Cockpit {
+  const metrics: CockpitMetric[] = [
+    validationMetric(
+      "revenue",
+      "Revenue actual",
+      "Public-domain evidence only. Requires internal validation; no confirmed revenue baseline is available.",
+      "₹",
+    ),
+    validationMetric(
+      "margin",
+      "Margin actual",
+      "Public-domain evidence only. Requires internal data; no confirmed margin baseline is available.",
+      "%",
+    ),
+    validationMetric(
+      "cash",
+      "Working capital",
+      "Public-domain evidence only. Requires internal data for AR, AP, inventory, and backlog.",
+      "₹",
+    ),
+    validationMetric(
+      "rpe",
+      "Revenue per employee",
+      "Public-domain evidence only. RPE requires internal revenue and headcount data.",
+      "₹/employee",
+    ),
+  ];
+  return {
+    metrics,
+    topRisks: [
+      {
+        id: "risk-financial-baseline",
+        title: "No confirmed financial baseline",
+        description:
+          "Public sources do not support revenue, margin, working-capital, or RPE conclusions.",
+        likelihood: "high",
+        impact: "high",
+      },
+      {
+        id: "risk-qualification-evidence",
+        title: "Customer qualification evidence gap",
+        description:
+          "Customer approval, qualification, and past-performance evidence require internal validation.",
+        likelihood: "high",
+        impact: "medium",
+      },
+      {
+        id: "risk-supplier-readiness",
+        title: "Supplier and manufacturing readiness gap",
+        description:
+          "Qualification, capacity, bottleneck, and quality evidence are not confirmed.",
+        likelihood: "medium",
+        impact: "medium",
+      },
+    ],
+    topOpportunities: [
+      {
+        id: "opp-internal-diagnostic",
+        title: "Run a validated internal diagnostic",
+        description:
+          "Replace public assumptions with approved read-only financial, commercial, qualification, supplier, and operating evidence.",
+        impactInr: 0,
+        timeframeDays: 2,
+      },
+    ],
+  };
+}
+
+function validationMetric(
+  key: string,
+  label: string,
+  note: string,
+  unit: CockpitMetric["unit"],
+): CockpitMetric {
+  return {
+    key,
+    label,
+    value: 0,
+    target: 0,
+    unit,
+    status: "at_risk",
+    note,
+  };
+}
+
+function deterministicPublicDomainScenarios(): Scenario[] {
+  const gap = "Requires approved internal data before quantification.";
+  return [
+    publicDomainScenario(
+      "revenue_plus_10",
+      "Revenue growth evidence case",
+      "Validate revenue, order book, pipeline, and customer concentration before setting a growth case.",
+      "No confirmed revenue baseline",
+      "Validated revenue and commercial baseline",
+      ["Revenue, order book, and pipeline reconciliation"],
+      gap,
+    ),
+    publicDomainScenario(
+      "margin_plus_10",
+      "Margin improvement evidence case",
+      "Validate product-family, customer, price, cost, and quality data before setting margin actions.",
+      "No confirmed margin baseline",
+      "Validated margin bridge and action range",
+      ["Product and customer profitability view", "Supplier and rework evidence"],
+      gap,
+    ),
+    publicDomainScenario(
+      "cost_minus_10",
+      "Proposal and operating cycle-time case",
+      "Measure RFQ, quotation, approval, manufacturing, and inspection cycle times before committing to reductions.",
+      "No confirmed cycle-time baseline",
+      "Validated bottleneck and cycle-time improvement plan",
+      ["RFQ/proposal register", "Capacity and bottleneck evidence"],
+      gap,
+    ),
+    publicDomainScenario(
+      "headcount_minus_15",
+      "Productivity improvement without assumed workforce action",
+      "Establish workflow output, capacity, revenue, and headcount baselines before assessing productivity.",
+      "No confirmed RPE baseline",
+      "Validated productivity baseline",
+      ["Confirmed headcount", "Workflow and output measures"],
+      gap,
+    ),
+    publicDomainScenario(
+      "cash_improvement",
+      "Working-capital visibility case",
+      "Build AR, AP, inventory, billing milestone, and backlog visibility before setting cash actions.",
+      "No confirmed working-capital baseline",
+      "Validated working-capital cockpit",
+      ["AR/AP ageing", "Inventory and backlog linkage"],
+      gap,
+    ),
+  ];
+}
+
+function publicDomainScenario(
+  key: Scenario["key"],
+  label: string,
+  description: string,
+  currentBaseline: string,
+  target: string,
+  options: string[],
+  expectedImpact: string,
+): Scenario {
+  return {
+    key,
+    label,
+    description,
+    currentBaseline,
+    target,
+    options,
+    pros: ["Creates an evidence-based management discussion"],
+    shortfalls: ["Public-domain evidence is insufficient for quantified conclusions"],
+    expectedImpact,
+    risks: ["Unsupported assumptions could distort management decisions"],
+    recommendation: "Validate the internal baseline before approving action.",
+    confidence: "low",
+  };
+}
+
+function deterministicPublicDomainRecommendations(): Recommendation[] {
+  const rows = [
+    ["Validate the internal financial baseline", "Finance leadership", 7],
+    ["Build the order book and RFQ/proposal register", "Commercial operations", 14],
+    ["Build the customer qualification evidence pack", "Commercial and quality leadership", 21],
+    ["Index standards certificates and validity evidence", "Quality and compliance leadership", 14],
+    ["Build supplier and subcontractor qualification tracking", "Procurement and quality leadership", 30],
+    ["Map manufacturing capacity, bottlenecks, and quality loss", "Operations leadership", 21],
+    ["Create the working-capital evidence cockpit", "Finance and operations", 14],
+    ["Confirm headcount and workflow productivity baselines", "Operations and people leadership", 21],
+    ["Implement source-linked AI output review", "Technology and risk leadership", 14],
+    ["Run the 48-hour validated diagnostic", "Assessment sponsor", 2],
+  ] as const;
+  return rows.map(([title, ownerRole, timeframeDays], index) => ({
+    id: `rec-public-domain-${index + 1}`,
+    rank: index + 1,
+    title,
+    description:
+      index === 0
+        ? "Replace public assumptions with approved revenue, margin, working-capital, and headcount evidence."
+        : "Collect approved source evidence, assign an accountable owner, and record human review before action.",
+    priority: index < 2 ? "P0" : index < 7 ? "P1" : "P2",
+    businessImpact:
+      "Improves evidence quality and decision readiness; financial impact is not quantified.",
+    effort: index === 9 ? "low" : "medium",
+    timeframeDays,
+    ownerRole,
+    evidence:
+      "Public-domain source set identifies an evidence gap; internal validation is required.",
+    confidence: "low",
+  }));
+}
+
+function logGeneratedOutputs(
+  assessmentId: string,
+  outputs: {
+    truthLayers: TruthLayer[];
+    cockpit: Cockpit;
+    scenarios: Scenario[];
+    recommendations: Recommendation[];
+    plan: ActionPhase[];
+  },
+): void {
+  analysisLog("truth_map_generation_completed", {
+    assessmentId,
+    layerCount: outputs.truthLayers.length,
+  });
+  analysisLog("cockpit_generation_completed", {
+    assessmentId,
+    metricCount: outputs.cockpit.metrics.length,
+  });
+  analysisLog("scenario_generation_completed", {
+    assessmentId,
+    scenarioCount: outputs.scenarios.length,
+  });
+  analysisLog("recommendation_generation_completed", {
+    assessmentId,
+    recommendationCount: outputs.recommendations.length,
+  });
+  analysisLog("plan_generation_completed", {
+    assessmentId,
+    phaseCount: outputs.plan.length,
+  });
 }
 
 function inferFactKind(line: string, source: Source): FactKind | undefined {

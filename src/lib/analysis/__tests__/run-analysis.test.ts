@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { runAssessmentAnalysis } from "@/lib/analysis/run-analysis";
+import { renderToStaticMarkup } from "react-dom/server";
+import {
+  FALLBACK_ANALYSIS_LABEL,
+  runAssessmentAnalysis,
+} from "@/lib/analysis/run-analysis";
+import { BoardReport } from "@/components/report/BoardReport";
 import {
   addSource,
   addSourceDocument,
@@ -11,6 +16,7 @@ import {
   getRecommendations,
   getReport,
   getScenarios,
+  getSources,
   getPlan,
   getTruthLayers,
   updateSource,
@@ -21,6 +27,7 @@ import {
   resetAIEngine,
   type AIEngine,
 } from "@/lib/ai";
+import { getAssessmentReadiness } from "@/lib/readiness";
 
 describe("assessment analysis pipeline", () => {
   afterEach(() => {
@@ -187,12 +194,12 @@ describe("assessment analysis pipeline", () => {
     const state = await getAnalysisState(assessment.id);
 
     expect(result.ok).toBe(false);
-    expect(result.message).toContain("OpenRouter analysis failed");
+    expect(result.message).toContain("Model output invalid");
     expect((await getAssessment(assessment.id))?.status).toBe(
       "analysis_failed",
     );
     expect(state.status).toBe("analysis_failed");
-    expect(state.error).toContain("required schema");
+    expect(state.error).toContain("Model output invalid");
   });
 
   it("fails clearly when no extracted documents are available", async () => {
@@ -212,11 +219,127 @@ describe("assessment analysis pipeline", () => {
     const state = await getAnalysisState(assessment.id);
 
     expect(result.ok).toBe(false);
-    expect(result.message).toContain("No extracted source text");
+    expect(result.message).toContain("No parsed source text");
     expect((await getAssessment(assessment.id))?.status).toBe(
       "analysis_failed",
     );
     expect(state.error).toContain("Upload and parse");
+  });
+
+  it("ignores notes-only sources while analyzing parsed source text", async () => {
+    vi.stubEnv("PULSEIQ_DATA_MODE", "memory");
+    vi.stubEnv("AI_PROVIDER", "mock");
+    const assessment = await createAssessment({
+      companyName: "Notes Source Test",
+      industry: "industrial_manufacturing",
+      objective: "board_review",
+      revenueTarget: 10_000_000,
+      marginTarget: 20,
+      cashTarget: 2_000_000,
+      headcountProductivityTarget: 1_000_000,
+    });
+    await addSource(assessment.id, {
+      name: "Manual context",
+      type: "meeting_summary",
+      notes: "Revenue ₹999 Cr. This note must not become extracted text.",
+      extractionStatus: "not_applicable",
+    });
+    const parsed = await addSource(assessment.id, {
+      name: "Parsed TXT",
+      type: "operations_report",
+      fileName: "parsed.txt",
+      extractionStatus: "extracted",
+    });
+    await updateSource(parsed!.id, { status: "parsed" });
+    await addSourceDocument(parsed!.id, {
+      kind: "text",
+      content: "Risk: customer qualification evidence is incomplete.",
+    });
+
+    const result = await runAssessmentAnalysis(assessment.id);
+    const facts = await getFacts(assessment.id);
+
+    expect(result.ok).toBe(true);
+    expect(result.sourcesAnalyzed).toBe(1);
+    expect(JSON.stringify(facts)).not.toContain("999");
+  });
+
+  it("falls back safely when model JSON is invalid", async () => {
+    vi.stubEnv("PULSEIQ_DATA_MODE", "memory");
+    vi.stubEnv("AI_PROVIDER", "mock");
+    const { assessment, source } = await createParsedAssessment(
+      "Invalid JSON Fallback Test",
+    );
+    const engine = failingExtractionEngine(
+      "output did not match required schema after repair attempt",
+    );
+
+    const result = await runAssessmentAnalysis(assessment.id, { engine });
+
+    expect(result.ok).toBe(true);
+    expect(result.message).toBe(FALLBACK_ANALYSIS_LABEL);
+    expect(await getFacts(assessment.id)).not.toHaveLength(0);
+    expect(source).toBeTruthy();
+  });
+
+  it("falls back safely when OpenRouter cannot be reached", async () => {
+    vi.stubEnv("PULSEIQ_DATA_MODE", "memory");
+    vi.stubEnv("AI_PROVIDER", "mock");
+    const { assessment } = await createParsedAssessment(
+      "OpenRouter Failure Fallback Test",
+    );
+    const engine = failingExtractionEngine("request could not be completed");
+
+    const result = await runAssessmentAnalysis(assessment.id, { engine });
+
+    expect(result.ok).toBe(true);
+    expect(result.message).toBe(FALLBACK_ANALYSIS_LABEL);
+    expect((await getAssessment(assessment.id))?.status).toBe(
+      "analysis_ready",
+    );
+  });
+
+  it("creates a safe DECON-style board report without financial claims", async () => {
+    vi.stubEnv("PULSEIQ_DATA_MODE", "memory");
+    vi.stubEnv("AI_PROVIDER", "mock");
+    const { assessment } = await createParsedAssessment(
+      "DECON Technologies Public-Domain Sample Diagnostic",
+      [
+        "Public positioning: engineered valve components and manufacturing capability.",
+        "Public standards signal: ISO and ASME references require certificate validation.",
+        "Financial boundary: no reliable audited public financial baseline.",
+        "Customer qualification and supplier readiness require internal evidence.",
+      ].join("\n"),
+    );
+
+    const result = await runAssessmentAnalysis(assessment.id, {
+      engine: failingExtractionEngine("request could not be completed"),
+    });
+    const [report, sources] = await Promise.all([
+      getReport(assessment.id),
+      getSources(assessment.id),
+    ]);
+    const markup = renderToStaticMarkup(
+      BoardReport({
+        assessment,
+        report: report!,
+        readiness: getAssessmentReadiness(assessment, sources),
+      }),
+    );
+
+    expect(result.ok).toBe(true);
+    expect(markup).toContain("Public-domain sample / internal validation required");
+    expect(markup).toContain("Revenue actual");
+    expect(markup).toContain("requires internal validation");
+    expect(markup).toContain("Margin actual");
+    expect(markup).toContain("requires internal data");
+    expect(markup).toContain(
+      "customer qualification evidence is not yet indexed",
+    );
+    expect(markup).not.toMatch(/\bDECON\b[\s\S]{0,120}₹\s*\d/i);
+    expect(markup).not.toMatch(
+      /\b(is|are|fully|formally|confirmed)\s+(certified|compliant|approved)\b/i,
+    );
   });
 
   it("produces public-domain framed outputs from five uploaded sources", async () => {
@@ -300,6 +423,46 @@ describe("assessment analysis pipeline", () => {
     expect(report?.recommendations).toHaveLength(10);
   });
 });
+
+async function createParsedAssessment(
+  companyName: string,
+  content = "Risk: delayed customer qualification evidence.",
+) {
+  const assessment = await createAssessment({
+    companyName,
+    industry: "industrial_manufacturing",
+    objective: "board_review",
+    revenueTarget: 10_000_000,
+    marginTarget: 20,
+    cashTarget: 2_000_000,
+    headcountProductivityTarget: 1_000_000,
+  });
+  const source = await addSource(assessment.id, {
+    name: "Public source TXT",
+    type: "operations_report",
+    fileName: "source.txt",
+    extractionStatus: "extracted",
+  });
+  await updateSource(source!.id, { status: "parsed" });
+  await addSourceDocument(source!.id, { kind: "text", content });
+  return { assessment, source };
+}
+
+function failingExtractionEngine(message: string): AIEngine {
+  const baseEngine = createAIEngine();
+  return new Proxy(baseEngine, {
+    get(target, property, receiver) {
+      if (property === "provider") return "openrouter";
+      if (property === "model") return "test/model";
+      if (property === "extractBusinessFacts") {
+        return async () => {
+          throw new AIProviderError("openrouter", message);
+        };
+      }
+      return Reflect.get(target, property, receiver);
+    },
+  }) as AIEngine;
+}
 
 function openRouterSectionResponse(
   _input: string | URL | Request,
