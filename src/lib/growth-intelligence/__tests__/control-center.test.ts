@@ -92,9 +92,8 @@ describe("growth control center", () => {
     const body = buildEmailExecutionPack(decon).emailBody;
 
     expect(body).toContain(
-      "this public-context diagnostic angle may be useful to validate:",
+      "For DECON Technologies, a useful hypothesis to validate is whether a 48-hour diagnostic can identify practical gaps in operating visibility, evidence ownership, and margin/productivity leakage.",
     );
-    expect(body).toContain("Offer the RightSense");
     expect(body).not.toContain(
       "a useful hypothesis to validate is offer the RightSense",
     );

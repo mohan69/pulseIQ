@@ -42,7 +42,15 @@ describe("growth intelligence presentation", () => {
         "Offer the rightsense 48-Hour Diagnostic using pulseiq evidence.",
       ),
     ).toBe(
-      "For DECON Technologies, this public-context diagnostic angle may be useful to validate:\n\nOffer the RightSense 48-Hour Diagnostic using PulseIQ evidence.",
+      "For DECON Technologies, a useful hypothesis to validate is whether a 48-hour diagnostic can identify practical gaps in operating visibility, evidence ownership, and margin/productivity leakage.",
+    );
+    expect(
+      formatDiagnosticEmailHypothesis(
+        "Example Manufacturing",
+        "Offer the rightsense 48-Hour Diagnostic using pulseiq evidence.",
+      ),
+    ).toBe(
+      "For Example Manufacturing, this public-context diagnostic angle may be useful to validate:\n\nOffer the RightSense 48-Hour Diagnostic using PulseIQ evidence.",
     );
   });
 
