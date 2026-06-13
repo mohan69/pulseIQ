@@ -26,6 +26,26 @@ type SeedAccount = GrowthAccountInput & {
 
 const seedInputs: SeedAccount[] = [
   {
+    id: "growth-decon-technologies",
+    companyName: "Decon Technologies",
+    website: "https://decontechnologies.com/",
+    industry: "Oil & Gas / engineered manufacturing / global sourcing",
+    location: "Vadodara, Gujarat",
+    segment: "Industrial OEM",
+    targetProductService: "PulseIQ",
+    targetPersona: "CEO / MD",
+    contactName: "",
+    contactRole: "",
+    linkedInUrl: "",
+    notes:
+      "Manual public-context profile. Engineered manufacturing, oil and gas, global sourcing, proposal pipeline, customer qualification, supplier readiness, ISO 9001:2015 and ISO 45001:2018 public profile signals. No reliable public financials found.",
+    mode: "rightsense",
+    status: "Diagnostic Angle Researched",
+    nextAction: "Offer a 48-hour diagnostic and request internal data under NDA",
+    outcome:
+      "Qualification target with public operating context and no supported financial benchmark",
+  },
+  {
     id: "growth-bharat-heavy-fabrications",
     companyName: "Bharat Heavy Fabrications Pvt Ltd",
     website: "https://example.com/bharat-heavy-fabrications",

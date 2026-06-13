@@ -16,10 +16,11 @@ export function AppContextNotice() {
           <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-success" />
           <p>
             <span className="font-semibold text-foreground">
-              Customer-facing Growth Intelligence workspace.
+              Internal Growth Intelligence sandbox.
             </span>{" "}
-            Records are tenant-scoped demo data. Drafts require human approval,
-            and no outbound messages are sent by PulseIQ.
+            Records are tenant-scoped illustrative samples. Contacts require
+            manual verification, drafts require human approval, and no
+            outbound messages are sent by PulseIQ.
           </p>
         </div>
       </div>
@@ -41,4 +42,3 @@ export function AppContextNotice() {
     </div>
   );
 }
-

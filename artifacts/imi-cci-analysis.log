@@ -1,0 +1,252 @@
+(node:29704) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
+
+To prepare for this change:
+- If you want the current behavior, explicitly use 'sslmode=verify-full'
+- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'
+
+See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[PulseIQ Analysis] analysis_started {
+  assessmentId: 'cmqc6q4wy0000xkttf9nl36mp',
+  provider: 'openrouter',
+  model: 'openrouter/auto'
+}
+[PulseIQ Analysis] source_loading_completed {
+  assessmentId: 'cmqc6q4wy0000xkttf9nl36mp',
+  registeredSourceCount: 6,
+  parsedSourceCount: 1,
+  parsedDocumentCount: 1,
+  extractedTextCharacterCount: 6554,
+  notesOnlySourceCount: 5,
+  existingFactCount: 0
+}
+[PulseIQ Analysis] model_request_started {
+  assessmentId: 'cmqc6q4wy0000xkttf9nl36mp',
+  provider: 'openrouter',
+  model: 'openrouter/auto',
+  stage: 'extract_business_facts'
+}
+[PulseIQ AI] request_started {
+  provider: 'openrouter',
+  model: 'openrouter/auto',
+  section: 'business_facts',
+  schemaName: 'business_facts',
+  timeoutMs: 20000
+}
+[PulseIQ AI] response_received {
+  provider: 'openrouter',
+  model: 'openrouter/auto',
+  section: 'business_facts',
+  schemaName: 'business_facts',
+  status: 200,
+  ok: true,
+  durationMs: 10482
+}
+[PulseIQ AI] json_parse_failed {
+  provider: 'openrouter',
+  model: 'openrouter/auto',
+  section: 'business_facts',
+  schemaName: 'business_facts',
+  attempt: 1,
+  diagnostics: [
+    {
+      path: '$.facts.0.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.1.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.2.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.3.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.4.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.5.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.6.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.7.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.8.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.9.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.10.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.11.numericValue',
+      expected: 'number',
+      received: 'string'
+    }
+  ]
+}
+[PulseIQ AI] schema_validation_failed {
+  provider: 'openrouter',
+  model: 'openrouter/auto',
+  section: 'business_facts',
+  attempt: 1,
+  issues: [
+    {
+      path: '$.facts.0.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.1.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.2.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.3.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.4.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.5.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.6.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.7.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.8.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.9.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.10.numericValue',
+      expected: 'number',
+      received: 'string'
+    },
+    {
+      path: '$.facts.11.numericValue',
+      expected: 'number',
+      received: 'string'
+    }
+  ]
+}
+[PulseIQ AI] request_started {
+  provider: 'openrouter',
+  model: 'openrouter/auto',
+  section: 'business_facts',
+  schemaName: 'business_facts',
+  timeoutMs: 20000
+}
+[PulseIQ AI] response_received {
+  provider: 'openrouter',
+  model: 'openrouter/auto',
+  section: 'business_facts',
+  schemaName: 'business_facts',
+  status: 200,
+  ok: true,
+  durationMs: 9103
+}
+[PulseIQ AI] json_parse_succeeded {
+  provider: 'openrouter',
+  model: 'openrouter/auto',
+  section: 'business_facts',
+  schemaName: 'business_facts',
+  attempt: 2
+}
+[PulseIQ Analysis] model_request_completed {
+  assessmentId: 'cmqc6q4wy0000xkttf9nl36mp',
+  provider: 'openrouter',
+  model: 'openrouter/auto',
+  stage: 'extract_business_facts',
+  durationMs: 19597,
+  responseStatus: 'success',
+  jsonParseStatus: 'success'
+}
+[PulseIQ Analysis] database_save_started { assessmentId: 'cmqc6q4wy0000xkttf9nl36mp', stage: 'fact_generation' }
+[PulseIQ Analysis] fact_generation_completed {
+  assessmentId: 'cmqc6q4wy0000xkttf9nl36mp',
+  factsAdded: 6,
+  totalFactCount: 6,
+  sourcesAnalyzed: 1
+}
+[PulseIQ Analysis] truth_map_generation_completed { assessmentId: 'cmqc6q4wy0000xkttf9nl36mp', layerCount: 5 }
+[PulseIQ Analysis] cockpit_generation_completed { assessmentId: 'cmqc6q4wy0000xkttf9nl36mp', metricCount: 4 }
+[PulseIQ Analysis] scenario_generation_completed { assessmentId: 'cmqc6q4wy0000xkttf9nl36mp', scenarioCount: 5 }
+[PulseIQ Analysis] recommendation_generation_completed { assessmentId: 'cmqc6q4wy0000xkttf9nl36mp', recommendationCount: 10 }
+[PulseIQ Analysis] plan_generation_completed { assessmentId: 'cmqc6q4wy0000xkttf9nl36mp', phaseCount: 4 }
+[PulseIQ Analysis] database_save_started { assessmentId: 'cmqc6q4wy0000xkttf9nl36mp', stage: 'database_save' }
+[PulseIQ Analysis] database_save_completed {
+  assessmentId: 'cmqc6q4wy0000xkttf9nl36mp',
+  outputCount: 5,
+  outputTypes: [ 'truth_layers', 'cockpit', 'scenarios', 'recommendations', 'plan' ]
+}
+[PulseIQ Analysis] report_generation_completed {
+  assessmentId: 'cmqc6q4wy0000xkttf9nl36mp',
+  confidence: 'low',
+  dataGapCount: 7
+}
+[PulseIQ Analysis] readiness_profile_generation_completed {
+  assessmentId: 'cmqc6q4wy0000xkttf9nl36mp',
+  standardsReadinessScore: 0,
+  customerQualificationReadiness: 0,
+  supplierQualificationHealth: 0
+}
+[PulseIQ Analysis] analysis_finished {
+  assessmentId: 'cmqc6q4wy0000xkttf9nl36mp',
+  finalStatus: 'analysis_ready',
+  provider: 'openrouter',
+  model: 'openrouter/auto',
+  fallbackUsed: false,
+  fallbackStages: []
+}
+FINAL_RESULT {"ok":true,"assessmentId":"cmqc6q4wy0000xkttf9nl36mp","provider":"openrouter","factsAdded":6,"sourcesAnalyzed":1,"message":"Analysis ready."}

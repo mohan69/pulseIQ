@@ -63,4 +63,18 @@ describe("analyzeAssessmentAction", () => {
       message: "OpenRouter analysis failed: invalid output.",
     });
   });
+
+  it("returns a specific unknown-server state when analysis cannot start", async () => {
+    runAssessmentAnalysis.mockRejectedValue(new Error("database unavailable"));
+
+    const result = await analyzeAssessmentAction("asm-test", {
+      status: "idle",
+      message: "",
+    });
+
+    expect(result).toEqual({
+      status: "error",
+      message: "Unknown server error. Check server logs and retry.",
+    });
+  });
 });

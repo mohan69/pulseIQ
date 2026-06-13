@@ -1,0 +1,39 @@
+(node:17388) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
+
+To prepare for this change:
+- If you want the current behavior, explicitly use 'sslmode=verify-full'
+- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'
+
+See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[PulseIQ Analysis] analysis_started {
+  assessmentId: 'cmqbz5ier000004kwiihwqs9n',
+  provider: 'openrouter',
+  model: 'openrouter/auto'
+}
+[PulseIQ Analysis] analysis_inputs_loaded {
+  assessmentId: 'cmqbz5ier000004kwiihwqs9n',
+  sourceCount: 4,
+  extractedDocumentCount: 1,
+  textCharacterCount: 3599,
+  existingFactCount: 0
+}
+[PulseIQ Analysis] facts_extracted {
+  assessmentId: 'cmqbz5ier000004kwiihwqs9n',
+  factsAdded: 31,
+  totalFactCount: 31,
+  sourcesAnalyzed: 1
+}
+[PulseIQ Analysis] outputs_saved {
+  assessmentId: 'cmqbz5ier000004kwiihwqs9n',
+  outputCount: 5,
+  outputTypes: [ 'truth_layers', 'cockpit', 'scenarios', 'recommendations', 'plan' ]
+}
+[PulseIQ Analysis] analysis_finished {
+  assessmentId: 'cmqbz5ier000004kwiihwqs9n',
+  finalStatus: 'analysis_ready',
+  provider: 'openrouter',
+  model: 'openrouter/auto'
+}
+FINAL_RESULT {"ok":true,"assessmentId":"cmqbz5ier000004kwiihwqs9n","provider":"openrouter","factsAdded":31,"sourcesAnalyzed":1,"message":"Analysis ready."}

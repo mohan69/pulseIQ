@@ -293,7 +293,7 @@ export function buildDiagnosticSampleOutput(
       whyItMatters:
         "A mapping gap can slow decisions, weaken traceability, or create avoidable execution risk.",
       evidenceNeeded:
-        "Evidence needed: current workflow, approved source documents, system records, ownership, and recent review examples.",
+        "Current workflow, approved source documents, system records, ownership, and recent review examples.",
       likelyDiagnosticPillar: account.intelligence.bestDiagnosticPillar,
       recommendedNextStep:
         "Validate the hypothesis in the 48-hour diagnostic and agree a low-risk 30-day action path.",

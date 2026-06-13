@@ -1,0 +1,1144 @@
+{
+  "facts": [
+    {
+      "id": "cmqc03c8e0003f0ttxeqlc7dt",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "customer",
+      "label": "Industry Served",
+      "value": "Oil & Gas, Power, Chemical and Process Industry customers.",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "Public sources indicate relevance to Oil & Gas, Power, Chemical and Process Industry customers.",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:00.782Z"
+    },
+    {
+      "id": "cmqc03ccm0004f0tto1bidcct",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "product",
+      "label": "Manufactured Products",
+      "value": "Machined castings, machined forgings, machined parts, rubber and moulded parts, drain valves, bellow sealed stop valves, gland sealed stop valves, valve manifolds and fittings.",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "The company website describes manufacturing and supply capability around machined castings, machined forgings, machined parts, rubber and moulded parts, drain valves, bellow sealed stop valves, gland sealed stop valves, valve manifolds and fittings.",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:00.934Z"
+    },
+    {
+      "id": "cmqc03cf80005f0ttf3qgjmvu",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "sop_rule",
+      "label": "Quality Management System Standard",
+      "value": "ISO 9001:2015",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "Public sources indicate ISO 9001:2015, ISO 45001:2018, and ASME-UV certified manufacturing company positioning.",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:01.028Z"
+    },
+    {
+      "id": "cmqc03chs0006f0tt7pe1ue6k",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "sop_rule",
+      "label": "Occupational Health and Safety Standard",
+      "value": "ISO 45001:2018",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "Public sources indicate ISO 9001:2015, ISO 45001:2018, and ASME-UV certified manufacturing company positioning.",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:01.120Z"
+    },
+    {
+      "id": "cmqc03cke0007f0tt359wnfcp",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "sop_rule",
+      "label": "Boiler and Pressure Vessel Code Certification",
+      "value": "ASME-UV",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "Public sources indicate ISO 9001:2015, ISO 45001:2018, and ASME-UV certified manufacturing company positioning.",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:01.214Z"
+    },
+    {
+      "id": "cmqc03cn20008f0ttwiucar4e",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "headcount",
+      "label": "Employee Range",
+      "value": "51-200 employees",
+      "numericValue": null,
+      "unit": "people",
+      "evidence": "LinkedIn public company profile indicates DECON Technologies is in Oil & Gas, located in Vadodara, Gujarat, founded in 2016, and has an employee range signal of 51-200 employees.",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:01.310Z"
+    },
+    {
+      "id": "cmqc03cpp0009f0ttsqzi69c3",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "risk",
+      "label": "Financial Data Availability",
+      "value": "No reliable audited public financial baseline has been confirmed.",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "No reliable audited public financial baseline has been confirmed for DECON Technologies from the reviewed public sources.",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:01.405Z"
+    },
+    {
+      "id": "cmqc03cqy000af0ttxki5w4kh",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "action_item",
+      "label": "Internal Data Requirement - Revenue",
+      "value": "Last 3 years revenue",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "- Last 3 years revenue",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:01.450Z"
+    },
+    {
+      "id": "cmqc03ctj000bf0tt6b438g58",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "action_item",
+      "label": "Internal Data Requirement - Margin",
+      "value": "Gross margin and EBITDA margin",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "- Gross margin and EBITDA margin",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:01.543Z"
+    },
+    {
+      "id": "cmqc03cw5000cf0ttbjzz6ddu",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "action_item",
+      "label": "Internal Data Requirement - Orders",
+      "value": "Order book and open enquiries",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "- Order book and open enquiries",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:01.637Z"
+    },
+    {
+      "id": "cmqc03cyr000df0ttacfikv0j",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "action_item",
+      "label": "Internal Data Requirement - Customers",
+      "value": "Top customers and customer segments",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "- Top customers and customer segments",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:01.731Z"
+    },
+    {
+      "id": "cmqc03d1e000ef0ttflso55tz",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "action_item",
+      "label": "Internal Data Requirement - Product Profitability",
+      "value": "Product-family revenue and margin",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "- Product-family revenue and margin",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:01.826Z"
+    },
+    {
+      "id": "cmqc03d2n000ff0tt7ij69cg0",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "action_item",
+      "label": "Internal Data Requirement - Pipeline",
+      "value": "RFQ/proposal register",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "- RFQ/proposal register",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:01.871Z"
+    },
+    {
+      "id": "cmqc03d63000gf0ttig440crt",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "action_item",
+      "label": "Internal Data Requirement - Pipeline Win/Loss",
+      "value": "Win/loss data",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "- Win/loss data",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:01.995Z"
+    },
+    {
+      "id": "cmqc03dad000hf0ttcrdgb4kj",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "action_item",
+      "label": "Internal Data Requirement - Process Cycle Time",
+      "value": "Quotation cycle time",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "- Quotation cycle time",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:02.149Z"
+    },
+    {
+      "id": "cmqc03den000if0tta80dokcq",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "action_item",
+      "label": "Internal Data Requirement - Customer Qualification",
+      "value": "Customer qualification documents",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "- Customer qualification documents",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:02.303Z"
+    },
+    {
+      "id": "cmqc03dj2000jf0ttpbhh53bz",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "action_item",
+      "label": "Internal Data Requirement - Standards Evidence",
+      "value": "ISO/ASME certificates with validity dates",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "- ISO/ASME certificates with validity dates",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:02.462Z"
+    },
+    {
+      "id": "cmqc03dnc000kf0tteo0goseg",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "action_item",
+      "label": "Internal Data Requirement - Statutory Documents",
+      "value": "Statutory documents",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "- Statutory documents",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:02.616Z"
+    },
+    {
+      "id": "cmqc03drt000lf0tthvkk3xr0",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "action_item",
+      "label": "Internal Data Requirement - Supplier List",
+      "value": "Supplier/subcontractor list",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "- Supplier/subcontractor list",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:02.777Z"
+    },
+    {
+      "id": "cmqc03dwv000mf0ttdeu5ty3s",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "action_item",
+      "label": "Internal Data Requirement - Manufacturing Capacity",
+      "value": "Capacity, machine loading and bottlenecks",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "- Capacity, machine loading and bottlenecks",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:02.959Z"
+    },
+    {
+      "id": "cmqc03e16000nf0ttwy2cv1p2",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "action_item",
+      "label": "Internal Data Requirement - Working Capital",
+      "value": "AR/AP/inventory summary",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "- AR/AP/inventory summary",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:03.114Z"
+    },
+    {
+      "id": "cmqc03e5g000of0ttuivelpyj",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "action_item",
+      "label": "Internal Data Requirement - Quality Data",
+      "value": "Quality rejection/rework data",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "- Quality rejection/rework data",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:03.268Z"
+    },
+    {
+      "id": "cmqc03e6q000pf0tt5f52sxrq",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "risk",
+      "label": "Diagnostic Limitation",
+      "value": "Public-domain sample diagnostic. Not an audit, valuation, credit report, statutory review, certification review, regulatory review, or customer approval assessment.",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "This is a public-domain sample diagnostic. It is not an audit, valuation, credit report, statutory review, certification review, regulatory review, or customer approval assessment.",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:03.314Z"
+    },
+    {
+      "id": "cmqc03ee9000qf0ttcc1wdvuc",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "risk",
+      "label": "Validation Requirement",
+      "value": "All financial and operational conclusions require internal validation.",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "All financial and operational conclusions require internal validation.",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:03.585Z"
+    },
+    {
+      "id": "cmqc03eih000rf0ttx1eux9ve",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "customer",
+      "label": "Public Positioning",
+      "value": "Global Sourcing Partner for supply chain, engineering and marketing.",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "DECON Technologies is publicly positioned as a Global Sourcing Partner for supply chain, engineering and marketing.",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:03.737Z"
+    },
+    {
+      "id": "cmqc03emr000sf0tt44ybhvk2",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "sop_rule",
+      "label": "Standards and Certification Signal Caution",
+      "value": "Do not claim certification validity, statutory approval, regulatory approval, customer approval, or audit completion unless certificate documents, validity dates, and source evidence are directly indexed and human reviewed.",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "Do not claim certification validity, statutory approval, regulatory approval, customer approval, or audit completion unless certificate documents, validity dates, and source evidence are directly indexed and human reviewed.",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:03.891Z"
+    },
+    {
+      "id": "cmqc03er1000tf0ttsktwjkda",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "headcount",
+      "label": "Founding Year",
+      "value": "Founded in 2016",
+      "numericValue": 2016,
+      "unit": "year",
+      "evidence": "LinkedIn public company profile indicates DECON Technologies is in Oil & Gas, located in Vadodara, Gujarat, founded in 2016, and has an employee range signal of 51-200 employees.",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:04.045Z"
+    },
+    {
+      "id": "cmqc03evg000uf0ttbo231afe",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "sop_rule",
+      "label": "Public Profile Signal Caution",
+      "value": "This is a directional public profile signal only.",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "This is a directional public profile signal only.",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:04.204Z"
+    },
+    {
+      "id": "cmqc03ewq000vf0tteix4spe1",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "risk",
+      "label": "Financial Baseline Confirmation",
+      "value": "No reliable audited public financial baseline has been confirmed from the reviewed public sources. Revenue, margin, EBITDA, order book, working capital, product-family profitability, customer profitability, and proposal pipeline require internal validation.",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "No reliable audited public financial baseline has been confirmed for DECON Technologies from the reviewed public sources. Revenue, margin, EBITDA, order book, working capital, product-family profitability, customer profitability, and proposal pipeline require internal validation.",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:04.250Z"
+    },
+    {
+      "id": "cmqc03ezc000wf0tto5q326ca",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "target",
+      "label": "Assessment Objective",
+      "value": "Create a public-domain sample diagnostic identifying DECON Technologies’ growth-readiness, customer-qualification readiness, standards evidence readiness, supplier/manufacturing readiness, proposal/RFQ visibility gaps, and internal data required for a 48-hour validated PulseIQ diagnostic.",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "Create a public-domain sample diagnostic identifying DECON Technologies’ growth-readiness, customer-qualification readiness, standards evidence readiness, supplier/manufacturing readiness, proposal/RFQ visibility gaps, and internal data required for a 48-hour validated PulseIQ diagnostic.",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:04.344Z"
+    },
+    {
+      "id": "cmqc03f1z000xf0ttm75o6u91",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "sourceId": "cmqbzmhwj000004jr757ympv9",
+      "kind": "sop_rule",
+      "label": "Public-Domain Source Notes",
+      "value": "Use for company context, capability signals, standards-readiness signals, and internal-data requirements. Do not treat as audited financial evidence.",
+      "numericValue": null,
+      "unit": null,
+      "evidence": "Use for company context, capability signals, standards-readiness signals, and internal-data requirements. Do not treat as audited financial evidence.",
+      "confidence": "high",
+      "evidenceRef": null,
+      "capturedAt": "2026-06-13T06:55:04.439Z"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "cmqbz5iyb000204kwg0gga05s",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "type": "cockpit",
+      "provider": "internal",
+      "model": null,
+      "promptVersion": null,
+      "data": {
+        "metrics": [
+          {
+            "key": "revenue",
+            "note": "No reliable audited public financial baseline has been confirmed from the reviewed public sources. Revenue requires internal validation. Public-domain assumption: The company was founded in 2016 and operates within the Oil & Gas, Power, Chemical and Process Industries, with an employee range of 51-200.",
+            "unit": "₹",
+            "label": "Revenue",
+            "value": 0,
+            "status": "off_track",
+            "target": 0
+          },
+          {
+            "key": "margin",
+            "note": "No reliable audited public financial baseline has been confirmed. Gross margin and EBITDA margin require internal validation. Public-domain assumptions: DECON Technologies may generate revenue from Oil & Gas, Power, Chemical and Process Industry customers by supplying machined castings, machined forgings, machined parts, rubber and moulded parts, drain valves, bellow sealed stop valves, gland sealed stop valves, valve manifolds and fittings. The company is ISO 9001:2015, ISO 45001:2018, and ASME-UV certified.",
+            "unit": "%",
+            "label": "Margin",
+            "value": 0,
+            "status": "off_track",
+            "target": 0
+          },
+          {
+            "key": "cash",
+            "note": "No reliable audited public financial data available. Therefore, the cash cockpit metric cannot be calculated. Public-domain assumptions were used for all other metrics. Internal data for revenue, margin, EBITDA, order book, AR/AP, and inventory are required for validation.",
+            "unit": "₹",
+            "label": "Cash Cockpit",
+            "value": 0,
+            "status": "off_track",
+            "target": 0
+          },
+          {
+            "key": "productivity",
+            "note": "Financial data for DECON Technologies is not publicly available and requires internal validation. Public-domain sources indicate ISO 9001:2015, ISO 45001:2018, and ASME-UV certifications, serving Oil & Gas, Power, and Chemical industries. The company manufactures machined castings, forgings, parts, rubber/molded parts, and various valves. Employee range is 51-200, founded in 2016. Public positioning: Global Sourcing Partner. Assumption: Productivity metrics are currently unavailable due to lack of financial data. Status is 'off_track' due to this data gap.",
+            "unit": "count",
+            "label": "Productivity",
+            "value": 0,
+            "status": "off_track",
+            "target": 0
+          }
+        ],
+        "topRisks": [],
+        "topOpportunities": []
+      },
+      "createdAt": "2026-06-13T06:28:43.187Z"
+    },
+    {
+      "id": "cmqbz5k02000504kwq7z0zd8w",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "type": "plan",
+      "provider": "internal",
+      "model": null,
+      "promptVersion": null,
+      "data": [
+        {
+          "phase": "01",
+          "title": "DECON Technologies - PulseIQ Diagnostic Plan - Phase 1",
+          "description": "Initiate the PulseIQ diagnostic by gathering foundational company information from public sources, defining the scope for internal data collection, and identifying initial readiness indicators. This phase focuses on accumulating evidence to support a board-level review of growth-readiness, customer-qualification, standards compliance, and supplier management.",
+          "windowLabel": "Board Review Readiness",
+          "deliverables": [
+            "Document DECON Technologies' industry served (Oil & Gas, Power, Chemical and Process) and its public positioning as a Global Sourcing Partner, evidence: High confidence from public sources.",
+            "Document DECON Technologies' manufactured products (Machined castings, forgings, parts, rubber and moulded parts, valves, manifolds, fittings), evidence: High confidence from company website.",
+            "Document DECON Technologies' certifications (ISO 9001:2015, ISO 45001:2018, ASME-UV), evidence: High confidence from public sources. Add a note that certificate validity requires internal validation.",
+            "List identified internal data requirements for PulseIQ diagnostic: Last 3 years revenue, Gross & EBITDA margin, Order book & open enquiries, Top customers & segments, Product-family revenue & margin, RFQ/proposal register, Win/loss data, Quotation cycle time, Customer qualification documents, ISO/ASME certificates with validity dates, Statutory documents, Supplier/subcontractor list, Manufacturing capacity (machine loading, bottlenecks), AR/AP/inventory summary, Quality rejection/rework data, evidence: High confidence from identified action items.",
+            "State DECON Technologies' employee range (51-200 people) and founding year (2016), evidence: High confidence from LinkedIn public profile.",
+            "Explicitly state the diagnostic limitation: This is a public-domain sample diagnostic and not an audit, valuation, credit report, regulatory review, or customer approval assessment. All conclusions require internal validation.",
+            "Identify the primary objective: Create a public-domain sample diagnostic to assess DECON Technologies' readiness in growth, customer qualification, standards evidence, supplier/manufacturing, and proposal/RFQ visibility, and identify internal data needs for a 48-hour validated PulseIQ diagnostic, evidence: High confidence.",
+            "Summarize initial findings on growth-readiness, customer-qualification, standards evidence, supplier/manufacturing readiness, and proposal/RFQ visibility based on public domain signals and explicitly state areas requiring internal data for validation."
+          ]
+        },
+        {
+          "phase": "02",
+          "title": "Internal Data Acquisition & Contextualization",
+          "description": "Consolidate and contextualize required internal data from DECON Technologies to enable a 48-hour PulseIQ diagnostic. This phase focuses on gathering specific operational and financial data to address identified gaps and validate initial public-domain signals.",
+          "windowLabel": "Stage 2: Internal Data Acquisition & Contextualization",
+          "deliverables": [
+            "Gather and organize provided internal financial data: Last 3 years revenue, Gross margin and EBITDA margin, Order book and open enquiries, Product-family revenue and margin, AR/AP/inventory summary.",
+            "Compile internal operational data: Top customers and customer segments, RFQ/proposal register, Win/loss data, Quotation cycle time, Manufacturing capacity, machine loading and bottlenecks, Quality rejection/rework data.",
+            "Collect internal governance and compliance documents: ISO/ASME certificates with validity dates, Customer qualification documents, Statutory documents, Supplier/subcontractor list.",
+            "Document contextual information for public-domain signals: Verify and document the scope and limitations of public-domain signals related to Industry Served (Oil & Gas, Power, Chemical and Process Industry), Manufactured Products (Machined castings, etc.), and Public Positioning (Global Sourcing Partner).",
+            "Initial validation of internal data against public-domain signals: Compare gathered internal data with initial public-domain assessments to identify any significant discrepancies or confirmations."
+          ]
+        },
+        {
+          "phase": "03",
+          "title": "Internal Data Validation",
+          "description": "Focuses on validating internal data required for a comprehensive PulseIQ diagnostic. This phase involves collecting and reviewing specific financial and operational data points to confirm the company's growth readiness, customer qualification, supplier management, and manufacturing capabilities.",
+          "windowLabel": "3/4",
+          "deliverables": [
+            "Internal data validation report for Revenue, Margin, and EBITDA.",
+            "Internal data validation report for Order book and open enquiries.",
+            "Internal data validation report for Product-family revenue and margin.",
+            "Internal data validation report for RFQ/proposal register and win/loss data.",
+            "Internal data validation report for AR/AP/inventory summary.",
+            "Internal data validation report for Quality rejection/rework data.",
+            "Internal data validation report for Capacity, machine loading, and bottlenecks.",
+            "Internal data validation report for Customer segments and qualification documents.",
+            "Internal data validation report for Supplier/subcontractor list.",
+            "Internal data validation report for Quotation cycle time.",
+            "Internal data validation report for ISO/ASME certificates with validity dates.",
+            "Internal data validation report for Statutory documents."
+          ]
+        },
+        {
+          "phase": "04",
+          "title": "DECON Technologies Board Review & Validation",
+          "description": "This phase involves the presentation of the diagnostic findings to the DECON Technologies board or management team. The objective is to validate the findings, discuss the identified gaps in readiness (growth, qualification, standards, supplier, manufacturing, pipeline visibility), and agree on a prioritized action plan for remediation. This phase also serves to confirm the internal data requirements needed for a fully validated PulseIQ diagnostic.",
+          "windowLabel": "Board Review & Validation",
+          "deliverables": [
+            "Board presentation outlining PulseIQ diagnostic findings, highlighting readiness gaps and recommended actions. (Evidence: `id: cmqc03ezc000wf0tto5q326ca`)",
+            "Validated list of internal data requirements for a full PulseIQ diagnostic. (Evidence: `id: cmqc03cqy0009f0ttsqzi69c3`, `id: cmqc03ctj000bf0tt6b438g58`, `id: cmqc03cw5000cf0ttbjzz6ddu`, `id: cmqc03cyr000df0ttacfikv0j`, `id: cmqc03d1e000ef0ttflso55tz`, `id: cmqc03d2n000ff0tt7ij69cg0`, `id: cmqc03d63000gf0ttig440crt`, `id: cmqc03dad000hf0ttcrdgb4kj`, `id: cmqc03den000if0tta80dokcq`, `id: cmqc03dj2000jf0ttpbhh53bz`, `id: cmqc03dnc000kf0tteo0goseg`, `id: cmqc03drt000lf0tthvkk3xr0`, `id: cmqc03dwv000mf0ttdeu5ty3s`, `id: cmqc03e16000nf0ttwy2cv1p2`, `id: cmqc03e5g000of0ttuivelpyj`)",
+            "Agreed-upon, prioritized remediation plan for identified readiness gaps. (Assumption: Based on board review and validation of findings.)",
+            "Confirmation of DECON Technologies' readiness for a validated PulseIQ assessment based on data availability and board alignment. (Assumption: Dependent on successful validation and data provision.)"
+          ]
+        }
+      ],
+      "createdAt": "2026-06-13T06:28:44.546Z"
+    },
+    {
+      "id": "cmqbz5jne000404kwj7qe9l5t",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "type": "recommendations",
+      "provider": "internal",
+      "model": null,
+      "promptVersion": null,
+      "data": [
+        {
+          "id": "rec-1",
+          "rank": 1,
+          "title": "Obtain Audited Financial Statements",
+          "effort": "high",
+          "evidence": "No reliable audited public financial baseline has been confirmed. Revenue, margin, EBITDA, order book, working capital, product-family profitability, customer profitability, and proposal pipeline require internal validation. (cmqc03ewq000vf0tteix4spe1)",
+          "priority": "P0",
+          "ownerRole": "Finance Department",
+          "confidence": "high",
+          "description": "Acquire audited financial statements for the last three fiscal years to establish a reliable financial baseline.",
+          "timeframeDays": 90,
+          "businessImpact": "Enables accurate financial health assessment, identification of growth trends, and validation of operational performance."
+        },
+        {
+          "id": "rec-2",
+          "rank": 2,
+          "title": "Validate Financial and Operational Data",
+          "effort": "high",
+          "evidence": "cmqc03ewq000mf0ttdeu5ty3s: No reliable audited public financial baseline has been confirmed from the reviewed public sources. Revenue, margin, EBITDA, order book, working capital, product-family profitability, customer profitability, and proposal pipeline require internal validation. cmqc03cqy000af0ttxki5w4kh: Last 3 years revenue. cmqc03ctj000bf0tt6b438g58: Gross margin and EBITDA margin. cmqc03cw5000cf0ttbjzz6ddu: Order book and open enquiries. cmqc03cyr000df0ttacfikv0j: Top customers and customer segments. cmqc03d1e000ef0ttflso55tz: Product-family revenue and margin. cmqc03d2n000ff0tt7ij69cg0: RFQ/proposal register. cmqc03d63000gf0ttig440crt: Win/loss data. cmqc03dad000hf0ttcrdgb4kj: Quotation cycle time. cmqc03e16000nf0ttwy2cv1p2: AR/AP/inventory summary.",
+          "priority": "P1",
+          "ownerRole": "Finance Director / Operations Manager",
+          "confidence": "high",
+          "description": "Collect and validate internal financial and operational data, including revenue, margins, order book, working capital, product profitability, and pipeline information. This is crucial for a comprehensive understanding of the company's performance and growth potential.",
+          "timeframeDays": 90,
+          "businessImpact": "Enables accurate forecasting, strategic planning, and identification of growth opportunities. Without this, financial and operational conclusions remain unvalidated."
+        },
+        {
+          "id": "rec-3",
+          "rank": 3,
+          "title": "Obtain Certified Evidence for Standards Compliance",
+          "effort": "low",
+          "evidence": "Public sources indicate ISO 9001:2015, ISO 45001:2018, and ASME-UV certified manufacturing company positioning. Evidence: cmqc03cf80005f0ttf3qgjmvu, cmqc03chs0006f0tt7pe1ue6k, cmqc03cke0007f0tt359wnfcp. Internal Data Requirement - Standards Evidence: ISO/ASME certificates with validity dates. Evidence: cmqc03dj2000jf0ttpbhh53bz.",
+          "priority": "P1",
+          "ownerRole": "Quality Manager",
+          "confidence": "high",
+          "description": "Acquire copies of ISO 9001:2015, ISO 45001:2018, and ASME-UV certificates with clear validity dates. This is crucial for demonstrating adherence to quality and safety standards to potential clients and for internal compliance.",
+          "timeframeDays": 90,
+          "businessImpact": "Enhances credibility and market access by providing verifiable proof of quality and safety standards, which are often prerequisites for engaging with larger clients in the Oil & Gas and Process Industries."
+        },
+        {
+          "id": "rec-4",
+          "rank": 4,
+          "title": "Obtain Audited Financial Statements",
+          "effort": "high",
+          "evidence": "Facts: No reliable audited public financial baseline has been confirmed. Revenue, margin, EBITDA, order book, working capital, product-family profitability, customer profitability, and proposal pipeline require internal validation. (id: cmqc03ewq000vf0tteix4spe1)",
+          "priority": "P1",
+          "ownerRole": "Finance Director",
+          "confidence": "high",
+          "description": "To enable accurate financial analysis and forecasting, secure audited financial statements for the last three fiscal years, including profit and loss, balance sheets, and cash flow statements.",
+          "timeframeDays": 90,
+          "businessImpact": "Crucial for assessing financial health, investment potential, and strategic planning."
+        },
+        {
+          "id": "rec-5",
+          "rank": 5,
+          "title": "Establish Robust Financial Reporting Processes",
+          "effort": "high",
+          "evidence": "cmqc03cpp0009f0ttsqzi69c3, cmqc03cqy000af0ttxki5w4kh, cmqc03ctj000bf0tt6b438g58, cmqc03cw5000cf0ttbjzz6ddu, cmqc03e16000nf0ttwy2cv1p2, cmqc03ewq000vf0tteix4spe1",
+          "priority": "P1",
+          "ownerRole": "CFO/Finance Director",
+          "confidence": "high",
+          "description": "DECON Technologies lacks reliable audited financial data. Establish internal processes for collecting and reporting revenue, gross margin, EBITDA margin, order book, and working capital (AR/AP/Inventory) for the last three years to enable accurate financial assessment and forecasting.",
+          "timeframeDays": 90,
+          "businessImpact": "Enables accurate financial assessment, investment decisions, and creditworthiness evaluation, directly impacting growth and stability."
+        }
+      ],
+      "createdAt": "2026-06-13T06:28:44.090Z"
+    },
+    {
+      "id": "cmqbz5jat000304kwsbiprkbk",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "type": "scenarios",
+      "provider": "internal",
+      "model": null,
+      "promptVersion": null,
+      "data": [
+        {
+          "key": "revenue_plus_10",
+          "pros": [
+            "Potential for significant top-line growth.",
+            "Increased market presence and brand visibility.",
+            "Improved ability to service existing debt and fund future investments."
+          ],
+          "label": "Revenue Upside (+10%)",
+          "risks": [
+            "Inability to achieve 10% revenue growth due to market saturation or competitive pressures.",
+            "Increased costs associated with sales and marketing efforts not being offset by revenue gains.",
+            "Operational challenges in scaling to meet increased demand.",
+            "Assumption: Public domain data provides insufficient detail for accurate financial forecasting."
+          ],
+          "target": "Achieve a 10% increase in revenue over the current, internally validated baseline.",
+          "options": [
+            "Investigate sales pipeline and quote data for revenue expansion opportunities.",
+            "Analyze customer segmentation for potential revenue growth within key accounts.",
+            "Evaluate product mix for opportunities to drive higher-value sales.",
+            "Explore new market segments or geographic expansions."
+          ],
+          "confidence": "low",
+          "shortfalls": [
+            "Lack of validated baseline revenue data.",
+            "Potential for increased operational costs and resource strain if not managed.",
+            "Dependency on market conditions and competitive landscape."
+          ],
+          "description": "Model the impact of a 10% increase in revenue.",
+          "expectedImpact": "A 10% revenue increase, if achieved, would significantly improve financial performance and potentially unlock new growth opportunities. However, this is contingent on internal data validation.",
+          "recommendation": "Prioritize internal data collection and validation for revenue, order book, and customer data to establish a reliable baseline before proceeding with revenue growth initiatives.",
+          "currentBaseline": "No reliable audited public financial baseline has been confirmed. Revenue requires internal validation."
+        },
+        {
+          "key": "margin_plus_10",
+          "pros": [
+            "Increased profitability.",
+            "Improved financial health and investment capacity.",
+            "Potential for higher valuation.",
+            "Enhanced ability to attract investment and talent."
+          ],
+          "label": "Increase Margin by 10%",
+          "risks": [
+            "Inability to achieve the targeted margin increase due to market conditions or operational constraints.",
+            "Strategies implemented may not yield the expected financial results.",
+            "Increased costs associated with implementing new strategies.",
+            "Risk of alienating customers with aggressive pricing changes."
+          ],
+          "target": "Achieve a 10% increase in gross and EBITDA margins.",
+          "options": [
+            "Focus on higher-margin product lines.",
+            "Improve operational efficiency to reduce cost of goods sold.",
+            "Optimize pricing strategies.",
+            "Renegotiate supplier contracts for better raw material costs."
+          ],
+          "confidence": "low",
+          "shortfalls": [
+            "Lack of confirmed financial baseline.",
+            "Reliance on public-domain data for initial assessment.",
+            "Assumptions regarding margin improvement potential.",
+            "Need for internal data collection and validation."
+          ],
+          "description": "This scenario models the impact of improving gross and EBITDA margins by 10% for DECON Technologies.",
+          "expectedImpact": "A 10% increase in margins, assuming successful implementation of strategies, would significantly boost profitability and financial performance. However, the actual impact is unquantifiable without validated financial data.",
+          "recommendation": "Prioritize the collection of internal financial data, specifically gross margin and EBITDA margin for the last three years, to establish a reliable baseline. Concurrently, explore strategies focused on product mix optimization and operational efficiencies. Validate all assumptions with internal data before committing to significant strategic shifts.",
+          "currentBaseline": "No reliable audited public financial baseline has been confirmed. Margin data requires internal validation."
+        },
+        {
+          "key": "cost_minus_10",
+          "pros": [
+            "Potential for improved profitability.",
+            "Increased financial resilience.",
+            "Enhanced competitive positioning."
+          ],
+          "label": "10% Cost Reduction",
+          "risks": [
+            "Risk of reducing costs in areas critical to quality or customer satisfaction.",
+            "Difficulty in accurately measuring and validating cost reductions without proper internal financial controls.",
+            "Potential for staff resistance to change."
+          ],
+          "target": "Achieve a 10% reduction in operational costs.",
+          "options": [
+            "Implement lean manufacturing principles.",
+            "Optimize supply chain and procurement.",
+            "Streamline administrative processes.",
+            "Invest in energy-efficient technologies."
+          ],
+          "confidence": "low",
+          "shortfalls": [
+            "Lack of verified baseline financial data.",
+            "Potential impact on quality or delivery if not managed carefully.",
+            "Requires significant internal effort and data validation."
+          ],
+          "description": "A scenario to reduce operational costs by 10%.",
+          "expectedImpact": "Reduced operating expenses, potentially leading to increased profit margins, assuming cost savings are realized without compromising essential operations or product quality.",
+          "recommendation": "Initiate internal data collection for a detailed cost structure analysis. Identify key cost drivers and potential areas for reduction. Implement targeted cost-saving initiatives with clear KPIs and monitor progress rigorously. Validate all assumptions with internal data.",
+          "currentBaseline": "No reliable audited public financial baseline has been confirmed. Operational cost baseline requires internal validation."
+        },
+        {
+          "key": "headcount_minus_15",
+          "pros": [
+            "Potential for short-term cost savings in salaries and benefits.",
+            "Opportunity to streamline operations and improve efficiency through leaner staffing."
+          ],
+          "label": "Headcount Reduction by 15%",
+          "risks": [
+            "Decreased capacity to meet existing customer demands or secure new business.",
+            "Reduced ability to innovate or develop new products/services.",
+            "Potential negative impact on company culture and employee retention.",
+            "Assumptions about current headcount are based on public signals and lack granular detail."
+          ],
+          "target": "Reduce employee count by 15% from the current range (51-200 employees).",
+          "options": [
+            "Implement a voluntary redundancy program.",
+            "Conduct performance-based reviews to identify potential role eliminations.",
+            "Re-evaluate project staffing and reallocate resources to reduce the need for headcount.",
+            "Freeze hiring for non-critical positions."
+          ],
+          "confidence": "low",
+          "shortfalls": [
+            "Risk of losing critical skills and institutional knowledge.",
+            "Potential decrease in employee morale and productivity due to increased workload or uncertainty.",
+            "May impact the company's ability to scale or take on new projects.",
+            "Publicly available data on exact headcount is not available, making this an estimate."
+          ],
+          "description": "Assesses the potential impact of reducing employee headcount by 15% from the current estimated range.",
+          "expectedImpact": "A 15% reduction in headcount could lead to immediate cost savings but may also impact operational capacity and employee morale. The precise impact is difficult to quantify without internal data on employee roles, productivity, and project criticality.",
+          "recommendation": "Investigate internal data on employee allocation, roles, and project criticality. Conduct a thorough analysis of the impact of a 15% headcount reduction on operational capacity, project delivery, and employee morale before implementing any changes. Focus on retaining key talent and ensuring critical functions remain adequately staffed.",
+          "currentBaseline": "Based on public sources, DECON Technologies has an estimated employee range of 51-200 people. A 15% reduction would imply a decrease of approximately 8-30 employees."
+        },
+        {
+          "key": "cash_improvement",
+          "pros": [
+            "Improved liquidity and working capital availability.",
+            "Reduced need for short-term financing.",
+            "Enhanced operational efficiency through better inventory management.",
+            "Strengthened supplier relationships through strategic payment terms."
+          ],
+          "label": "Improve Cash Conversion Cycle",
+          "risks": [
+            "Inaccurate internal data leading to flawed optimization strategies.",
+            "Negative impact on supplier relations and supply chain reliability.",
+            "Operational disruptions due to aggressive inventory reduction.",
+            "Assumption that current processes are suboptimal without direct financial evidence."
+          ],
+          "target": "Reduce the cash conversion cycle by an estimated 10-15% through improved management of accounts receivable, inventory, and accounts payable.",
+          "options": [
+            "Accelerate accounts receivable collection.",
+            "Optimize inventory levels to reduce holding costs.",
+            "Negotiate extended payment terms with suppliers.",
+            "Implement just-in-time (JIT) inventory practices."
+          ],
+          "confidence": "low",
+          "shortfalls": [
+            "Lack of verified baseline financial data (AR, AP, Inventory).",
+            "Potential disruption to supplier relationships if payment terms are aggressively extended.",
+            "Risk of stock-outs if inventory optimization is too aggressive without robust demand forecasting.",
+            "Requires significant internal data collection and process changes."
+          ],
+          "description": "Focus on optimizing the cash conversion cycle by accelerating receivables, managing inventory efficiently, and extending payables where appropriate.",
+          "expectedImpact": "A shorter cash conversion cycle is expected to free up working capital, reduce financing costs, and improve overall financial flexibility. This can support increased investment in growth opportunities or debt reduction.",
+          "recommendation": "Initiate internal data collection for AR, AP, and inventory (as per action items cmqc03e16000nf0ttwy2cv1p2). Analyze collected data to establish a baseline and identify specific areas for improvement in the cash conversion cycle. Prioritize actions based on potential impact and feasibility, focusing initially on accelerating collections and optimizing inventory for high-turnover products.",
+          "currentBaseline": "No reliable audited public financial baseline is available. Public domain analysis suggests potential for improvement in working capital management, including accounts receivable, accounts payable, and inventory turnover."
+        }
+      ],
+      "createdAt": "2026-06-13T06:28:43.637Z"
+    },
+    {
+      "id": "cmqbz5ilf000104kwso4f98t1",
+      "assessmentId": "cmqbz5ier000004kwiihwqs9n",
+      "type": "truth_layers",
+      "provider": "internal",
+      "model": null,
+      "promptVersion": null,
+      "data": [
+        {
+          "key": "financial",
+          "gaps": [
+            "No reliable audited public financial baseline has been confirmed.",
+            "Last 3 years revenue required.",
+            "Gross margin and EBITDA margin required.",
+            "Order book and open enquiries required.",
+            "Top customers and customer segments required.",
+            "Product-family revenue and margin required.",
+            "RFQ/proposal register required.",
+            "Win/loss data required.",
+            "Quotation cycle time required.",
+            "Customer qualification documents required.",
+            "ISO/ASME certificates with validity dates required.",
+            "Statutory documents required.",
+            "Supplier/subcontractor list required.",
+            "Capacity, machine loading and bottlenecks required.",
+            "AR/AP/inventory summary required.",
+            "Quality rejection/rework data required."
+          ],
+          "title": "Financial Truth Layer",
+          "_index": 0,
+          "evidence": [],
+          "findings": [
+            {
+              "id": "fnd-financial-1",
+              "text": "Assumption: DECON Technologies serves Oil & Gas, Power, Chemical and Process Industry customers.",
+              "impact": "medium",
+              "factIds": []
+            },
+            {
+              "id": "fnd-financial-2",
+              "text": "Assumption: DECON Technologies manufactures Machined castings, machined forgings, machined parts, rubber and moulded parts, drain valves, bellow sealed stop valves, gland sealed stop valves, valve manifolds and fittings.",
+              "impact": "medium",
+              "factIds": []
+            },
+            {
+              "id": "fnd-financial-3",
+              "text": "Assumption: DECON Technologies adheres to ISO 9001:2015 Quality Management System Standard.",
+              "impact": "medium",
+              "factIds": []
+            },
+            {
+              "id": "fnd-financial-4",
+              "text": "Assumption: DECON Technologies adheres to ISO 45001:2018 Occupational Health and Safety Standard.",
+              "impact": "medium",
+              "factIds": []
+            },
+            {
+              "id": "fnd-financial-5",
+              "text": "Assumption: DECON Technologies holds ASME-UV certification for Boiler and Pressure Vessel Code.",
+              "impact": "medium",
+              "factIds": []
+            },
+            {
+              "id": "fnd-financial-6",
+              "text": "Assumption: DECON Technologies has between 51-200 employees.",
+              "impact": "medium",
+              "factIds": []
+            },
+            {
+              "id": "fnd-financial-7",
+              "text": "Assumption: DECON Technologies was founded in 2016.",
+              "impact": "medium",
+              "factIds": []
+            },
+            {
+              "id": "fnd-financial-8",
+              "text": "Public Positioning: DECON Technologies is a Global Sourcing Partner for supply chain, engineering and marketing.",
+              "impact": "low",
+              "factIds": []
+            },
+            {
+              "id": "fnd-financial-9",
+              "text": "Diagnostic Limitation: This is a public-domain sample diagnostic and not an audit, valuation, credit report, statutory review, certification review, regulatory review, or customer approval assessment.",
+              "impact": "high",
+              "factIds": []
+            },
+            {
+              "id": "fnd-financial-10",
+              "text": "Validation Requirement: All financial and operational conclusions require internal validation.",
+              "impact": "high",
+              "factIds": []
+            }
+          ],
+          "confidence": "low",
+          "description": "Assesses the financial health and readiness of DECON Technologies based on available public domain information, highlighting data gaps and areas requiring internal validation.",
+          "contradictions": []
+        },
+        {
+          "key": "strategic",
+          "gaps": [
+            "No reliable audited public financial baseline has been confirmed.",
+            "Last 3 years revenue requires internal validation.",
+            "Gross margin and EBITDA margin require internal validation.",
+            "Order book and open enquiries require internal validation.",
+            "Top customers and customer segments require internal validation.",
+            "Product-family revenue and margin require internal validation.",
+            "RFQ/proposal register requires internal validation.",
+            "Win/loss data requires internal validation.",
+            "Quotation cycle time requires internal validation.",
+            "Customer qualification documents require internal validation.",
+            "ISO/ASME certificates with validity dates require internal validation.",
+            "Statutory documents require internal validation.",
+            "Supplier/subcontractor list requires internal validation.",
+            "Capacity, machine loading and bottlenecks require internal validation.",
+            "AR/AP/inventory summary require internal validation.",
+            "Quality rejection/rework data require internal validation."
+          ],
+          "title": "PulseIQ Strategic Truth Layer: DECON Technologies",
+          "_index": 1,
+          "evidence": [],
+          "findings": [
+            {
+              "id": "fnd-strategic-1",
+              "text": "DECON Technologies serves Oil & Gas, Power, Chemical, and Process Industries.",
+              "impact": "high",
+              "factIds": []
+            },
+            {
+              "id": "fnd-strategic-2",
+              "text": "DECON Technologies manufactures a range of products including machined castings, machined forgings, machined parts, rubber and moulded parts, drain valves, bellow sealed stop valves, gland sealed stop valves, valve manifolds and fittings.",
+              "impact": "high",
+              "factIds": []
+            },
+            {
+              "id": "fnd-strategic-3",
+              "text": "DECON Technologies holds ISO 9001:2015, ISO 45001:2018, and ASME-UV certifications.",
+              "impact": "high",
+              "factIds": []
+            },
+            {
+              "id": "fnd-strategic-4",
+              "text": "DECON Technologies has an employee range of 51-200 people.",
+              "impact": "medium",
+              "factIds": []
+            },
+            {
+              "id": "fnd-strategic-5",
+              "text": "DECON Technologies was founded in 2016.",
+              "impact": "medium",
+              "factIds": []
+            },
+            {
+              "id": "fnd-strategic-6",
+              "text": "Assumption: DECON Technologies is publicly positioned as a Global Sourcing Partner for supply chain, engineering, and marketing.",
+              "impact": "low",
+              "factIds": []
+            }
+          ],
+          "confidence": "medium",
+          "description": "Strategic overview of DECON Technologies based on public-domain data, highlighting capabilities, market position, and areas requiring internal validation for a comprehensive diagnostic.",
+          "contradictions": []
+        },
+        {
+          "key": "operational",
+          "gaps": [
+            "Lack of reliable audited public financial data including revenue, margins (gross and EBITDA), order book, working capital (AR/AP/inventory), and product-family profitability.",
+            "No visibility into RFQ/proposal register, win/loss data, quotation cycle time, and customer qualification documents.",
+            "No data available on manufacturing capacity, machine loading, bottlenecks, or quality rejection/rework data.",
+            "No readily available supplier/subcontractor list or specific customer segments.",
+            "Lack of verified ISO/ASME certificates with validity dates and other statutory documents."
+          ],
+          "title": "DECON Technologies Operational Readiness",
+          "_index": 2,
+          "evidence": [],
+          "findings": [
+            {
+              "id": "fnd-operational-1",
+              "text": "Assumption: DECON Technologies serves Oil & Gas, Power, Chemical and Process Industry customers. (Confidence: low)",
+              "impact": "high",
+              "factIds": []
+            },
+            {
+              "id": "fnd-operational-2",
+              "text": "DECON Technologies manufactures machined castings, machined forgings, machined parts, rubber and moulded parts, drain valves, bellow sealed stop valves, gland sealed stop valves, valve manifolds and fittings.",
+              "impact": "high",
+              "factIds": []
+            },
+            {
+              "id": "fnd-operational-3",
+              "text": "The company claims compliance with ISO 9001:2015 Quality Management System Standard.",
+              "impact": "high",
+              "factIds": []
+            },
+            {
+              "id": "fnd-operational-4",
+              "text": "The company claims compliance with ISO 45001:2018 Occupational Health and Safety Standard.",
+              "impact": "high",
+              "factIds": []
+            },
+            {
+              "id": "fnd-operational-5",
+              "text": "The company claims compliance with ASME-UV Boiler and Pressure Vessel Code Certification.",
+              "impact": "high",
+              "factIds": []
+            },
+            {
+              "id": "fnd-operational-6",
+              "text": "Assumption: DECON Technologies has 51-200 employees. (Confidence: low)",
+              "impact": "medium",
+              "factIds": []
+            },
+            {
+              "id": "fnd-operational-7",
+              "text": "Assumption: DECON Technologies was founded in 2016. (Confidence: low)",
+              "impact": "medium",
+              "factIds": []
+            },
+            {
+              "id": "fnd-operational-8",
+              "text": "DECON Technologies is publicly positioned as a Global Sourcing Partner for supply chain, engineering and marketing.",
+              "impact": "medium",
+              "factIds": []
+            }
+          ],
+          "confidence": "medium",
+          "description": "Assesses DECON Technologies' operational capabilities, standards compliance, and data availability for growth.",
+          "contradictions": []
+        },
+        {
+          "key": "process",
+          "gaps": [
+            "Gap: No reliable audited public financial baseline has been confirmed. Internal validation is required for all financial and operational conclusions.",
+            "Gap: Revenue, gross margin, EBITDA margin, order book, open enquiries, top customers, customer segments, product-family revenue and margin, RFQ/proposal register, win/loss data, quotation cycle time, customer qualification documents, ISO/ASME certificates with validity dates, statutory documents, supplier/subcontractor list, capacity, machine loading, bottlenecks, AR/AP/inventory summary, and quality rejection/rework data require internal validation.",
+            "Gap: Public-domain information is to be used for context, capability signals, standards-readiness signals, and internal-data requirements only. It should not be treated as audited financial evidence."
+          ],
+          "title": "DECON Technologies Process Diagnostic",
+          "_index": 3,
+          "evidence": [],
+          "findings": [
+            {
+              "id": "fnd-process-1",
+              "text": "Finding: DECON Technologies is ISO 9001:2015, ISO 45001:2018, and ASME-UV certified.",
+              "impact": "high",
+              "factIds": []
+            },
+            {
+              "id": "fnd-process-2",
+              "text": "Finding: DECON Technologies is positioning itself as a Global Sourcing Partner for supply chain, engineering, and marketing.",
+              "impact": "medium",
+              "factIds": []
+            },
+            {
+              "id": "fnd-process-3",
+              "text": "Finding: DECON Technologies manufactures a range of products including machined castings, forgings, parts, rubber and molded parts, and various types of valves and fittings.",
+              "impact": "high",
+              "factIds": []
+            },
+            {
+              "id": "fnd-process-4",
+              "text": "Assumption: DECON Technologies serves the Oil & Gas, Power, Chemical and Process industries.",
+              "impact": "high",
+              "factIds": []
+            },
+            {
+              "id": "fnd-process-5",
+              "text": "Finding: DECON Technologies has an employee range of 51-200 people.",
+              "impact": "medium",
+              "factIds": []
+            },
+            {
+              "id": "fnd-process-6",
+              "text": "Finding: DECON Technologies was founded in 2016.",
+              "impact": "high",
+              "factIds": []
+            }
+          ],
+          "confidence": "low",
+          "description": "This diagnostic assesses the readiness of DECON Technologies' internal processes for growth and validation, based on publicly available information and requirements for a comprehensive PulseIQ assessment.",
+          "contradictions": []
+        },
+        {
+          "key": "collaboration",
+          "gaps": [
+            "No specific information available regarding existing strategic partnerships or joint ventures.",
+            "Details on supplier collaboration, key suppliers, and sub-contractor relationships are not publicly disclosed.",
+            "Information on customer collaboration beyond industry served is not available.",
+            "No public data on participation in industry consortia or collaborative R&D projects.",
+            "Internal data requirements highlight gaps in understanding customer segments, order book, and pipeline visibility, which are crucial for assessing collaboration potential."
+          ],
+          "title": "DECON Technologies Collaboration & Readiness",
+          "_index": 4,
+          "evidence": [],
+          "findings": [
+            {
+              "id": "fnd-collaboration-1",
+              "text": "Public-domain Assumption: DECON Technologies positions itself as a Global Sourcing Partner for supply chain, engineering, and marketing, suggesting a willingness and capability to engage in collaborative ventures. (confidence: low)",
+              "impact": "medium",
+              "factIds": []
+            },
+            {
+              "id": "fnd-collaboration-2",
+              "text": "Public-domain Assumption: DECON Technologies serves Oil & Gas, Power, Chemical and Process Industry customers, indicating potential for collaboration within these sectors. (confidence: low)",
+              "impact": "medium",
+              "factIds": []
+            },
+            {
+              "id": "fnd-collaboration-3",
+              "text": "Public-domain Assumption: With 51-200 employees, DECON Technologies likely has the capacity for collaborative projects and may be looking for partners to scale or enhance offerings. (confidence: low)",
+              "impact": "medium",
+              "factIds": []
+            },
+            {
+              "id": "fnd-collaboration-4",
+              "text": "Public-domain Assumption: DECON Technologies manufactures a range of products including machined castings, machined forgings, machined parts, rubber and moulded parts, various types of valves, and fittings, presenting opportunities for supply chain collaboration. (confidence: low)",
+              "impact": "medium",
+              "factIds": []
+            },
+            {
+              "id": "fnd-collaboration-5",
+              "text": "Public-domain Assumption: Certification to ISO 9001:2015, ISO 45001:2018, and ASME-UV indicates a focus on quality and safety, which are crucial for reliable collaboration. (confidence: low)",
+              "impact": "medium",
+              "factIds": []
+            }
+          ],
+          "confidence": "low",
+          "description": "Assesses DECON Technologies' collaboration readiness based on public domain information, focusing on potential partnerships, supply chain integration, and overall business positioning.",
+          "contradictions": []
+        }
+      ],
+      "createdAt": "2026-06-13T06:28:42.723Z"
+    }
+  ]
+}

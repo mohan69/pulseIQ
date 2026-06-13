@@ -1,0 +1,99 @@
+(node:29880) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
+
+To prepare for this change:
+- If you want the current behavior, explicitly use 'sslmode=verify-full'
+- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'
+
+See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[PulseIQ Analysis] analysis_started {
+  assessmentId: 'cmqc72ndy00007ottg649a0e0',
+  provider: 'openrouter',
+  model: 'openrouter/auto'
+}
+[PulseIQ Analysis] source_loading_completed {
+  assessmentId: 'cmqc72ndy00007ottg649a0e0',
+  registeredSourceCount: 6,
+  parsedSourceCount: 1,
+  parsedDocumentCount: 1,
+  extractedTextCharacterCount: 10559,
+  notesOnlySourceCount: 5,
+  existingFactCount: 0
+}
+[PulseIQ Analysis] model_request_started {
+  assessmentId: 'cmqc72ndy00007ottg649a0e0',
+  provider: 'openrouter',
+  model: 'openrouter/auto',
+  stage: 'extract_business_facts'
+}
+[PulseIQ AI] request_started {
+  provider: 'openrouter',
+  model: 'openrouter/auto',
+  section: 'business_facts',
+  schemaName: 'business_facts',
+  timeoutMs: 20000
+}
+[PulseIQ AI] response_received {
+  provider: 'openrouter',
+  model: 'openrouter/auto',
+  section: 'business_facts',
+  schemaName: 'business_facts',
+  status: 200,
+  ok: true,
+  durationMs: 8650
+}
+[PulseIQ AI] json_parse_succeeded {
+  provider: 'openrouter',
+  model: 'openrouter/auto',
+  section: 'business_facts',
+  schemaName: 'business_facts',
+  attempt: 1
+}
+[PulseIQ Analysis] model_request_completed {
+  assessmentId: 'cmqc72ndy00007ottg649a0e0',
+  provider: 'openrouter',
+  model: 'openrouter/auto',
+  stage: 'extract_business_facts',
+  durationMs: 8659,
+  responseStatus: 'success',
+  jsonParseStatus: 'success'
+}
+[PulseIQ Analysis] database_save_started { assessmentId: 'cmqc72ndy00007ottg649a0e0', stage: 'fact_generation' }
+[PulseIQ Analysis] fact_generation_completed {
+  assessmentId: 'cmqc72ndy00007ottg649a0e0',
+  factsAdded: 6,
+  totalFactCount: 6,
+  sourcesAnalyzed: 1
+}
+[PulseIQ Analysis] truth_map_generation_completed { assessmentId: 'cmqc72ndy00007ottg649a0e0', layerCount: 5 }
+[PulseIQ Analysis] cockpit_generation_completed { assessmentId: 'cmqc72ndy00007ottg649a0e0', metricCount: 4 }
+[PulseIQ Analysis] scenario_generation_completed { assessmentId: 'cmqc72ndy00007ottg649a0e0', scenarioCount: 5 }
+[PulseIQ Analysis] recommendation_generation_completed { assessmentId: 'cmqc72ndy00007ottg649a0e0', recommendationCount: 10 }
+[PulseIQ Analysis] plan_generation_completed { assessmentId: 'cmqc72ndy00007ottg649a0e0', phaseCount: 4 }
+[PulseIQ Analysis] database_save_started { assessmentId: 'cmqc72ndy00007ottg649a0e0', stage: 'database_save' }
+[PulseIQ Analysis] database_save_completed {
+  assessmentId: 'cmqc72ndy00007ottg649a0e0',
+  outputCount: 5,
+  outputTypes: [ 'truth_layers', 'cockpit', 'scenarios', 'recommendations', 'plan' ]
+}
+[PulseIQ Analysis] report_generation_completed {
+  assessmentId: 'cmqc72ndy00007ottg649a0e0',
+  confidence: 'low',
+  dataGapCount: 7
+}
+[PulseIQ Analysis] readiness_profile_generation_completed {
+  assessmentId: 'cmqc72ndy00007ottg649a0e0',
+  standardsReadinessScore: 0,
+  customerQualificationReadiness: 0,
+  supplierQualificationHealth: 0
+}
+[PulseIQ Analysis] analysis_finished {
+  assessmentId: 'cmqc72ndy00007ottg649a0e0',
+  finalStatus: 'analysis_ready',
+  provider: 'openrouter',
+  model: 'openrouter/auto',
+  fallbackUsed: false,
+  fallbackStages: []
+}
+FINAL_RESULT {"ok":true,"assessmentId":"cmqc72ndy00007ottg649a0e0","provider":"openrouter","factsAdded":6,"sourcesAnalyzed":1,"message":"Analysis ready."}

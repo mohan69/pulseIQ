@@ -779,6 +779,14 @@ class OpenAICompatibleEngine implements AIEngine {
   ): Promise<string> {
     const timeoutMs = aiRequestTimeoutMs();
     let res: Response;
+    const startedAt = Date.now();
+    console.info("[PulseIQ AI] request_started", {
+      provider: this.provider,
+      model: this.model,
+      section,
+      schemaName,
+      timeoutMs,
+    });
     try {
       res = await fetch(joinUrl(this.baseUrl, "/chat/completions"), {
         method: "POST",
@@ -822,6 +830,15 @@ class OpenAICompatibleEngine implements AIEngine {
       );
     }
     const data = await res.json().catch(() => ({}));
+    console.info("[PulseIQ AI] response_received", {
+      provider: this.provider,
+      model: this.model,
+      section,
+      schemaName,
+      status: res.status,
+      ok: res.ok,
+      durationMs: Date.now() - startedAt,
+    });
     if (!res.ok) {
       const message =
         typeof data?.error?.message === "string"
@@ -840,8 +857,25 @@ class OpenAICompatibleEngine implements AIEngine {
   ): Promise<T> {
     const raw = await this.callModel(prompt, section, schema, schemaName);
     const first = validateProviderOutput(section, raw, schema, schemaName);
-    if (first.success) return first.data;
+    if (first.success) {
+      console.info("[PulseIQ AI] json_parse_succeeded", {
+        provider: this.provider,
+        model: this.model,
+        section,
+        schemaName,
+        attempt: 1,
+      });
+      return first.data;
+    }
 
+    console.warn("[PulseIQ AI] json_parse_failed", {
+      provider: this.provider,
+      model: this.model,
+      section,
+      schemaName,
+      attempt: 1,
+      diagnostics: first.diagnostics,
+    });
     logSchemaDiagnostics(this.provider, this.model, section, first.diagnostics, 1);
     const repairPrompt = buildRepairPrompt(
       section,
@@ -862,8 +896,25 @@ class OpenAICompatibleEngine implements AIEngine {
       schema,
       schemaName,
     );
-    if (repaired.success) return repaired.data;
+    if (repaired.success) {
+      console.info("[PulseIQ AI] json_parse_succeeded", {
+        provider: this.provider,
+        model: this.model,
+        section,
+        schemaName,
+        attempt: 2,
+      });
+      return repaired.data;
+    }
 
+    console.warn("[PulseIQ AI] json_parse_failed", {
+      provider: this.provider,
+      model: this.model,
+      section,
+      schemaName,
+      attempt: 2,
+      diagnostics: repaired.diagnostics,
+    });
     logSchemaDiagnostics(
       this.provider,
       this.model,

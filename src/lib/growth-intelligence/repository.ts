@@ -233,10 +233,15 @@ export function createGrowthRepository(client: PrismaClient) {
           where: activeTenantWhere(identity.orgId),
         }),
       ]);
-      if (existingAccounts > 0 && existingAudits > 0) return false;
+      if (
+        existingAccounts >= demoGrowthAccounts.length &&
+        existingAudits >= demoGrowthAuditLogs.length
+      ) {
+        return false;
+      }
 
       await client.$transaction(async (tx) => {
-        if (existingAccounts === 0) {
+        if (existingAccounts < demoGrowthAccounts.length) {
           for (const account of demoGrowthAccounts) {
             const input: GrowthAccountInput = {
               companyName: account.companyName,

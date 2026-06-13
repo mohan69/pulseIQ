@@ -260,7 +260,7 @@ export async function analyzeAssessmentAction(
     });
     result = {
       ok: false,
-      message: "Analysis could not be started. Check server logs and retry.",
+      message: "Unknown server error. Check server logs and retry.",
     };
   }
   revalidatePath(`/app/assessments/${assessmentId}`);
