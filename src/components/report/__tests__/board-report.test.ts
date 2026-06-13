@@ -112,14 +112,47 @@ describe("Board report", () => {
     const sixty = testSection(markup, "roadmap-60");
     const ninety = testSection(markup, "roadmap-90");
 
+    expect(thirty).toContain("Establish trusted baseline");
+    expect(thirty).toContain("CFO/COO-approved evidence baseline");
     expect(thirty).toContain("Validate internal financial baseline");
     expect(thirty).toContain("Index critical statutory and standards documents");
+    expect(sixty).toContain("Build qualification and control systems");
+    expect(sixty).toContain(
+      "Customer-ready qualification and governance pack",
+    );
     expect(sixty).toContain("Build customer qualification pack");
     expect(sixty).toContain("Implement AI output review workflow");
+    expect(ninety).toContain(
+      "Institutionalize operating intelligence cadence",
+    );
+    expect(ninety).toContain(
+      "Monthly board operating-intelligence rhythm",
+    );
     expect(ninety).toContain("Board operating cadence");
     expect(ninety).toContain(
       "Scalable PulseIQ operating intelligence rhythm",
     );
+  });
+
+  it("adds Board interpretation and readiness decision boundaries", async () => {
+    const markup = renderToStaticMarkup(await BoardReportPage(pageProps));
+
+    expect(markup).toContain("Board interpretation");
+    expect(markup).toContain(
+      "The current public-domain evidence base is useful for opportunity identification, but not yet sufficient for management decisioning.",
+    );
+    expect(markup).toContain(
+      "This indicates the evidence base is not yet sufficient for customer qualification, audit readiness, or board-level performance decisions without internal validation.",
+    );
+  });
+
+  it("uses a non-numeric Appendix A source coverage label", async () => {
+    const markup = renderToStaticMarkup(await BoardReportPage(pageProps));
+
+    expect(markup).toContain(
+      "Source coverage: Available in Detailed Workbench Report",
+    );
+    expect(markup).not.toContain("Evidence references");
   });
 
   it("keeps the existing report route and detailed route rendering", async () => {
@@ -181,6 +214,10 @@ describe("Board report", () => {
     expect(markup).not.toMatch(
       /\b(certification|statutory approval|customer approval)\s+(completed|confirmed|granted)\b/i,
     );
+    expect(DIAGNOSTIC_DISCLAIMER).toContain("do not provide ISO certification");
+    expect(DIAGNOSTIC_DISCLAIMER).toContain("statutory audit");
+    expect(DIAGNOSTIC_DISCLAIMER).toContain("regulatory approval");
+    expect(DIAGNOSTIC_DISCLAIMER).toContain("formal customer approval");
   });
 });
 

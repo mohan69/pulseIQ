@@ -62,7 +62,8 @@ type PriorityDecisionRow = {
 const PROFESSIONAL_ROADMAP = [
   {
     window: "30 days",
-    title: "Validate and index the baseline",
+    title: "Establish trusted baseline",
+    outcome: "CFO/COO-approved evidence baseline",
     actions: [
       "Validate internal financial baseline",
       "Build product-family revenue/margin view",
@@ -73,6 +74,7 @@ const PROFESSIONAL_ROADMAP = [
   {
     window: "60 days",
     title: "Build qualification and control systems",
+    outcome: "Customer-ready qualification and governance pack",
     actions: [
       "Build customer qualification pack",
       "Establish supplier qualification tracker",
@@ -82,7 +84,8 @@ const PROFESSIONAL_ROADMAP = [
   },
   {
     window: "90 days",
-    title: "Establish the operating rhythm",
+    title: "Institutionalize operating intelligence cadence",
+    outcome: "Monthly board operating-intelligence rhythm",
     actions: [
       "Board operating cadence",
       "Customer audit readiness pack",
@@ -190,6 +193,7 @@ export function BoardReport({
             label="Overall readiness posture"
             value={`${postureScore}%`}
             detail={postureLabel(postureScore)}
+            note="This indicates the evidence base is not yet sufficient for customer qualification, audit readiness, or board-level performance decisions without internal validation."
           />
           <DecisionMetric
             label="Critical readiness gaps"
@@ -280,6 +284,21 @@ export function BoardReport({
               ))}
             </tbody>
           </table>
+        </div>
+        <div
+          className="board-interpretation board-avoid-break mt-6 rounded-xl border border-accent/25 bg-accent-muted p-5"
+          data-testid="board-interpretation"
+        >
+          <h3 className="text-sm font-bold text-foreground">
+            Board interpretation
+          </h3>
+          <p className="mt-2 text-sm leading-relaxed text-foreground-secondary">
+            The current public-domain evidence base is useful for opportunity
+            identification, but not yet sufficient for management decisioning.
+            The first 30 days should focus on internal baseline validation,
+            evidence ownership, customer qualification readiness, and operating
+            cadence.
+          </p>
         </div>
         <BoardPageFooter />
       </section>
@@ -375,21 +394,29 @@ export function BoardReport({
               className="board-roadmap-card board-avoid-break rounded-xl border border-border p-5"
               data-testid={`roadmap-${phase.window.split(" ")[0]}`}
             >
-              <div className="grid gap-4 md:grid-cols-[130px_1fr] print:grid-cols-[28mm_1fr]">
+              <div className="grid gap-4 md:grid-cols-[220px_1fr] print:grid-cols-[48mm_1fr]">
                 <div>
                   <Badge>{phase.window}</Badge>
                   <h3 className="mt-3 text-base font-bold text-foreground">
                     {phase.title}
                   </h3>
                 </div>
-                <ul className="grid gap-2 text-sm text-foreground-secondary md:grid-cols-2 print:grid-cols-2">
-                  {phase.actions.map((action) => (
-                    <li key={action} className="flex items-start gap-2">
-                      <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-                      {action}
-                    </li>
-                  ))}
-                </ul>
+                <div>
+                  <ul className="grid gap-2 text-sm text-foreground-secondary md:grid-cols-2 print:grid-cols-2">
+                    {phase.actions.map((action) => (
+                      <li key={action} className="flex items-start gap-2">
+                        <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                        {action}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-4 border-t border-border pt-3">
+                    <p className="text-sm text-foreground-secondary">
+                      <span className="font-bold text-foreground">Outcome:</span>{" "}
+                      {phase.outcome}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           ))}
@@ -414,7 +441,6 @@ export function BoardReport({
                   "Truth area",
                   "Confidence",
                   "Findings indexed",
-                  "Evidence references",
                   "Priority validation gap",
                 ].map((heading) => (
                   <th key={heading}>{heading}</th>
@@ -427,14 +453,16 @@ export function BoardReport({
                   <td className="font-semibold">{layer.title}</td>
                   <td className="capitalize">{layer.confidence}</td>
                   <td>{layer.findings.length}</td>
-                  <td>{layer.evidence.length}</td>
                   <td>{layer.gaps[0] ?? "No priority gap recorded"}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <p className="mt-5 text-xs leading-relaxed text-muted">
+        <p className="mt-5 text-xs font-semibold leading-relaxed text-foreground-secondary">
+          Source coverage: Available in Detailed Workbench Report
+        </p>
+        <p className="mt-2 text-xs leading-relaxed text-muted">
           Detailed findings, contradictions, source excerpts, scenarios, and
           recommendations remain available in the Detailed Workbench Report
           for internal review.
@@ -704,10 +732,12 @@ function DecisionMetric({
   label,
   value,
   detail,
+  note,
 }: {
   label: string;
   value: string;
   detail: string;
+  note?: string;
 }) {
   return (
     <div className="board-decision-metric board-avoid-break rounded-xl border border-border bg-background-alt p-5">
@@ -716,6 +746,13 @@ function DecisionMetric({
       </div>
       <div className="mt-3 text-2xl font-bold text-foreground">{value}</div>
       <div className="mt-1 text-xs text-foreground-secondary">{detail}</div>
+      {note && (
+        <div className="mt-3 border-t border-border pt-3">
+          <p className="text-xs leading-relaxed text-foreground-secondary">
+            {note}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
