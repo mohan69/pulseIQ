@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   contactVerificationLabel,
   formatFollowUpDate,
+  GROWTH_INTERNAL_WORKSPACE_NOTICE,
   normalizeGrowthProductNames,
   removeRepeatedEvidenceLabel,
 } from "@/lib/growth-intelligence/presentation";
@@ -16,6 +17,13 @@ describe("growth intelligence presentation", () => {
     ).toBe(
       "RightSense can route to PulseIQ, WinsProposal, or TalentPulse.",
     );
+    expect(
+      normalizeGrowthProductNames(
+        "Offer the rightsense diagnostic before pulseiq, winsproposal, and talentpulse.",
+      ),
+    ).toBe(
+      "Offer the RightSense diagnostic before PulseIQ, WinsProposal, and TalentPulse.",
+    );
   });
 
   it("removes a repeated Evidence needed label", () => {
@@ -24,6 +32,12 @@ describe("growth intelligence presentation", () => {
         "Evidence needed: approved workflow and source records.",
       ),
     ).toBe("approved workflow and source records.");
+  });
+
+  it("uses internal, review-first workspace wording", () => {
+    expect(GROWTH_INTERNAL_WORKSPACE_NOTICE).toBe(
+      "Internal RightSense Growth Intelligence workspace. Tenant-scoped demo and approved account data only. Drafts require human approval; PulseIQ does not send outbound messages.",
+    );
   });
 
   it("marks stale or invalid follow-up dates safely", () => {
