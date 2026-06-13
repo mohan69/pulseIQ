@@ -14,41 +14,73 @@ export const MICROFINISH_PUBLIC_DOMAIN_NAME =
 export const MICROFINISH_DISCLAIMER =
   "This is a public-domain sample diagnostic. It is not an audit, valuation, credit report, or assessment of actual internal performance. Public financial signals are directional and require internal validation. Sample targets are illustrative only and are not Microfinish management targets. No claim is made regarding audited consolidated group revenue.";
 
+export const PUBLIC_DOMAIN_DISCLAIMER =
+  "This is a public-domain sample diagnostic. It is not an audit, valuation, credit report, or assessment of actual internal performance. Financial and operational baselines require approved internal data and human validation.";
+
 export function isMicrofinishPublicDomain(
   assessment: Assessment | undefined,
 ): boolean {
   return assessment?.companyName === MICROFINISH_PUBLIC_DOMAIN_NAME;
 }
 
+export function isPublicDomainAssessment(
+  assessment: Assessment | undefined,
+): boolean {
+  if (!assessment) return false;
+  if (isMicrofinishPublicDomain(assessment)) return true;
+
+  const name = assessment.companyName
+    .toLowerCase()
+    .replace(/[_\u2010-\u2015-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return [
+    /\bpublic domain\b/,
+    /\bpublic source(?:d)?\b/,
+    /\bpublic sample\b/,
+    /\bsample diagnostic\b/,
+  ].some((marker) => marker.test(name));
+}
+
 export function presentCockpit(
   assessment: Assessment | undefined,
   cockpit: Cockpit,
 ): Cockpit {
-  if (!isMicrofinishPublicDomain(assessment)) return cockpit;
+  if (!isPublicDomainAssessment(assessment)) return cockpit;
+  const isMicrofinish = isMicrofinishPublicDomain(assessment);
   return {
     ...cockpit,
     metrics: cockpit.metrics.map((metric) => {
+      if (!isMicrofinish && isRevenueMetric(metric)) {
+        return internalDataMetric(
+          metric,
+          "Revenue actual",
+          "Requires internal validation. No confirmed public financial baseline is available.",
+        );
+      }
+      if (!isMicrofinish && isMarginMetric(metric)) {
+        return internalDataMetric(
+          metric,
+          "Margin actual",
+          "Requires internal data. No confirmed public margin baseline is available.",
+        );
+      }
       if (isCashVisibilityMetric(metric)) {
-        return {
-          ...metric,
-          label: "Working capital visibility",
-          value: 0,
-          target: 0,
-          status: "at_risk",
-          note:
-            "Requires internal data. Working capital visibility requires AR, AP, inventory, and open order backlog exports.",
-        };
+        return internalDataMetric(
+          metric,
+          "Working capital visibility",
+          "Requires internal data. Working capital visibility requires AR, AP, inventory, and open order backlog exports.",
+        );
       }
       if (isProductivityMetric(metric)) {
-        return {
-          ...metric,
-          label: "Revenue per employee / productivity",
-          value: 0,
-          target: 0,
-          status: "at_risk",
-          note:
-            "Requires confirmed headcount and consolidated revenue. Public headcount signals must not be presented as a firm productivity metric.",
-        };
+        return internalDataMetric(
+          metric,
+          "Revenue per employee / productivity",
+          isMicrofinish
+            ? "Requires confirmed headcount and consolidated revenue. Public headcount signals must not be presented as a firm productivity metric."
+            : "Requires internal data. Confirmed headcount and revenue are required before calculating RPE.",
+        );
       }
       return metric;
     }),
@@ -75,7 +107,14 @@ export function presentReport(
   assessment: Assessment | undefined,
   report: Report | undefined,
 ): Report | undefined {
-  if (!report || !isMicrofinishPublicDomain(assessment)) return report;
+  if (!report || !isPublicDomainAssessment(assessment)) return report;
+  if (!isMicrofinishPublicDomain(assessment)) {
+    return {
+      ...report,
+      executiveSummary: `${PUBLIC_DOMAIN_DISCLAIMER} The diagnostic synthesises ${report.sourceCount} registered public-domain source${report.sourceCount === 1 ? "" : "s"} into company-context findings, evidence-readiness gaps, and an internal data request without asserting a confirmed financial baseline. ${DIAGNOSTIC_DISCLAIMER}`,
+      cockpit: presentCockpit(assessment, report.cockpit),
+    };
+  }
   return {
     ...report,
     executiveSummary: `${MICROFINISH_DISCLAIMER} The sample synthesises ${report.sourceCount} public-domain sources into directional operating hypotheses, compliance and standards readiness gaps, supplier and prequalification evidence needs, AI governance controls, validation priorities, and a practical internal data request. ${DIAGNOSTIC_DISCLAIMER}`,
@@ -92,10 +131,41 @@ export function metricRequiresInternalData(
   assessment: Assessment | undefined,
   metric: CockpitMetric,
 ): boolean {
+  if (isMicrofinishPublicDomain(assessment)) {
+    return isCashVisibilityMetric(metric) || isProductivityMetric(metric);
+  }
   return (
-    isMicrofinishPublicDomain(assessment) &&
-    (isCashVisibilityMetric(metric) || isProductivityMetric(metric))
+    isPublicDomainAssessment(assessment) &&
+    (isRevenueMetric(metric) ||
+      isMarginMetric(metric) ||
+      isCashVisibilityMetric(metric) ||
+      isProductivityMetric(metric))
   );
+}
+
+function internalDataMetric(
+  metric: CockpitMetric,
+  label: string,
+  note: string,
+): CockpitMetric {
+  return {
+    ...metric,
+    label,
+    value: 0,
+    target: 0,
+    status: "at_risk",
+    note,
+  };
+}
+
+function isRevenueMetric(metric: CockpitMetric): boolean {
+  const value = `${metric.key} ${metric.label}`.toLowerCase();
+  return value.includes("revenue") && !isProductivityMetric(metric);
+}
+
+function isMarginMetric(metric: CockpitMetric): boolean {
+  const value = `${metric.key} ${metric.label}`.toLowerCase();
+  return value.includes("margin");
 }
 
 function isCashVisibilityMetric(metric: CockpitMetric): boolean {
