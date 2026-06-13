@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { ShieldCheck, Sparkles } from "lucide-react";
+import { GROWTH_INTERNAL_WORKSPACE_NOTICE } from "@/lib/growth-intelligence/presentation";
 
 export function AppContextNotice() {
   const pathname = usePathname();
@@ -14,14 +15,7 @@ export function AppContextNotice() {
       <div className="mb-6 rounded-xl border border-success/20 bg-success-muted px-4 py-3 text-sm text-foreground-secondary">
         <div className="flex items-start gap-2">
           <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-          <p>
-            <span className="font-semibold text-foreground">
-              Internal Growth Intelligence sandbox.
-            </span>{" "}
-            Records are tenant-scoped illustrative samples. Contacts require
-            manual verification, drafts require human approval, and no
-            outbound messages are sent by PulseIQ.
-          </p>
+          <p>{GROWTH_INTERNAL_WORKSPACE_NOTICE}</p>
         </div>
       </div>
     );

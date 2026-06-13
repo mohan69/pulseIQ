@@ -1,5 +1,8 @@
 import type { GrowthContactCandidate } from "./types";
 
+export const GROWTH_INTERNAL_WORKSPACE_NOTICE =
+  "Internal RightSense Growth Intelligence workspace. Tenant-scoped demo and approved account data only. Drafts require human approval; PulseIQ does not send outbound messages.";
+
 const PRODUCT_NAMES: Array<[RegExp, string]> = [
   [/\bright\s*sense\b/gi, "RightSense"],
   [/\bpulse\s*iq\b/gi, "PulseIQ"],

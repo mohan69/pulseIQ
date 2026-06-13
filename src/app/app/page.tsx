@@ -24,14 +24,18 @@ import {
   Clock,
   Sparkles,
 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
 import { resolveAIEngineConfig } from "@/lib/ai";
 import { DiagnosticScope } from "@/components/workbench/DiagnosticScope";
+import {
+  assessmentCardPresentation,
+  dashboardAssessmentSummary,
+} from "@/lib/assessment/list-presentation";
 
 export const dynamic = "force-dynamic";
 
 export default async function WorkbenchDashboardPage() {
   const assessments = await listAssessments();
+  const assessmentSummary = dashboardAssessmentSummary(assessments);
   const aiConfig = resolveAIEngineConfig();
   const dataMode = process.env.PULSEIQ_DATA_MODE === "database" ? "Database" : "Memory";
   const internalMode = process.env.INTERNAL_APP_MODE === "true";
@@ -43,9 +47,9 @@ export default async function WorkbenchDashboardPage() {
   const stats = [
     {
       key: "assessments",
-      label: "Assessments",
-      value: assessments.length.toString(),
-      hint: `${assessments.filter((a) => a.status === "draft").length} draft`,
+      label: "Visible assessments",
+      value: assessmentSummary.visibleCount.toString(),
+      hint: `${assessmentSummary.featured.length} featured below`,
       icon: Building2,
       color: "accent",
     },
@@ -165,10 +169,10 @@ export default async function WorkbenchDashboardPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-semibold text-foreground">
-              Recent assessments
+              Featured assessments
             </h2>
             <p className="text-sm text-muted">
-              Latest work in flight. Click any row to open the assessment.
+              Latest public-domain diagnostics, ordered for demo review.
             </p>
           </div>
           <Link
@@ -180,40 +184,47 @@ export default async function WorkbenchDashboardPage() {
           </Link>
         </div>
         <div className="grid gap-3">
-          {assessments.slice(0, 4).map((a) => (
-            <Link
-              key={a.id}
-              href={`/app/assessments/${a.id}`}
-              className="block group"
-            >
-              <Card className="p-5 hover:shadow-md hover:border-accent/30 transition-all">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Building2 className="h-4 w-4 text-muted shrink-0" />
-                      <h3 className="text-base font-semibold text-foreground group-hover:text-accent transition-colors truncate">
-                        {a.companyName}
-                      </h3>
-                      <StatusPill status={a.status} />
+          {assessmentSummary.featured.map((a) => {
+            const presentation = assessmentCardPresentation(a);
+            return (
+              <Link
+                key={a.id}
+                href={`/app/assessments/${a.id}`}
+                className="block group"
+              >
+                <Card className="p-5 hover:shadow-md hover:border-accent/30 transition-all">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Building2 className="h-4 w-4 text-muted shrink-0" />
+                        <h3 className="text-base font-semibold text-foreground group-hover:text-accent transition-colors truncate">
+                          {a.companyName}
+                        </h3>
+                        <StatusPill status={a.status} />
+                        {presentation.label && (
+                          <Badge variant="outline">{presentation.label}</Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 text-sm text-muted">
+                        <span className="capitalize">{a.industry.replace(/_/g, " ")}</span>
+                        <span className="w-1 h-1 rounded-full bg-border" />
+                        <span className="capitalize">{a.objective.replace(/_/g, " ")}</span>
+                      </div>
+                      {presentation.description && (
+                        <p className="mt-2 text-xs text-foreground-secondary">
+                          {presentation.description}
+                        </p>
+                      )}
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-muted">
-                      <span className="capitalize">{a.industry.replace(/_/g, " ")}</span>
-                      <span className="w-1 h-1 rounded-full bg-border" />
-                      <span className="capitalize">{a.objective.replace(/_/g, " ")}</span>
-                      <span className="w-1 h-1 rounded-full bg-border" />
-                      <span>
-                        Target {formatCurrency(a.revenueTarget)} · {a.marginTarget}%
-                      </span>
+                    <div className="flex items-center gap-1.5 text-sm text-accent font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                      Open
+                      <ArrowRight className="h-4 w-4" />
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5 text-sm text-accent font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                    Open
-                    <ArrowRight className="h-4 w-4" />
-                  </div>
-                </div>
-              </Card>
-            </Link>
-          ))}
+                </Card>
+              </Link>
+            );
+          })}
           {assessments.length === 0 && (
             <Card className="p-10 text-center">
               <div className="text-muted mb-3">No assessments yet.</div>

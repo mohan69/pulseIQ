@@ -18,8 +18,12 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
-import type { AssessmentStatus } from "@/lib/assessment/types";
+import type { Assessment, AssessmentStatus } from "@/lib/assessment/types";
 import { DeleteAssessmentButton } from "@/components/workbench/DeleteAssessmentButton";
+import {
+  assessmentCardPresentation,
+  orderAssessmentsForDisplay,
+} from "@/lib/assessment/list-presentation";
 
 const DEMO_ASSESSMENT_ID = "asm-bharat-heavy-fabrications";
 
@@ -27,6 +31,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AssessmentsListPage() {
   const assessments = await listAssessments();
+  const orderedAssessments = orderAssessmentsForDisplay(assessments);
 
   return (
     <div className="space-y-6">
@@ -71,7 +76,7 @@ export default async function AssessmentsListPage() {
         </Card>
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
-          {assessments.map((a) => (
+          {orderedAssessments.map((a) => (
             <Card
               key={a.id}
               className="h-full hover:shadow-md hover:border-accent/30 transition-all"
@@ -100,23 +105,7 @@ export default async function AssessmentsListPage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-3 gap-3 mb-4">
-                    <Stat
-                      icon={IndianRupee}
-                      label="Revenue target"
-                      value={formatCurrency(a.revenueTarget)}
-                    />
-                    <Stat
-                      icon={TrendingUp}
-                      label="Margin target"
-                      value={`${a.marginTarget}%`}
-                    />
-                    <Stat
-                      icon={Target}
-                      label="Cash target"
-                      value={formatCurrency(a.cashTarget)}
-                    />
-                  </div>
+                  <AssessmentCardFinancialSummary assessment={a} />
                   <div className="flex items-center justify-between pt-3 border-t border-border-subtle">
                     <div className="text-xs text-muted">
                       Updated {new Date(a.updatedAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
@@ -140,6 +129,58 @@ export default async function AssessmentsListPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export function AssessmentCardFinancialSummary({
+  assessment,
+}: {
+  assessment: Assessment;
+}) {
+  const presentation = assessmentCardPresentation(assessment);
+
+  if (presentation.kind === "public-domain") {
+    return (
+      <div className="mb-4 rounded-lg border border-info/20 bg-info-muted p-3">
+        <Badge variant="outline">{presentation.label}</Badge>
+        <div className="mt-2 text-sm font-semibold text-foreground">
+          Financial baseline requires internal validation
+        </div>
+        <div className="mt-1 text-xs text-foreground-secondary">
+          No internal financial data used
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {presentation.kind === "internal-demo" && (
+        <div className="mb-3">
+          <Badge variant="outline">{presentation.label}</Badge>
+          <p className="mt-1 text-xs text-foreground-secondary">
+            {presentation.description}
+          </p>
+        </div>
+      )}
+      <div className="grid grid-cols-3 gap-3 mb-4">
+        <Stat
+          icon={IndianRupee}
+          label="Revenue target"
+          value={formatCurrency(assessment.revenueTarget)}
+        />
+        <Stat
+          icon={TrendingUp}
+          label="Margin target"
+          value={`${assessment.marginTarget}%`}
+        />
+        <Stat
+          icon={Target}
+          label="Cash target"
+          value={formatCurrency(assessment.cashTarget)}
+        />
+      </div>
+    </>
   );
 }
 
