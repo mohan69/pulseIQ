@@ -1,4 +1,5 @@
 import { DIAGNOSTIC_PILLARS } from "@/lib/diagnostic-positioning";
+import { financialSignalsForAccount } from "@/lib/growth-intelligence/financials";
 import type {
   GrowthAccountInput,
   GrowthAccountIntelligence,
@@ -242,6 +243,7 @@ function readinessGaps(input: {
 export function generateGrowthIntelligence(
   input: GrowthAccountInput,
 ): GrowthGenerationResult {
+  const financialContext = financialSignalsForAccount(input);
   const sourceText = [
     input.companyName,
     input.industry,
@@ -263,12 +265,14 @@ export function generateGrowthIntelligence(
     `${input.targetPersona} ${input.contactRole}`,
   );
   const offset = stableOffset(sourceText, 9);
-  const route = productRoute(
-    winsHits,
-    pulseHits,
-    talentHits,
-    governanceHits,
-  );
+  const route = financialContext.publicContextProfile
+    ? "PulseIQ"
+    : productRoute(
+        winsHits,
+        pulseHits,
+        talentHits,
+        governanceHits,
+      );
   const pillar = diagnosticPillar(
     winsHits,
     pulseHits,
@@ -371,6 +375,8 @@ export function generateGrowthIntelligence(
     bestPersonaToApproach: bestPersona,
     conversationAngle: `Lead with ${persona.angle}; validate current workflows, systems, evidence, and readiness gaps before recommending ${routeLabel}.`,
     recommendedNextAction: `Offer the RightSense 48-Hour Diagnostic. Then validate the likely product route: ${route}. Personalize one draft and obtain human approval before outreach to ${bestPersona}.`,
+    financialSignals: financialContext.financialSignals,
+    publicContextProfile: financialContext.publicContextProfile,
   };
 
   const rightSenseFitScores: RightSenseFitScores | undefined =
