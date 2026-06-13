@@ -12,6 +12,43 @@ export type GrowthPipelineStatus =
   | "Pilot / Deal Won"
   | "Nurture / Lost";
 
+export type GrowthFinancialState =
+  | "Financials found"
+  | "Financial range only"
+  | "Financials not found"
+  | "Entity ambiguity detected"
+  | "Requires internal validation";
+
+export type GrowthEntityMatchStatus =
+  | "Confirmed"
+  | "Probable"
+  | "Unconfirmed"
+  | "Ambiguous";
+
+export type GrowthFinancialSignals = {
+  state: GrowthFinancialState;
+  revenue: string;
+  sourceName: string;
+  sourceUrl: string;
+  financialYear: string;
+  confidence: GrowthContactConfidence;
+  entityMatchStatus: GrowthEntityMatchStatus;
+  validationNote: string;
+  guidance: string[];
+};
+
+export type GrowthPublicContextProfile = {
+  website: string;
+  industry: string;
+  location: string;
+  employeeSignal: string;
+  employeeSource: string;
+  certifications: string[];
+  certificationSource: string;
+  certificationValidationNote: string;
+  recommendedInternalDataRequest: string[];
+};
+
 export type GrowthAccountIntelligence = {
   companySummary: string;
   likelyBusinessModel: string;
@@ -25,6 +62,8 @@ export type GrowthAccountIntelligence = {
   bestPersonaToApproach: string;
   conversationAngle: string;
   recommendedNextAction: string;
+  financialSignals: GrowthFinancialSignals;
+  publicContextProfile?: GrowthPublicContextProfile;
 };
 
 export type GrowthFitScores = {
@@ -173,6 +212,8 @@ export type GrowthResearchResult = {
   segment: string;
   sizeBand: string;
   productsOrServices: string[];
+  financialSignals: GrowthFinancialSignals;
+  publicContextProfile?: GrowthPublicContextProfile;
   likelyBusinessModel: string;
   publicSignals: GrowthPublicSignal[];
   likelyReadinessGaps: string[];
