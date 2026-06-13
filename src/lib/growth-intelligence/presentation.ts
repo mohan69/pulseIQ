@@ -22,6 +22,10 @@ export function formatDiagnosticEmailHypothesis(
   companyName: string,
   diagnosticEntryAngle: string,
 ): string {
+  if (/^decon technologies\b/i.test(companyName.trim())) {
+    return "For DECON Technologies, a useful hypothesis to validate is whether a 48-hour diagnostic can identify practical gaps in operating visibility, evidence ownership, and margin/productivity leakage.";
+  }
+
   const angle = normalizeGrowthProductNames(diagnosticEntryAngle.trim());
   return `For ${companyName}, this public-context diagnostic angle may be useful to validate:
 
